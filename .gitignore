@@ -170,3 +170,6 @@ core/.serena/project.yml
 
 
 *.venv*
+
+# local ci
+.localci.toml
