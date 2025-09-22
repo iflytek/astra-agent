@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.dto.user;
+package com.iflytek.astra.console.commons.dto.user;
 
-import com.iflytek.stellar.console.commons.enums.user.WordsTypeEnum;
+import com.iflytek.astra.console.commons.enums.user.WordsTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

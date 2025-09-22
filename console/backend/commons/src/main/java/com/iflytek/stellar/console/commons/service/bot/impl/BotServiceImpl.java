@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.service.bot.impl;
+package com.iflytek.astra.console.commons.service.bot.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -6,23 +6,23 @@ import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.data.UserInfoDataService;
-import com.iflytek.stellar.console.commons.entity.bot.*;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
-import com.iflytek.stellar.console.commons.enums.ShelfStatusEnum;
-import com.iflytek.stellar.console.commons.enums.bot.BotTypeEnum;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
-import com.iflytek.stellar.console.commons.mapper.bot.ChatBotBaseMapper;
-import com.iflytek.stellar.console.commons.service.bot.*;
-import com.iflytek.stellar.console.commons.service.data.ChatListDataService;
-import com.iflytek.stellar.console.commons.service.data.DatasetDataService;
-import com.iflytek.stellar.console.commons.service.data.UserLangChainDataService;
-import com.iflytek.stellar.console.commons.service.data.UserLangChainLogService;
-import com.iflytek.stellar.console.commons.util.BotFileParamUtil;
-import com.iflytek.stellar.console.commons.util.I18nUtil;
-import com.iflytek.stellar.console.commons.util.MaasUtil;
-import com.iflytek.stellar.console.commons.util.RequestContextUtil;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.data.UserInfoDataService;
+import com.iflytek.astra.console.commons.entity.bot.*;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.enums.ShelfStatusEnum;
+import com.iflytek.astra.console.commons.enums.bot.BotTypeEnum;
+import com.iflytek.astra.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.mapper.bot.ChatBotBaseMapper;
+import com.iflytek.astra.console.commons.service.bot.*;
+import com.iflytek.astra.console.commons.service.data.ChatListDataService;
+import com.iflytek.astra.console.commons.service.data.DatasetDataService;
+import com.iflytek.astra.console.commons.service.data.UserLangChainDataService;
+import com.iflytek.astra.console.commons.service.data.UserLangChainLogService;
+import com.iflytek.astra.console.commons.util.BotFileParamUtil;
+import com.iflytek.astra.console.commons.util.I18nUtil;
+import com.iflytek.astra.console.commons.util.MaasUtil;
+import com.iflytek.astra.console.commons.util.RequestContextUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -366,7 +366,7 @@ public class BotServiceImpl implements BotService {
             chatBotMarketService.
                     // Update market
                             updateBotMarketStatus(uid, botId);
-            // Find flowId to synchronize to Stellar, then publish
+            // Find flowId to synchronize to Astra, then publish
             UserLangChainInfo userLangChainInfo = userLangChainDataService.findOneByBotId(botId);
             // Here it may not be orchestrated yet, need to check
             if (Objects.nonNull(userLangChainInfo)) {

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

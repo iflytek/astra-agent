@@ -620,7 +620,7 @@ const translation = {
     relatedKnowledgeModal: {
       title: 'Select Knowledge Base',
       versionSelection: 'Version Selection',
-      xingchen: 'Stellar',
+      xingchen: 'Astra',
       xingpu: 'Spark',
       personal: 'Individual Edition',
       createTime: 'Create Time',

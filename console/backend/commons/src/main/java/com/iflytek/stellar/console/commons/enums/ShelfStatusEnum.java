@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.enums;
+package com.iflytek.astra.console.commons.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

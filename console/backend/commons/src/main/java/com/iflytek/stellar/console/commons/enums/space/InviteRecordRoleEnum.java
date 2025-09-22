@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.enums.space;
+package com.iflytek.astra.console.commons.enums.space;
 
 public enum InviteRecordRoleEnum {
 

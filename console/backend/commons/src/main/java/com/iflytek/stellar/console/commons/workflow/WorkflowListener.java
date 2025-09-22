@@ -1,14 +1,14 @@
-package com.iflytek.stellar.console.commons.workflow;
+package com.iflytek.astra.console.commons.workflow;
 
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.constant.RedisKeyConstant;
-import com.iflytek.stellar.console.commons.entity.workflow.WorkflowEventData;
-import com.iflytek.stellar.console.commons.entity.chat.ChatReqRecords;
-import com.iflytek.stellar.console.commons.service.WssListenerService;
-import com.iflytek.stellar.console.commons.util.SseEmitterUtil;
+import com.iflytek.astra.console.commons.constant.RedisKeyConstant;
+import com.iflytek.astra.console.commons.entity.workflow.WorkflowEventData;
+import com.iflytek.astra.console.commons.entity.chat.ChatReqRecords;
+import com.iflytek.astra.console.commons.service.WssListenerService;
+import com.iflytek.astra.console.commons.util.SseEmitterUtil;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;

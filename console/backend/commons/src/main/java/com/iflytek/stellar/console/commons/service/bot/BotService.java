@@ -1,10 +1,10 @@
-package com.iflytek.stellar.console.commons.service.bot;
+package com.iflytek.astra.console.commons.service.bot;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.entity.bot.BotCreateForm;
-import com.iflytek.stellar.console.commons.entity.bot.BotInfoDto;
-import com.iflytek.stellar.console.commons.entity.bot.BotTypeList;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotBase;
+import com.iflytek.astra.console.commons.entity.bot.BotCreateForm;
+import com.iflytek.astra.console.commons.entity.bot.BotInfoDto;
+import com.iflytek.astra.console.commons.entity.bot.BotTypeList;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotBase;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;

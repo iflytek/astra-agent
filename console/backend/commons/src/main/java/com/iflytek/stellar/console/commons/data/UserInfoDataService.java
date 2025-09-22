@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.data;
+package com.iflytek.astra.console.commons.data;
 
 
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
 
 import java.util.Collection;
 import java.util.List;

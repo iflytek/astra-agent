@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.util.space;
+package com.iflytek.astra.console.commons.util.space;
 
-import com.iflytek.stellar.console.commons.enums.space.EnterpriseServiceTypeEnum;
+import com.iflytek.astra.console.commons.enums.space.EnterpriseServiceTypeEnum;
 import lombok.Builder;
 import lombok.Data;
 

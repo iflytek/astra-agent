@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.dto.bot;
+package com.iflytek.astra.console.commons.dto.bot;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

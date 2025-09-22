@@ -1,8 +1,8 @@
-package com.iflytek.stellar.console.commons.config;
+package com.iflytek.astra.console.commons.config;
 
-import com.iflytek.stellar.console.commons.data.UserInfoDataService;
-import com.iflytek.stellar.console.commons.dto.user.JwtInfoDto;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.data.UserInfoDataService;
+import com.iflytek.astra.console.commons.dto.user.JwtInfoDto;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

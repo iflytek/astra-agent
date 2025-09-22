@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.workflow;
+package com.iflytek.astra.console.commons.workflow;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;

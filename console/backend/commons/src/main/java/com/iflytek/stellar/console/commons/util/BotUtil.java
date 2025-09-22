@@ -1,13 +1,13 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.entity.bot.BotCreateForm;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotBase;
-import com.iflytek.stellar.console.commons.entity.workflow.Workflow;
-import com.iflytek.stellar.console.commons.service.bot.BotService;
-import com.iflytek.stellar.console.commons.service.bot.ChatBotDataService;
+import com.iflytek.astra.console.commons.entity.bot.BotCreateForm;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotBase;
+import com.iflytek.astra.console.commons.entity.workflow.Workflow;
+import com.iflytek.astra.console.commons.service.bot.BotService;
+import com.iflytek.astra.console.commons.service.bot.ChatBotDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

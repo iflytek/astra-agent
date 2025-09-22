@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.commons.service.data.impl;
+package com.iflytek.astra.console.commons.service.data.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.iflytek.stellar.console.commons.entity.bot.BotDataset;
-import com.iflytek.stellar.console.commons.entity.bot.DatasetInfo;
-import com.iflytek.stellar.console.commons.mapper.bot.BotDatasetMapper;
-import com.iflytek.stellar.console.commons.mapper.bot.DatasetInfoMapper;
-import com.iflytek.stellar.console.commons.service.data.IDatasetInfoService;
+import com.iflytek.astra.console.commons.entity.bot.BotDataset;
+import com.iflytek.astra.console.commons.entity.bot.DatasetInfo;
+import com.iflytek.astra.console.commons.mapper.bot.BotDatasetMapper;
+import com.iflytek.astra.console.commons.mapper.bot.DatasetInfoMapper;
+import com.iflytek.astra.console.commons.service.data.IDatasetInfoService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

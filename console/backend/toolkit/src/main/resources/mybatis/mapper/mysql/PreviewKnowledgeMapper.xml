@@ -3,10 +3,10 @@
 <!--
 PreviewKnowledge Mapper
 -->
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.knowledge.PreviewKnowledgeMapper">
-    <resultMap id="resultMap" type="com.iflytek.stellar.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.knowledge.PreviewKnowledgeMapper">
+    <resultMap id="resultMap" type="com.iflytek.astra.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
         <result column="content" property="content"
-                typeHandler="com.iflytek.stellar.console.toolkit.handler.MySqlJsonHandler"
+                typeHandler="com.iflytek.astra.console.toolkit.handler.MySqlJsonHandler"
         />
     </resultMap>
     <!--
@@ -14,7 +14,7 @@ PreviewKnowledge Mapper
         @param fileId the file identifier
         @return List<MysqlPreviewKnowledge>
     -->
-    <select id="findByFileId" resultType="com.iflytek.stellar.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
+    <select id="findByFileId" resultType="com.iflytek.astra.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
         SELECT * FROM preview_knowledge WHERE file_id = #{fileId}
     </select>
 
@@ -41,7 +41,7 @@ PreviewKnowledge Mapper
         @param fileIds list of file identifiers
         @return List<MysqlPreviewKnowledge>
     -->
-    <select id="findByFileIdIn" resultType="com.iflytek.stellar.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
+    <select id="findByFileIdIn" resultType="com.iflytek.astra.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
         SELECT * FROM preview_knowledge WHERE file_id IN
         <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
             #{fileId}
@@ -66,7 +66,7 @@ PreviewKnowledge Mapper
         @param fileIds list of file identifiers
         @return List<MysqlPreviewKnowledge>
     -->
-    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.stellar.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
+    <select id="findByFileIdInAndAuditType" resultType="com.iflytek.astra.console.toolkit.entity.table.knowledge.MysqlPreviewKnowledge">
         SELECT * FROM preview_knowledge WHERE file_id IN
         <foreach collection="fileIds" item="fileId" open="(" separator="," close=")">
             #{fileId}

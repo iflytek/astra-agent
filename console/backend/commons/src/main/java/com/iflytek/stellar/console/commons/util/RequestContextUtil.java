@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
-import com.iflytek.stellar.console.commons.config.JwtClaimsFilter;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.config.JwtClaimsFilter;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.exception.BusinessException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;

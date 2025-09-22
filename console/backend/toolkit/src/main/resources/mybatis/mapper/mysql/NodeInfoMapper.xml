@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.trace.NodeInfoMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.trace.NodeInfoMapper">
 
 
-    <select id="selectMarkedNodePage" resultType="com.iflytek.stellar.console.toolkit.entity.dto.eval.NodeDataDto">
+    <select id="selectMarkedNodePage" resultType="com.iflytek.astra.console.toolkit.entity.dto.eval.NodeDataDto">
         select n.*,d.mark_data from node_info n join effect_eval_task_node_mark_data d
         on n.id = d.node_info_id
         <where>
@@ -22,14 +22,14 @@
         </where>
     </select>
 
-    <select id="selectMarkedInIdList" resultType="com.iflytek.stellar.console.toolkit.entity.dto.eval.NodeDataDto">
+    <select id="selectMarkedInIdList" resultType="com.iflytek.astra.console.toolkit.entity.dto.eval.NodeDataDto">
         select n.*,d.mark_data from node_info n join effect_eval_task_node_mark_data d
         on n.id = d.node_info_id
         where n.id in
         <foreach item="id" index="index" collection="list" open="(" separator="," close=")">#{id}</foreach>
     </select>
 
-    <select id="selectMarkedNodeList" resultType="com.iflytek.stellar.console.toolkit.entity.dto.eval.NodeDataDto">
+    <select id="selectMarkedNodeList" resultType="com.iflytek.astra.console.toolkit.entity.dto.eval.NodeDataDto">
         select n.*,d.mark_data from node_info n join effect_eval_task_node_mark_data d
         on n.id = d.node_info_id
         <where>
@@ -45,7 +45,7 @@
         </where>
     </select>
 
-    <select id="selectMarkedNodeList2" resultType="com.iflytek.stellar.console.toolkit.entity.dto.eval.NodeDataDto">
+    <select id="selectMarkedNodeList2" resultType="com.iflytek.astra.console.toolkit.entity.dto.eval.NodeDataDto">
         select n.*,d.mark_data from node_info n join effect_eval_task_node_mark_data d
         on n.id = d.node_info_id
         <where>
@@ -59,7 +59,7 @@
             </if>
         </where>
     </select>
-    <select id="getNodeErrorInfo" resultType="com.iflytek.stellar.console.toolkit.entity.vo.WorkflowErrorModelVo">
+    <select id="getNodeErrorInfo" resultType="com.iflytek.astra.console.toolkit.entity.vo.WorkflowErrorModelVo">
 
         select node_name nodeName
         from node_info

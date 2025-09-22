@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.toolkit.service.database;
+package com.iflytek.astra.console.toolkit.service.database;
 
-import com.iflytek.stellar.console.toolkit.entity.dto.database.DatabaseDto;
-import com.iflytek.stellar.console.toolkit.entity.dto.database.DbTableDto;
-import com.iflytek.stellar.console.toolkit.entity.dto.database.DbTableFieldDto;
-import com.iflytek.stellar.console.toolkit.entity.enumVo.DBOperateEnum;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbInfo;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbTable;
+import com.iflytek.astra.console.toolkit.entity.dto.database.DatabaseDto;
+import com.iflytek.astra.console.toolkit.entity.dto.database.DbTableDto;
+import com.iflytek.astra.console.toolkit.entity.dto.database.DbTableFieldDto;
+import com.iflytek.astra.console.toolkit.entity.enumVo.DBOperateEnum;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbInfo;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbTable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;

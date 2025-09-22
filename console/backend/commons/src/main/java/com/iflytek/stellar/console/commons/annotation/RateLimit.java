@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.annotation;
+package com.iflytek.astra.console.commons.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.chat;
+package com.iflytek.astra.console.commons.entity.chat;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.annotation.TableField;

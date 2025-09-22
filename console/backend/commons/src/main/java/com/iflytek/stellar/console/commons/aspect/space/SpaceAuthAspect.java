@@ -1,15 +1,15 @@
-package com.iflytek.stellar.console.commons.aspect.space;
+package com.iflytek.astra.console.commons.aspect.space;
 
 
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.response.ApiResult;
-import com.iflytek.stellar.console.commons.util.RequestContextUtil;
-import com.iflytek.stellar.console.commons.annotation.space.SpacePreAuth;
-import com.iflytek.stellar.console.commons.entity.space.SpacePermission;
-import com.iflytek.stellar.console.commons.entity.space.SpaceUser;
-import com.iflytek.stellar.console.commons.enums.space.SpaceRoleEnum;
-import com.iflytek.stellar.console.commons.service.space.EnterpriseSpaceService;
-import com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.response.ApiResult;
+import com.iflytek.astra.console.commons.util.RequestContextUtil;
+import com.iflytek.astra.console.commons.annotation.space.SpacePreAuth;
+import com.iflytek.astra.console.commons.entity.space.SpacePermission;
+import com.iflytek.astra.console.commons.entity.space.SpaceUser;
+import com.iflytek.astra.console.commons.enums.space.SpaceRoleEnum;
+import com.iflytek.astra.console.commons.service.space.EnterpriseSpaceService;
+import com.iflytek.astra.console.commons.util.space.SpaceInfoUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -27,7 +27,7 @@ public class SpaceAuthAspect {
     @Autowired
     private EnterpriseSpaceService enterpriseSpaceService;
 
-    @Pointcut("@annotation(com.iflytek.stellar.console.commons.annotation.space.SpacePreAuth)")
+    @Pointcut("@annotation(com.iflytek.astra.console.commons.annotation.space.SpacePreAuth)")
     public void annotatedMethod() {}
 
     @Around("annotatedMethod()")

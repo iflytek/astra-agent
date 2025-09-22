@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.dto.space;
+package com.iflytek.astra.console.commons.dto.space;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;

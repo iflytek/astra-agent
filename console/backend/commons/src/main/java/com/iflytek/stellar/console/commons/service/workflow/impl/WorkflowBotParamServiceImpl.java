@@ -1,15 +1,15 @@
-package com.iflytek.stellar.console.commons.service.workflow.impl;
+package com.iflytek.astra.console.commons.service.workflow.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.entity.bot.BotChatFileParam;
-import com.iflytek.stellar.console.commons.entity.chat.ChatFileReq;
-import com.iflytek.stellar.console.commons.entity.chat.ChatFileUser;
-import com.iflytek.stellar.console.commons.entity.chat.ChatReqModel;
-import com.iflytek.stellar.console.commons.entity.chat.ChatReqModelDto;
-import com.iflytek.stellar.console.commons.service.data.ChatDataService;
-import com.iflytek.stellar.console.commons.service.workflow.WorkflowBotParamService;
+import com.iflytek.astra.console.commons.entity.bot.BotChatFileParam;
+import com.iflytek.astra.console.commons.entity.chat.ChatFileReq;
+import com.iflytek.astra.console.commons.entity.chat.ChatFileUser;
+import com.iflytek.astra.console.commons.entity.chat.ChatReqModel;
+import com.iflytek.astra.console.commons.entity.chat.ChatReqModelDto;
+import com.iflytek.astra.console.commons.service.data.ChatDataService;
+import com.iflytek.astra.console.commons.service.workflow.WorkflowBotParamService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

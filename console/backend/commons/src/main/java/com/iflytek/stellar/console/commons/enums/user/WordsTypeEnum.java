@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.enums.user;
+package com.iflytek.astra.console.commons.enums.user;
 
 import java.util.Arrays;
 

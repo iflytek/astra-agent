@@ -76,7 +76,7 @@ mvn test -pl hub
 
 ```
 src/test/java/
-├── com/iflytek/stellar/console/hub/
+├── com/iflytek/astra/console/hub/
 │   ├── config/
 │   │   └── TestConfig.java              # Test configuration class
 │   └── data/

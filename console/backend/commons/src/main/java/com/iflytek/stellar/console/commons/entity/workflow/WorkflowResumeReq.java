@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.workflow;
+package com.iflytek.astra.console.commons.entity.workflow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.constant;
+package com.iflytek.astra.console.commons.constant;
 
 /**
  * Response code enumeration class

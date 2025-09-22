@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.enums.space;
+package com.iflytek.astra.console.commons.enums.space;
 
 // Invitation type: 1 space, 2 team
 public enum InviteRecordTypeEnum {

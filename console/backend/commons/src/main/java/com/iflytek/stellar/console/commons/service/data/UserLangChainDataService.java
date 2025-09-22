@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.service.data;
+package com.iflytek.astra.console.commons.service.data;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.entity.bot.UserLangChainInfo;
+import com.iflytek.astra.console.commons.entity.bot.UserLangChainInfo;
 
 import java.util.List;
 import java.util.Set;

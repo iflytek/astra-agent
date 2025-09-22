@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.mapper.bot;
+package com.iflytek.astra.console.commons.mapper.bot;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotTag;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotTag;
 
 public interface ChatBotTagMapper extends BaseMapper<ChatBotTag> {
 }

@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.aspect;
+package com.iflytek.astra.console.commons.aspect;
 
-import com.iflytek.stellar.console.commons.annotation.RateLimit;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
-import com.iflytek.stellar.console.commons.util.RequestContextUtil;
+import com.iflytek.astra.console.commons.annotation.RateLimit;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.util.RequestContextUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +41,7 @@ public class RateLimitAspect {
     @Value("${rate-limit.limit:10}")
     private int defaultLimit;
 
-    @Before("@annotation(com.iflytek.stellar.console.commons.annotation.RateLimit)")
+    @Before("@annotation(com.iflytek.astra.console.commons.annotation.RateLimit)")
     public void checkRateLimit(JoinPoint joinPoint) {
         if (redissonClient == null) {
             log.warn("RedissonClient not available, rate limiting disabled");

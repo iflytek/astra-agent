@@ -1,10 +1,10 @@
-package com.iflytek.stellar.console.commons.service.data.impl;
+package com.iflytek.astra.console.commons.service.data.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.iflytek.stellar.console.commons.entity.bot.UserLangChainLog;
-import com.iflytek.stellar.console.commons.mapper.UserLangChainLogMapper;
-import com.iflytek.stellar.console.commons.service.data.UserLangChainLogService;
+import com.iflytek.astra.console.commons.entity.bot.UserLangChainLog;
+import com.iflytek.astra.console.commons.mapper.UserLangChainLogMapper;
+import com.iflytek.astra.console.commons.service.data.UserLangChainLogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

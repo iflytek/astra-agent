@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.toolkit.service.database;
+package com.iflytek.astra.console.toolkit.service.database;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;

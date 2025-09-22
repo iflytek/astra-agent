@@ -1,13 +1,13 @@
-package com.iflytek.stellar.console.commons.service.data.impl;
+package com.iflytek.astra.console.commons.service.data.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.iflytek.stellar.console.commons.entity.bot.BotDataset;
-import com.iflytek.stellar.console.commons.entity.bot.DatasetFile;
-import com.iflytek.stellar.console.commons.entity.bot.DatasetInfo;
-import com.iflytek.stellar.console.commons.mapper.bot.BotDatasetMapper;
-import com.iflytek.stellar.console.commons.mapper.bot.DatasetFileMapper;
-import com.iflytek.stellar.console.commons.mapper.bot.DatasetInfoMapper;
-import com.iflytek.stellar.console.commons.service.data.DatasetDataService;
+import com.iflytek.astra.console.commons.entity.bot.BotDataset;
+import com.iflytek.astra.console.commons.entity.bot.DatasetFile;
+import com.iflytek.astra.console.commons.entity.bot.DatasetInfo;
+import com.iflytek.astra.console.commons.mapper.bot.BotDatasetMapper;
+import com.iflytek.astra.console.commons.mapper.bot.DatasetFileMapper;
+import com.iflytek.astra.console.commons.mapper.bot.DatasetInfoMapper;
+import com.iflytek.astra.console.commons.service.data.DatasetDataService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.model;
+package com.iflytek.astra.console.commons.entity.model;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.annotation.IdType;

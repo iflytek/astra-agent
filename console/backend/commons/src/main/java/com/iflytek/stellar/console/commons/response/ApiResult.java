@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.response;
+package com.iflytek.astra.console.commons.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
-import com.iflytek.stellar.console.commons.util.I18nUtil;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.util.I18nUtil;
 
 @JsonInclude(JsonInclude.Include.ALWAYS)
 public record ApiResult<T>(int code, String message, T data, Long timestamp) {

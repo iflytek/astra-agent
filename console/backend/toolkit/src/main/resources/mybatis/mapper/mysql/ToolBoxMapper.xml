@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.tool.ToolBoxMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.tool.ToolBoxMapper">
     <select id="getModelListCountByCondition" resultType="java.lang.Integer">
         select
             count(1)
@@ -50,7 +50,7 @@
         </where>
     </select>
 
-    <select id="getModelListByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="getModelListByCondition" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select t.* from
         tool_box t
         join
@@ -97,7 +97,7 @@
         <if test="limit != null"> LIMIT <if test="start != null">#{start},</if>#{limit} </if>
     </select>
 
-    <select id="getModelListSquareByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="getModelListSquareByCondition" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select *
         from tool_box t1
         join
@@ -164,16 +164,16 @@
             <if test="start != null">#{start},</if>#{limit} </if>
     </select>
 
-    <select id="selectPublicTool" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="selectPublicTool" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select * from tool_box where deleted = 0 and is_public = 1
     </select>
-    <select id="findById" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="findById" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select * from tool_box where
         deleted = 0
 <!--        and is_public = 1-->
         and id = #{toolId}
     </select>
-    <select id="getToolByIds" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="getToolByIds" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select * from tool_box
         <where>
             <if test="favorites!=null and favorites.size()>0">
@@ -193,7 +193,7 @@
         where
         x.tool_id = #{toolId};
     </select>
-    <select id="getBatchBotUsedCount" resultType="com.iflytek.stellar.console.toolkit.entity.vo.BotUsedToolVo">
+    <select id="getBatchBotUsedCount" resultType="com.iflytek.astra.console.toolkit.entity.vo.BotUsedToolVo">
         SELECT
         x.tool_id toolId ,
         COUNT(*) botUsedCount
@@ -229,7 +229,7 @@
         SELECT heat_value from tool_box_heat_value
         WHERE tool_name = #{name}
     </select>
-    <select id="getToolsLastVersion" resultType="com.iflytek.stellar.console.toolkit.entity.table.tool.ToolBox">
+    <select id="getToolsLastVersion" resultType="com.iflytek.astra.console.toolkit.entity.table.tool.ToolBox">
         select t.* from
         tool_box t
         join

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.enums.bot;
+package com.iflytek.astra.console.commons.enums.bot;
 
 import com.alibaba.fastjson2.JSONObject;
 

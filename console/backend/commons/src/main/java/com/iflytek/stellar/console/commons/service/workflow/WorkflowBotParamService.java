@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.service.workflow;
+package com.iflytek.astra.console.commons.service.workflow;
 
 import com.alibaba.fastjson2.JSONObject;
 

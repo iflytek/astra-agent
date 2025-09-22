@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.service.data;
+package com.iflytek.astra.console.commons.service.data;
 
-import com.iflytek.stellar.console.commons.dto.llm.SparkChatRequest;
-import com.iflytek.stellar.console.commons.entity.chat.ChatModelMeta;
-import com.iflytek.stellar.console.commons.entity.chat.ChatReqModelDto;
-import com.iflytek.stellar.console.commons.entity.chat.ChatRequestDtoList;
+import com.iflytek.astra.console.commons.dto.llm.SparkChatRequest;
+import com.iflytek.astra.console.commons.entity.chat.ChatModelMeta;
+import com.iflytek.astra.console.commons.entity.chat.ChatReqModelDto;
+import com.iflytek.astra.console.commons.entity.chat.ChatRequestDtoList;
 
 import java.util.List;
 

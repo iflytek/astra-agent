@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.mapper.bot;
+package com.iflytek.astra.console.commons.mapper.bot;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.dto.bot.BotFavoriteQueryDto;
-import com.iflytek.stellar.console.commons.entity.bot.BotFavorite;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotMarketPage;
+import com.iflytek.astra.console.commons.dto.bot.BotFavoriteQueryDto;
+import com.iflytek.astra.console.commons.entity.bot.BotFavorite;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotMarketPage;
 
 import java.util.LinkedList;
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.relation.FlowDbRelMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.relation.FlowDbRelMapper">
     <insert id="insertBatch">
         INSERT INTO flow_db_rel (flow_id, db_id,tb_id, create_time,update_time)
         VALUES
@@ -12,7 +12,7 @@
 
 
     <select id="selectCountsByDbIds"
-            resultType="com.iflytek.stellar.console.toolkit.entity.dto.database.DbTableCountDto">
+            resultType="com.iflytek.astra.console.toolkit.entity.dto.database.DbTableCountDto">
         SELECT db_id as dbId,count(DISTINCT flow_id) as count FROM flow_db_rel
         <where>
             and db_id in

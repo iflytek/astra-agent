@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.repo.RepoMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.repo.RepoMapper">
     <select id="getListInUuids" resultType="Repo">
         select * from repo where core_repo_id in
         <foreach item="id" index="index" collection="list" open="(" separator="," close=")">#{id}</foreach>
@@ -11,12 +11,12 @@
         select r.core_repo_id  from bot_repo_subscript brs left join repo r
         on brs.repo_id = r.id where brs.app_id = #{appId}
     </select>
-    <select id="listInRepoCoreIds" resultType="com.iflytek.stellar.console.toolkit.entity.table.repo.Repo">
+    <select id="listInRepoCoreIds" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.Repo">
         select * from  repo where core_repo_id in
         <foreach collection="coreRepoIds" item="coreRepoId" open="(" close=")" separator=","> #{coreRepoId}</foreach>
     </select>
 
-    <select id="list" resultType="com.iflytek.stellar.console.toolkit.entity.dto.RepoDto">
+    <select id="list" resultType="com.iflytek.astra.console.toolkit.entity.dto.RepoDto">
         select t1.* from (
         select t2.* from
         repo t2
@@ -65,7 +65,7 @@
 <!--        <if test="limit != null"> LIMIT <if test="start != null">#{start},</if>#{limit} </if>-->
 <!--    </select>-->
 
-    <select id="getModelListByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.dto.RepoDto">
+    <select id="getModelListByCondition" resultType="com.iflytek.astra.console.toolkit.entity.dto.RepoDto">
         select t1.* from (
         select * from repo where
         <if test="spaceId != null">

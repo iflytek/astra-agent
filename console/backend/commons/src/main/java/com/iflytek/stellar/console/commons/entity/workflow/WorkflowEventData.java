@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.workflow;
+package com.iflytek.astra.console.commons.entity.workflow;
 
 import com.google.common.collect.Maps;
 import lombok.*;

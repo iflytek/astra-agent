@@ -1,10 +1,10 @@
-package com.iflytek.stellar.console.commons.service.space.impl;
+package com.iflytek.astra.console.commons.service.space.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.iflytek.stellar.console.commons.entity.space.SpacePermission;
-import com.iflytek.stellar.console.commons.mapper.space.SpacePermissionMapper;
-import com.iflytek.stellar.console.commons.service.space.SpacePermissionService;
+import com.iflytek.astra.console.commons.entity.space.SpacePermission;
+import com.iflytek.astra.console.commons.mapper.space.SpacePermissionMapper;
+import com.iflytek.astra.console.commons.service.space.SpacePermissionService;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;

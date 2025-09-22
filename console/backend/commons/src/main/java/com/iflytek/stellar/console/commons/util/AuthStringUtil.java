@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 
 import javax.crypto.Mac;

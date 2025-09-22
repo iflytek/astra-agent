@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.service.bot.impl;
+package com.iflytek.astra.console.commons.service.bot.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.iflytek.stellar.console.commons.entity.bot.BotDataset;
-import com.iflytek.stellar.console.commons.mapper.bot.BotDatasetMapper;
-import com.iflytek.stellar.console.commons.service.bot.BotDatasetService;
+import com.iflytek.astra.console.commons.entity.bot.BotDataset;
+import com.iflytek.astra.console.commons.mapper.bot.BotDatasetMapper;
+import com.iflytek.astra.console.commons.service.bot.BotDatasetService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

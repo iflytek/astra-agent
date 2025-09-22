@@ -1,15 +1,15 @@
-package com.iflytek.stellar.console.commons.service.workflow.impl;
+package com.iflytek.astra.console.commons.service.workflow.impl;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotBase;
-import com.iflytek.stellar.console.commons.entity.bot.UserLangChainInfo;
-import com.iflytek.stellar.console.commons.entity.workflow.CloneSynchronize;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
-import com.iflytek.stellar.console.commons.service.bot.ChatBotDataService;
-import com.iflytek.stellar.console.commons.service.data.UserLangChainDataService;
-import com.iflytek.stellar.console.commons.service.workflow.WorkflowBotService;
-import com.iflytek.stellar.console.commons.util.MaasUtil;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotBase;
+import com.iflytek.astra.console.commons.entity.bot.UserLangChainInfo;
+import com.iflytek.astra.console.commons.entity.workflow.CloneSynchronize;
+import com.iflytek.astra.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.service.bot.ChatBotDataService;
+import com.iflytek.astra.console.commons.service.data.UserLangChainDataService;
+import com.iflytek.astra.console.commons.service.workflow.WorkflowBotService;
+import com.iflytek.astra.console.commons.util.MaasUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;

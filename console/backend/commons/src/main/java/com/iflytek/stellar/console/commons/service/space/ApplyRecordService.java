@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.service.space;
+package com.iflytek.astra.console.commons.service.space;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.commons.dto.space.ApplyRecordParam;
-import com.iflytek.stellar.console.commons.dto.space.ApplyRecordVO;
-import com.iflytek.stellar.console.commons.entity.space.ApplyRecord;
+import com.iflytek.astra.console.commons.dto.space.ApplyRecordParam;
+import com.iflytek.astra.console.commons.dto.space.ApplyRecordVO;
+import com.iflytek.astra.console.commons.entity.space.ApplyRecord;
 
 /**
  * Application records for joining space/enterprise

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.bot;
+package com.iflytek.astra.console.commons.entity.bot;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Pattern;

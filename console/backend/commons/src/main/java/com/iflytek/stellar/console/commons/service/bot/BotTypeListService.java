@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.service.bot;
+package com.iflytek.astra.console.commons.service.bot;
 
-import com.iflytek.stellar.console.commons.entity.bot.BotTypeList;
+import com.iflytek.astra.console.commons.entity.bot.BotTypeList;
 
 import java.util.List;
 

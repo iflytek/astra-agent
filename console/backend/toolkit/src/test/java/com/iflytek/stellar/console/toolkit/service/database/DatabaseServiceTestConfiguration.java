@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.toolkit.service.database;
+package com.iflytek.astra.console.toolkit.service.database;
 
-import com.iflytek.stellar.console.toolkit.config.properties.CommonConfig;
-import com.iflytek.stellar.console.toolkit.mapper.ConfigInfoMapper;
-import com.iflytek.stellar.console.toolkit.mapper.relation.FlowDbRelMapper;
-import com.iflytek.stellar.console.toolkit.service.extra.CoreSystemService;
-import com.iflytek.stellar.console.toolkit.tool.DataPermissionCheckTool;
-import com.iflytek.stellar.console.toolkit.util.S3Util;
+import com.iflytek.astra.console.toolkit.config.properties.CommonConfig;
+import com.iflytek.astra.console.toolkit.mapper.ConfigInfoMapper;
+import com.iflytek.astra.console.toolkit.mapper.relation.FlowDbRelMapper;
+import com.iflytek.astra.console.toolkit.service.extra.CoreSystemService;
+import com.iflytek.astra.console.toolkit.tool.DataPermissionCheckTool;
+import com.iflytek.astra.console.toolkit.util.S3Util;
 import org.jooq.DSLContext;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringBootConfiguration;
@@ -25,13 +25,13 @@ import org.springframework.context.annotation.ComponentScan;
                 org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration.class
 })
 @ComponentScan(basePackages = {
-                "com.iflytek.stellar.console.toolkit.service.database",
-                "com.iflytek.stellar.console.toolkit.mapper.database"
+                "com.iflytek.astra.console.toolkit.service.database",
+                "com.iflytek.astra.console.toolkit.mapper.database"
 })
 @EntityScan(basePackages = {
-                "com.iflytek.stellar.console.toolkit.entity.table.database"
+                "com.iflytek.astra.console.toolkit.entity.table.database"
 })
-@MapperScan("com.iflytek.stellar.console.toolkit.mapper")
+@MapperScan("com.iflytek.astra.console.toolkit.mapper")
 public class DatabaseServiceTestConfiguration {
 
     // Mock所有DatabaseService需要的外部依赖

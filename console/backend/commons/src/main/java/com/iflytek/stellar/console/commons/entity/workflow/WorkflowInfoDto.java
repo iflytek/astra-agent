@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.workflow;
+package com.iflytek.astra.console.commons.entity.workflow;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

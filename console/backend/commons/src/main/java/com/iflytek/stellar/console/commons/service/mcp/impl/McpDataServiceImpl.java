@@ -1,10 +1,10 @@
-package com.iflytek.stellar.console.commons.service.mcp.impl;
+package com.iflytek.astra.console.commons.service.mcp.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.iflytek.stellar.console.commons.entity.model.McpData;
-import com.iflytek.stellar.console.commons.mapper.model.McpDataMapper;
-import com.iflytek.stellar.console.commons.service.mcp.McpDataService;
+import com.iflytek.astra.console.commons.entity.model.McpData;
+import com.iflytek.astra.console.commons.mapper.model.McpDataMapper;
+import com.iflytek.astra.console.commons.service.mcp.McpDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

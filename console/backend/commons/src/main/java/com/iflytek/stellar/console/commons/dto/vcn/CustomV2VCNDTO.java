@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.dto.vcn;
+package com.iflytek.astra.console.commons.dto.vcn;
 
 import lombok.Data;
 

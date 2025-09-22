@@ -1,1 +1,1 @@
-# Stellar Agent 星辰Agent平台
+# Astra Agent 星辰Agent平台

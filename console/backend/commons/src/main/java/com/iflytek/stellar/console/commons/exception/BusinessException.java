@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.exception;
+package com.iflytek.astra.console.commons.exception;
 
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
 
 /** Business exception */
 public class BusinessException extends RuntimeException {

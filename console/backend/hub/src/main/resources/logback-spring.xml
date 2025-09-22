@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Logback configuration for stellar-console-hub -->
+<!-- Logback configuration for astra-console-hub -->
 <configuration scan="true" scanPeriod="60 seconds">
 
     <!-- 包含Spring Boot默认配置 -->
@@ -23,7 +23,7 @@
         </root>
 
         <!-- 开发时调试SQL -->
-        <logger name="com.iflytek.stellar.console.hub.mapper" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astra.console.hub.mapper" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
 
@@ -38,7 +38,7 @@
         </logger>
 
         <!-- 应用核心日志 -->
-        <logger name="com.iflytek.stellar.console" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astra.console" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
     </springProfile>
@@ -50,7 +50,7 @@
         </root>
 
         <!-- 应用核心日志 -->
-        <logger name="com.iflytek.stellar.console" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astra.console" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
     </springProfile>
@@ -62,7 +62,7 @@
         </root>
 
         <!-- 应用核心日志 -->
-        <logger name="com.iflytek.stellar.console" level="INFO" additivity="false">
+        <logger name="com.iflytek.astra.console" level="INFO" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
 

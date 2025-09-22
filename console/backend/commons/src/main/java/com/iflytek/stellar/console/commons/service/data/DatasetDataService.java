@@ -1,8 +1,8 @@
-package com.iflytek.stellar.console.commons.service.data;
+package com.iflytek.astra.console.commons.service.data;
 
-import com.iflytek.stellar.console.commons.entity.bot.BotDataset;
-import com.iflytek.stellar.console.commons.entity.bot.DatasetFile;
-import com.iflytek.stellar.console.commons.entity.bot.DatasetInfo;
+import com.iflytek.astra.console.commons.entity.bot.BotDataset;
+import com.iflytek.astra.console.commons.entity.bot.DatasetFile;
+import com.iflytek.astra.console.commons.entity.bot.DatasetInfo;
 
 import java.util.List;
 import java.util.Optional;

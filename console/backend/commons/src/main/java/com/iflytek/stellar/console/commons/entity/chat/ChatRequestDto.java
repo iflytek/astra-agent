@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.chat;
+package com.iflytek.astra.console.commons.entity.chat;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;

@@ -1,14 +1,14 @@
-package com.iflytek.stellar.console.commons.service.space.impl;
+package com.iflytek.astra.console.commons.service.space.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.iflytek.stellar.console.commons.dto.space.ApplyRecordParam;
-import com.iflytek.stellar.console.commons.entity.space.ApplyRecord;
-import com.iflytek.stellar.console.commons.mapper.space.ApplyRecordMapper;
-import com.iflytek.stellar.console.commons.service.space.ApplyRecordService;
-import com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil;
-import com.iflytek.stellar.console.commons.dto.space.ApplyRecordVO;
+import com.iflytek.astra.console.commons.dto.space.ApplyRecordParam;
+import com.iflytek.astra.console.commons.entity.space.ApplyRecord;
+import com.iflytek.astra.console.commons.mapper.space.ApplyRecordMapper;
+import com.iflytek.astra.console.commons.service.space.ApplyRecordService;
+import com.iflytek.astra.console.commons.util.space.SpaceInfoUtil;
+import com.iflytek.astra.console.commons.dto.space.ApplyRecordVO;
 import org.springframework.stereotype.Service;
 
 /**

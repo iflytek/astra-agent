@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.entity.bot;
+package com.iflytek.astra.console.commons.entity.bot;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

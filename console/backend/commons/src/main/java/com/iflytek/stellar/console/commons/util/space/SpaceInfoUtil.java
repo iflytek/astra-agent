@@ -1,8 +1,8 @@
-package com.iflytek.stellar.console.commons.util.space;
+package com.iflytek.astra.console.commons.util.space;
 
 
-import com.iflytek.stellar.console.commons.util.RequestContextUtil;
-import com.iflytek.stellar.console.commons.service.space.EnterpriseSpaceService;
+import com.iflytek.astra.console.commons.util.RequestContextUtil;
+import com.iflytek.astra.console.commons.service.space.EnterpriseSpaceService;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.servlet.http.HttpServletRequest;

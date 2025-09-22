@@ -1,10 +1,10 @@
-package com.iflytek.stellar.console.commons.service.space;
+package com.iflytek.astra.console.commons.service.space;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseUserParam;
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseUserVO;
-import com.iflytek.stellar.console.commons.entity.space.EnterpriseUser;
-import com.iflytek.stellar.console.commons.enums.space.EnterpriseRoleEnum;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseUserParam;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseUserVO;
+import com.iflytek.astra.console.commons.entity.space.EnterpriseUser;
+import com.iflytek.astra.console.commons.enums.space.EnterpriseRoleEnum;
 
 import java.util.List;
 

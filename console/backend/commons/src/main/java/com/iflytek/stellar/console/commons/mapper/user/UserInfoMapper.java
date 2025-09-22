@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.mapper.user;
+package com.iflytek.astra.console.commons.mapper.user;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

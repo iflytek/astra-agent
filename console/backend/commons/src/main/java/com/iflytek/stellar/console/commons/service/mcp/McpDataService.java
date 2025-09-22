@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.service.mcp;
+package com.iflytek.astra.console.commons.service.mcp;
 
-import com.iflytek.stellar.console.commons.entity.model.McpData;
+import com.iflytek.astra.console.commons.entity.model.McpData;
 
 import java.util.List;
 

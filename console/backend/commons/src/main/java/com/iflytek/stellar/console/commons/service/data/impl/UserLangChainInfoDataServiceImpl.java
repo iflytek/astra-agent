@@ -1,12 +1,12 @@
-package com.iflytek.stellar.console.commons.service.data.impl;
+package com.iflytek.astra.console.commons.service.data.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.iflytek.stellar.console.commons.entity.bot.UserLangChainInfo;
-import com.iflytek.stellar.console.commons.mapper.UserLangChainInfoMapper;
-import com.iflytek.stellar.console.commons.service.data.UserLangChainDataService;
+import com.iflytek.astra.console.commons.entity.bot.UserLangChainInfo;
+import com.iflytek.astra.console.commons.mapper.UserLangChainInfoMapper;
+import com.iflytek.astra.console.commons.service.data.UserLangChainDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -3,19 +3,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.iflytek.stellar.console</groupId>
+        <groupId>com.iflytek.astra.console</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>toolkit</artifactId>
-    <name>stellar-console-toolkit</name>
-    <description>Stellar Console Toolkit</description>
+    <name>astra-console-toolkit</name>
+    <description>Astra Console Toolkit</description>
 
     <dependencies>
         <!-- Internal sub-module dependency -->
         <dependency>
-            <groupId>com.iflytek.stellar.console</groupId>
+            <groupId>com.iflytek.astra.console</groupId>
             <artifactId>commons</artifactId>
         </dependency>
 

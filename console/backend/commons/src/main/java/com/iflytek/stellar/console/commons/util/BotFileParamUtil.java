@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 import cn.hutool.core.util.ObjectUtil;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.stellar.console.commons.entity.bot.UserLangChainInfo;
-import com.iflytek.stellar.console.commons.enums.bot.BotUploadEnum;
+import com.iflytek.astra.console.commons.entity.bot.UserLangChainInfo;
+import com.iflytek.astra.console.commons.enums.bot.BotUploadEnum;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;

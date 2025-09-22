@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.service.data;
+package com.iflytek.astra.console.commons.service.data;
 
 
-import com.iflytek.stellar.console.commons.entity.bot.DatasetInfo;
+import com.iflytek.astra.console.commons.entity.bot.DatasetInfo;
 
 import java.util.List;
 

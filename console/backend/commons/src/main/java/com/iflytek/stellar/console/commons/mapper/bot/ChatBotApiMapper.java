@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.mapper.bot;
+package com.iflytek.astra.console.commons.mapper.bot;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.dto.bot.ChatBotApi;
+import com.iflytek.astra.console.commons.dto.bot.ChatBotApi;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

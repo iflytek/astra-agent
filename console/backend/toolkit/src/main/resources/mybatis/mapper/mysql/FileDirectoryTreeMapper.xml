@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.repo.FileDirectoryTreeMapper">
-    <resultMap id="resultMapcontainFileInfo" type="com.iflytek.stellar.console.toolkit.entity.table.repo.FileDirectoryTree">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.repo.FileDirectoryTreeMapper">
+    <resultMap id="resultMapcontainFileInfo" type="com.iflytek.astra.console.toolkit.entity.table.repo.FileDirectoryTree">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="parent_id" property="parentId"/>
@@ -28,7 +28,7 @@
         </association>
     </resultMap>
 
-    <select id="queryListInIdList" resultType="com.iflytek.stellar.console.toolkit.entity.table.repo.FileDirectoryTree">
+    <select id="queryListInIdList" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileDirectoryTree">
         select * from
         file_directory_tree
         where 1=1
@@ -101,7 +101,7 @@
     </select>
 
 
-    <select id="matchModelListWithDirectoryName" resultType="com.iflytek.stellar.console.toolkit.entity.table.repo.FileDirectoryTree">
+    <select id="matchModelListWithDirectoryName" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileDirectoryTree">
         select * from file_directory_tree
         where is_file = 0
         <if test="appId != null and appId != ''">

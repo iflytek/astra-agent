@@ -21,4 +21,4 @@ CREATE TABLE xingchen_official_prompt (
     KEY idx_type (type),
     KEY idx_status (status),
     KEY idx_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Stellar official prompt table';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astra official prompt table';

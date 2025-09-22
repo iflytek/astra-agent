@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.service.bot;
+package com.iflytek.astra.console.commons.service.bot;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotTag;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotTag;
 
 import java.util.List;
 

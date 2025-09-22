@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.service.space.impl;
+package com.iflytek.astra.console.commons.service.space.impl;
 
-import com.iflytek.stellar.console.commons.entity.space.*;
-import com.iflytek.stellar.console.commons.service.space.*;
-import com.iflytek.stellar.console.commons.enums.space.SpaceTypeEnum;
-import com.iflytek.stellar.console.commons.util.space.OrderInfoUtil;
+import com.iflytek.astra.console.commons.entity.space.*;
+import com.iflytek.astra.console.commons.service.space.*;
+import com.iflytek.astra.console.commons.enums.space.SpaceTypeEnum;
+import com.iflytek.astra.console.commons.util.space.OrderInfoUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

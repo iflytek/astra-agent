@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.relation.BotRepoRelMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.relation.BotRepoRelMapper">
     <delete id="deleteByAppIdAndBotIdAndRepoIds">
         delete from bot_repo_rel where app_id = #{appId} and bot_id = #{botId} and repo_id in
         <foreach collection="repoIds" item="repoId" open="(" close=")" separator=",">#{repoId}</foreach>
     </delete>
-    <select id="getModelListByAppIdAndRepoIdAndBotId" resultType="com.iflytek.stellar.console.toolkit.entity.table.relation.BotRepoRel">
+    <select id="getModelListByAppIdAndRepoIdAndBotId" resultType="com.iflytek.astra.console.toolkit.entity.table.relation.BotRepoRel">
         SELECT brr.* FROM bot_repo_rel brr left join spark_bot sb on sb.id = brr.bot_id
         where brr.app_id = #{appId} and brr.repo_id = #{repoId} and sb.uuid = #{botId}
     </select>

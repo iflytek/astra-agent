@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.mapper.space;
+package com.iflytek.astra.console.commons.mapper.space;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseSpaceCountVO;
-import com.iflytek.stellar.console.commons.dto.space.SpaceVO;
-import com.iflytek.stellar.console.commons.entity.space.Space;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseSpaceCountVO;
+import com.iflytek.astra.console.commons.dto.space.SpaceVO;
+import com.iflytek.astra.console.commons.entity.space.Space;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.service.bot;
+package com.iflytek.astra.console.commons.service.bot;
 
-import com.iflytek.stellar.console.commons.entity.bot.*;
+import com.iflytek.astra.console.commons.entity.bot.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.relation.BotToolRelMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.relation.BotToolRelMapper">
     <delete id="deleteByBotIdAndToolIds">
         delete from bot_tool_rel where bot_id = #{botId} and tool_id in
         <foreach collection="toolIds" item="toolId" open="(" close=")" separator=",">#{toolId}</foreach>

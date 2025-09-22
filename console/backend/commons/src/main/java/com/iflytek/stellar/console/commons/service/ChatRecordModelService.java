@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.service;
+package com.iflytek.astra.console.commons.service;
 
-import com.iflytek.stellar.console.commons.entity.chat.ChatReqRecords;
+import com.iflytek.astra.console.commons.entity.chat.ChatReqRecords;
 
 public interface ChatRecordModelService {
 

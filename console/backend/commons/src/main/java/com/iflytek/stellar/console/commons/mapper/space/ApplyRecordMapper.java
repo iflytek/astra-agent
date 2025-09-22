@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.mapper.space;
+package com.iflytek.astra.console.commons.mapper.space;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.commons.dto.space.ApplyRecordVO;
-import com.iflytek.stellar.console.commons.entity.space.ApplyRecord;
+import com.iflytek.astra.console.commons.dto.space.ApplyRecordVO;
+import com.iflytek.astra.console.commons.entity.space.ApplyRecord;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

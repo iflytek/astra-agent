@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.service.space;
+package com.iflytek.astra.console.commons.service.space;
 
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseVO;
-import com.iflytek.stellar.console.commons.entity.space.Enterprise;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseVO;
+import com.iflytek.astra.console.commons.entity.space.Enterprise;
 
 import java.time.LocalDateTime;
 import java.util.List;

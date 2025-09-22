@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.service;
+package com.iflytek.astra.console.commons.service;
 
 import lombok.Getter;
 import org.redisson.api.RedissonClient;

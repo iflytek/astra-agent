@@ -1,20 +1,20 @@
-package com.iflytek.stellar.console.toolkit.service.database;
+package com.iflytek.astra.console.toolkit.service.database;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.toolkit.config.exception.CustomException;
-import com.iflytek.stellar.console.toolkit.config.properties.CommonConfig;
-import com.iflytek.stellar.console.toolkit.entity.dto.database.*;
-import com.iflytek.stellar.console.toolkit.entity.enumVo.DBOperateEnum;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbInfo;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbTable;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbTableField;
-import com.iflytek.stellar.console.toolkit.entity.vo.database.*;
-import com.iflytek.stellar.console.toolkit.mapper.database.DbInfoMapper;
-import com.iflytek.stellar.console.toolkit.mapper.database.DbTableFieldMapper;
-import com.iflytek.stellar.console.toolkit.mapper.database.DbTableMapper;
-import com.iflytek.stellar.console.toolkit.service.extra.CoreSystemService;
-import com.iflytek.stellar.console.toolkit.tool.DataPermissionCheckTool;
+import com.iflytek.astra.console.toolkit.config.exception.CustomException;
+import com.iflytek.astra.console.toolkit.config.properties.CommonConfig;
+import com.iflytek.astra.console.toolkit.entity.dto.database.*;
+import com.iflytek.astra.console.toolkit.entity.enumVo.DBOperateEnum;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbInfo;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbTable;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbTableField;
+import com.iflytek.astra.console.toolkit.entity.vo.database.*;
+import com.iflytek.astra.console.toolkit.mapper.database.DbInfoMapper;
+import com.iflytek.astra.console.toolkit.mapper.database.DbTableFieldMapper;
+import com.iflytek.astra.console.toolkit.mapper.database.DbTableMapper;
+import com.iflytek.astra.console.toolkit.service.extra.CoreSystemService;
+import com.iflytek.astra.console.toolkit.tool.DataPermissionCheckTool;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
@@ -69,20 +69,20 @@ public class DatabaseServiceIntegrationTest {
     private static final Long TEST_SPACE_ID = 1000L;
     private static final Long MOCK_DB_ID = 9999L;
 
-    private MockedStatic<com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil> spaceInfoUtilMock;
-    private MockedStatic<com.iflytek.stellar.console.toolkit.handler.UserInfoManagerHandler> userInfoMock;
+    private MockedStatic<com.iflytek.astra.console.commons.util.space.SpaceInfoUtil> spaceInfoUtilMock;
+    private MockedStatic<com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler> userInfoMock;
 
     @BeforeEach
     void setUp() {
         // Mock静态工具类
-        spaceInfoUtilMock = mockStatic(com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil.class);
-        userInfoMock = mockStatic(com.iflytek.stellar.console.toolkit.handler.UserInfoManagerHandler.class);
+        spaceInfoUtilMock = mockStatic(com.iflytek.astra.console.commons.util.space.SpaceInfoUtil.class);
+        userInfoMock = mockStatic(com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.class);
 
-        spaceInfoUtilMock.when(() -> com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil.getSpaceId())
+        spaceInfoUtilMock.when(() -> com.iflytek.astra.console.commons.util.space.SpaceInfoUtil.getSpaceId())
                         .thenReturn(TEST_SPACE_ID);
-        userInfoMock.when(() -> com.iflytek.stellar.console.toolkit.handler.UserInfoManagerHandler.getUserId())
+        userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
                         .thenReturn(TEST_USER_ID);
-        userInfoMock.when(() -> com.iflytek.stellar.console.toolkit.handler.UserInfoManagerHandler.getUserId())
+        userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
                         .thenReturn(TEST_USER_ID);
 
         // Mock核心系统服务

@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson2.JSON;

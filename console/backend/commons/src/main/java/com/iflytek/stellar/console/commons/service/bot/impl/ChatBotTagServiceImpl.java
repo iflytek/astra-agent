@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.commons.service.bot.impl;
+package com.iflytek.astra.console.commons.service.bot.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.iflytek.stellar.console.commons.entity.bot.ChatBotTag;
-import com.iflytek.stellar.console.commons.mapper.bot.ChatBotTagMapper;
-import com.iflytek.stellar.console.commons.service.bot.ChatBotTagService;
+import com.iflytek.astra.console.commons.entity.bot.ChatBotTag;
+import com.iflytek.astra.console.commons.mapper.bot.ChatBotTagMapper;
+import com.iflytek.astra.console.commons.service.bot.ChatBotTagService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

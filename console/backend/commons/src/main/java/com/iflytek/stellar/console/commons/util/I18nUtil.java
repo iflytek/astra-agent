@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * The class relies on Spring's ApplicationContext for message resolution and HTTP request context
  * for locale information.
  *
- * @author Stellar Console Team
+ * @author Astra Console Team
  * @since 1.0
  */
 public class I18nUtil {

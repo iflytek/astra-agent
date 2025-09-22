@@ -1,8 +1,8 @@
-package com.iflytek.stellar.console.commons.service.bot;
+package com.iflytek.astra.console.commons.service.bot;
 
 
-import com.iflytek.stellar.console.commons.dto.bot.BotFavoritePageDto;
-import com.iflytek.stellar.console.commons.entity.bot.BotMarketForm;
+import com.iflytek.astra.console.commons.dto.bot.BotFavoritePageDto;
+import com.iflytek.astra.console.commons.entity.bot.BotMarketForm;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.entity.chat;
+package com.iflytek.astra.console.commons.entity.chat;
 
-import com.iflytek.stellar.console.commons.entity.workflow.WorkflowEventData;
+import com.iflytek.astra.console.commons.entity.workflow.WorkflowEventData;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

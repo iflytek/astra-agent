@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.mapper.model;
+package com.iflytek.astra.console.commons.mapper.model;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.iflytek.stellar.console.commons.entity.model.McpData;
+import com.iflytek.astra.console.commons.entity.model.McpData;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

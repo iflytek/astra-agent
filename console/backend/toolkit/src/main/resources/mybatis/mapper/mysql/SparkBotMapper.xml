@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.bot.SparkBotMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.bot.SparkBotMapper">
     <update id="updateBotFloatedStatus">
         update spark_bot
         set floated = 0
@@ -10,17 +10,17 @@
             and id != #{excludeId}
         </if>
     </update>
-    <select id="listSparkBotByRepoId" resultType="com.iflytek.stellar.console.toolkit.entity.dto.SparkBotVO">
+    <select id="listSparkBotByRepoId" resultType="com.iflytek.astra.console.toolkit.entity.dto.SparkBotVO">
         select sb.* from bot_repo_rel brr
         left join repo r  on r.core_repo_id  = brr.repo_id
         left join spark_bot sb on sb.id = brr.bot_id
         where r.id = #{repoId} and sb.user_id = #{uid}
     </select>
-    <select id="listSparkBotByToolId" resultType="com.iflytek.stellar.console.toolkit.entity.table.bot.SparkBot">
+    <select id="listSparkBotByToolId" resultType="com.iflytek.astra.console.toolkit.entity.table.bot.SparkBot">
         select sb.* from bot_tool_rel btr left join spark_bot sb on sb.id = btr.bot_id
         where btr.tool_id = #{toolId} and sb.user_id = #{uid}
     </select>
-    <select id="listSparkBotSquareByToolId" resultType="com.iflytek.stellar.console.toolkit.entity.vo.bot.SparkBotSquaerVo">
+    <select id="listSparkBotSquareByToolId" resultType="com.iflytek.astra.console.toolkit.entity.vo.bot.SparkBotSquaerVo">
         select
         sb.*,
         btr.tool_id
@@ -28,7 +28,7 @@
         bot_tool_rel btr
         left join spark_bot sb on sb.id = btr.bot_id;
     </select>
-    <select id="listSparkBotByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.dto.SparkBotVO">
+    <select id="listSparkBotByCondition" resultType="com.iflytek.astra.console.toolkit.entity.dto.SparkBotVO">
         select * from spark_bot sb where sb.deleted = 0 and sb.user_id = #{uid}
 <!--        and is_public = 0-->
         <if test="content!=null and content !=''">
@@ -37,7 +37,7 @@
         order by sb.update_time desc
     </select>
 
-    <select id="botSquareByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.dto.SparkBotVO">
+    <select id="botSquareByCondition" resultType="com.iflytek.astra.console.toolkit.entity.dto.SparkBotVO">
         select * from spark_bot sb
         <where>
             <if test="notContainIds != null and notContainIds.size &gt; 0">
@@ -84,7 +84,7 @@
         <if test="start != null">#{start},</if>#{limit} </if>
     </select>
 
-    <select id="findById" resultType="com.iflytek.stellar.console.toolkit.entity.table.bot.SparkBot">
+    <select id="findById" resultType="com.iflytek.astra.console.toolkit.entity.table.bot.SparkBot">
         SELECT x.* FROM spark_bot x where x.deleted = 0 and x.id = #{botId}
     </select>
 
@@ -112,7 +112,7 @@
         </where>
 
     </select>
-    <select id="isPersonal" resultType="com.iflytek.stellar.console.toolkit.entity.table.bot.SparkBot">
+    <select id="isPersonal" resultType="com.iflytek.astra.console.toolkit.entity.table.bot.SparkBot">
         SELECT x.* FROM spark_bot x
         <where>
             x.deleted = 0
@@ -121,7 +121,7 @@
         </where>
     </select>
 
-    <select id="getBotsContainPubAndPriv" resultType="com.iflytek.stellar.console.toolkit.entity.dto.SparkBotVO">
+    <select id="getBotsContainPubAndPriv" resultType="com.iflytek.astra.console.toolkit.entity.dto.SparkBotVO">
         select * from spark_bot sb
         <where>
             (

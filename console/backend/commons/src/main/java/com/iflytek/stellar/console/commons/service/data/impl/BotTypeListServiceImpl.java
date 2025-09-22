@@ -1,9 +1,9 @@
-package com.iflytek.stellar.console.commons.service.data.impl;
+package com.iflytek.astra.console.commons.service.data.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.iflytek.stellar.console.commons.mapper.bot.BotTypeListMapper;
-import com.iflytek.stellar.console.commons.service.bot.BotTypeListService;
-import com.iflytek.stellar.console.commons.entity.bot.BotTypeList;
+import com.iflytek.astra.console.commons.mapper.bot.BotTypeListMapper;
+import com.iflytek.astra.console.commons.service.bot.BotTypeListService;
+import com.iflytek.astra.console.commons.entity.bot.BotTypeList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

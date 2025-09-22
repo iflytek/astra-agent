@@ -1,11 +1,11 @@
-package com.iflytek.stellar.console.commons.aspect.space;
+package com.iflytek.astra.console.commons.aspect.space;
 
-import com.iflytek.stellar.console.commons.annotation.space.EnterprisePreAuth;
-import com.iflytek.stellar.console.commons.annotation.space.SpacePreAuth;
-import com.iflytek.stellar.console.commons.entity.space.EnterprisePermission;
-import com.iflytek.stellar.console.commons.entity.space.SpacePermission;
-import com.iflytek.stellar.console.commons.service.space.EnterprisePermissionService;
-import com.iflytek.stellar.console.commons.service.space.SpacePermissionService;
+import com.iflytek.astra.console.commons.annotation.space.EnterprisePreAuth;
+import com.iflytek.astra.console.commons.annotation.space.SpacePreAuth;
+import com.iflytek.astra.console.commons.entity.space.EnterprisePermission;
+import com.iflytek.astra.console.commons.entity.space.SpacePermission;
+import com.iflytek.astra.console.commons.service.space.EnterprisePermissionService;
+import com.iflytek.astra.console.commons.service.space.SpacePermissionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;

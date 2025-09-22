@@ -1,17 +1,17 @@
-package com.iflytek.stellar.console.commons.service.space.impl;
+package com.iflytek.astra.console.commons.service.space.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.iflytek.stellar.console.commons.data.UserInfoDataService;
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseUserParam;
-import com.iflytek.stellar.console.commons.entity.space.EnterpriseUser;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
-import com.iflytek.stellar.console.commons.enums.space.EnterpriseRoleEnum;
-import com.iflytek.stellar.console.commons.mapper.space.EnterpriseUserMapper;
-import com.iflytek.stellar.console.commons.service.space.EnterpriseUserService;
-import com.iflytek.stellar.console.commons.util.space.EnterpriseInfoUtil;
-import com.iflytek.stellar.console.commons.dto.space.EnterpriseUserVO;
+import com.iflytek.astra.console.commons.data.UserInfoDataService;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseUserParam;
+import com.iflytek.astra.console.commons.entity.space.EnterpriseUser;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.enums.space.EnterpriseRoleEnum;
+import com.iflytek.astra.console.commons.mapper.space.EnterpriseUserMapper;
+import com.iflytek.astra.console.commons.service.space.EnterpriseUserService;
+import com.iflytek.astra.console.commons.util.space.EnterpriseInfoUtil;
+import com.iflytek.astra.console.commons.dto.space.EnterpriseUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

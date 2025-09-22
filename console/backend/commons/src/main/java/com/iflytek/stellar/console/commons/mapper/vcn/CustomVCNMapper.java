@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.mapper.vcn;
+package com.iflytek.astra.console.commons.mapper.vcn;
 
-import com.iflytek.stellar.console.commons.dto.vcn.CustomV2VCNDTO;
+import com.iflytek.astra.console.commons.dto.vcn.CustomV2VCNDTO;
 import org.apache.ibatis.annotations.Param;
 
 public interface CustomVCNMapper {

@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.commons.service.space;
+package com.iflytek.astra.console.commons.service.space;
 
-import com.iflytek.stellar.console.commons.entity.space.SpacePermission;
+import com.iflytek.astra.console.commons.entity.space.SpacePermission;
 
 import java.util.Collection;
 import java.util.List;
