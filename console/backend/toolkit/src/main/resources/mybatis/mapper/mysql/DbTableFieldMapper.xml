@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.database.DbTableFieldMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.database.DbTableFieldMapper">
 
     <insert id="insertBatch">
         INSERT INTO db_table_field (tb_id, name, type, description, default_value,

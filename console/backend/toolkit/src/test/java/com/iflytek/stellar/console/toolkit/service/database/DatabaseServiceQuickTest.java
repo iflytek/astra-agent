@@ -1,6 +1,6 @@
-package com.iflytek.stellar.console.toolkit.service.database;
+package com.iflytek.astra.console.toolkit.service.database;
 
-import com.iflytek.stellar.console.toolkit.entity.dto.database.DatabaseDto;
+import com.iflytek.astra.console.toolkit.entity.dto.database.DatabaseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

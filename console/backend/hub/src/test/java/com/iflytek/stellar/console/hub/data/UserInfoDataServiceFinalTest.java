@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.hub.data;
+package com.iflytek.astra.console.hub.data;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -8,9 +8,9 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.*;
 
-import com.iflytek.stellar.console.commons.data.impl.UserInfoDataServiceImpl;
-import com.iflytek.stellar.console.commons.entity.user.UserInfo;
-import com.iflytek.stellar.console.commons.mapper.user.UserInfoMapper;
+import com.iflytek.astra.console.commons.data.impl.UserInfoDataServiceImpl;
+import com.iflytek.astra.console.commons.entity.user.UserInfo;
+import com.iflytek.astra.console.commons.mapper.user.UserInfoMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;

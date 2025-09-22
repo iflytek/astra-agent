@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.commons.util;
+package com.iflytek.astra.console.commons.util;
 
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.exception.BusinessException;
 import io.minio.BucketExistsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -23,7 +23,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * Requires MinIO test environment to run these tests
  *
  * Test configuration: - MinIO Endpoint: http://172.31.205.72:17900 - Admin credentials:
- * minioadmin/minioadmin - Test Bucket: stellar-agent
+ * minioadmin/minioadmin - Test Bucket: astra-agent
  *
  * Note: If MinIO service is unavailable, some tests will be skipped
  */
@@ -33,14 +33,14 @@ class S3ClientUtilTest {
 
     // MinIO test environment configuration - from .env.dev and docker-compose
     private static final String TEST_ENDPOINT = "http://172.31.205.72:17900";
-    // Use admin credentials for testing (stellar-uploader user may need additional configuration)
+    // Use admin credentials for testing (astra-uploader user may need additional configuration)
     private static final String TEST_ACCESS_KEY = "minioadmin";
     private static final String TEST_SECRET_KEY = "minioadmin";
-    private static final String TEST_BUCKET = "stellar-agent";
+    private static final String TEST_BUCKET = "astra-agent";
 
     // Configuration for testing invalid credentials
-    private static final String INVALID_ACCESS_KEY = "stellar-uploader";
-    private static final String INVALID_SECRET_KEY = "stellar-uploader-secret";
+    private static final String INVALID_ACCESS_KEY = "astra-uploader";
+    private static final String INVALID_SECRET_KEY = "astra-uploader-secret";
 
     private static boolean minioAvailable = true;
 

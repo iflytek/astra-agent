@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.iflytek.stellar.console.toolkit.mapper.workflow.WorkflowVersionMapper">
+<mapper namespace="com.iflytek.astra.console.toolkit.mapper.workflow.WorkflowVersionMapper">
 
-    <select id="selectPageByCondition" resultType="com.iflytek.stellar.console.toolkit.entity.table.workflow.WorkflowVersion">
+    <select id="selectPageByCondition" resultType="com.iflytek.astra.console.toolkit.entity.table.workflow.WorkflowVersion">
         SELECT w.id,
                w.name,
                w.version_num,

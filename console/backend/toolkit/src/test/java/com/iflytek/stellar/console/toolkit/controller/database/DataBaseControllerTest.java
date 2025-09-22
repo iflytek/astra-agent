@@ -1,16 +1,16 @@
-package com.iflytek.stellar.console.toolkit.controller.database;
+package com.iflytek.astra.console.toolkit.controller.database;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.commons.response.ApiResult;
-import com.iflytek.stellar.console.commons.util.SpringContextHolder;
-import com.iflytek.stellar.console.toolkit.common.CustomExceptionCode;
-import com.iflytek.stellar.console.toolkit.config.exception.CustomException;
-import com.iflytek.stellar.console.toolkit.entity.dto.database.*;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbInfo;
-import com.iflytek.stellar.console.toolkit.entity.table.database.DbTableField;
-import com.iflytek.stellar.console.toolkit.entity.vo.database.*;
-import com.iflytek.stellar.console.toolkit.service.database.DatabaseService;
+import com.iflytek.astra.console.commons.response.ApiResult;
+import com.iflytek.astra.console.commons.util.SpringContextHolder;
+import com.iflytek.astra.console.toolkit.common.CustomExceptionCode;
+import com.iflytek.astra.console.toolkit.config.exception.CustomException;
+import com.iflytek.astra.console.toolkit.entity.dto.database.*;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbInfo;
+import com.iflytek.astra.console.toolkit.entity.table.database.DbTableField;
+import com.iflytek.astra.console.toolkit.entity.vo.database.*;
+import com.iflytek.astra.console.toolkit.service.database.DatabaseService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,15 +1,15 @@
-package com.iflytek.stellar.console.toolkit.controller.model;
+package com.iflytek.astra.console.toolkit.controller.model;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.iflytek.stellar.console.commons.constant.ResponseEnum;
-import com.iflytek.stellar.console.commons.exception.BusinessException;
-import com.iflytek.stellar.console.commons.response.ApiResult;
-import com.iflytek.stellar.console.commons.util.SpringContextHolder;
-import com.iflytek.stellar.console.toolkit.entity.biz.modelconfig.ModelDto;
-import com.iflytek.stellar.console.toolkit.entity.biz.modelconfig.ModelValidationRequest;
-import com.iflytek.stellar.console.toolkit.entity.vo.CategoryTreeVO;
-import com.iflytek.stellar.console.toolkit.entity.vo.LLMInfoVo;
-import com.iflytek.stellar.console.toolkit.service.model.ModelService;
+import com.iflytek.astra.console.commons.constant.ResponseEnum;
+import com.iflytek.astra.console.commons.exception.BusinessException;
+import com.iflytek.astra.console.commons.response.ApiResult;
+import com.iflytek.astra.console.commons.util.SpringContextHolder;
+import com.iflytek.astra.console.toolkit.entity.biz.modelconfig.ModelDto;
+import com.iflytek.astra.console.toolkit.entity.biz.modelconfig.ModelValidationRequest;
+import com.iflytek.astra.console.toolkit.entity.vo.CategoryTreeVO;
+import com.iflytek.astra.console.toolkit.entity.vo.LLMInfoVo;
+import com.iflytek.astra.console.toolkit.service.model.ModelService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.stellar.console.commons.mapper.bot.BotFavoriteMapper">
+<mapper namespace="com.iflytek.astra.console.commons.mapper.bot.BotFavoriteMapper">
     <sql id="check_from_where">
         FROM
         `bot_favorite` bf
@@ -13,7 +13,7 @@
         AND (b.is_delete is null or b.is_delete = 0)
     </sql>
 
-    <select id="selectBotPage" resultType="com.iflytek.stellar.console.commons.entity.bot.ChatBotMarketPage">
+    <select id="selectBotPage" resultType="com.iflytek.astra.console.commons.entity.bot.ChatBotMarketPage">
         SELECT
         bf.id,
         a.uid,

@@ -21,7 +21,7 @@ const translation = {
   xinghuoKnowledge: 'Spark Knowledge Base',
   xingpuDescription:
     'integrates multi-source heterogeneous knowledge with automated ingestion, delivers conversational Q&A retrieval, and enables answer tracing. It is tailored for robust enterprise applications.',
-  xingchenKnowledge: 'Stellar Knowledge Base',
+  xingchenKnowledge: 'Astra Knowledge Base',
   xingchenDescription:
     'integrates multi-source heterogeneous knowledge with automated ingestion, delivers conversational Q&A retrieval, and enables answer tracing. It is tailored for lightweight search scenarios.',
   confirm: 'Confirm',

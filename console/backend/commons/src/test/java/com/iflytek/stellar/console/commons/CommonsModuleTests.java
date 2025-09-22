@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.commons;
+package com.iflytek.astra.console.commons;
 
 class CommonsModuleTests {
 }

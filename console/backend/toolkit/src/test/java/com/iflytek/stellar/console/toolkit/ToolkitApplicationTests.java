@@ -1,7 +1,7 @@
-package com.iflytek.stellar.console.toolkit;
+package com.iflytek.astra.console.toolkit;
 
-import com.iflytek.stellar.console.toolkit.entity.tool.McpServerTool;
-import com.iflytek.stellar.console.toolkit.service.workflow.WorkflowService;
+import com.iflytek.astra.console.toolkit.entity.tool.McpServerTool;
+import com.iflytek.astra.console.toolkit.service.workflow.WorkflowService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;

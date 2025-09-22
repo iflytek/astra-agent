@@ -1,4 +1,4 @@
-package com.iflytek.stellar.console.hub;
+package com.iflytek.astra.console.hub;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

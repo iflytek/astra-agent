@@ -22,7 +22,7 @@
 
     <!-- Exclude warnings for ignoring exceptions in auth RefreshTokenService.withRefreshLock -->
     <Match>
-        <Class name="service.com.iflytek.stellar.console.auth.RefreshTokenService"/>
+        <Class name="service.com.iflytek.astra.console.auth.RefreshTokenService"/>
         <Method name="withRefreshLock"/>
         <Bug pattern="DE_MIGHT_IGNORE"/>
     </Match>
@@ -90,7 +90,7 @@
 
     <!-- Exclude SpaceInfoUtil static state exposure check -->
     <Match>
-        <Class name="com.iflytek.stellar.console.commons.util.space.SpaceInfoUtil"/>
+        <Class name="com.iflytek.astra.console.commons.util.space.SpaceInfoUtil"/>
         <Method name="init"/>
         <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
     </Match>

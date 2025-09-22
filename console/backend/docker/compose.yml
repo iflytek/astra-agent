@@ -1,13 +1,13 @@
 services:
   db:
     image: mysql:8.4
-    container_name: stellar-mysql
+    container_name: astra-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-stellar-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-stellar_console}
-      MYSQL_USER: ${MYSQL_USER:-stellar}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-stellar-dev-env-db}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-astra-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-astra_console}
+      MYSQL_USER: ${MYSQL_USER:-astra}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-astra-dev-env-db}
       TZ: Asia/Shanghai
     command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
     ports:
@@ -23,12 +23,12 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - stellar-agent-net
+      - astra-agent-net
 
 
   redis:
     image: redis:7-alpine
-    container_name: stellar-redis
+    container_name: astra-redis
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
@@ -42,11 +42,11 @@ services:
       retries: 5
       start_period: 5s
     networks:
-      - stellar-agent-net
+      - astra-agent-net
 
   minio:
     image: minio/minio:latest
-    container_name: stellar-minio
+    container_name: astra-minio
     restart: unless-stopped
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
@@ -65,11 +65,11 @@ services:
       retries: 5
       start_period: 10s
     networks:
-      - stellar-agent-net
+      - astra-agent-net
 
   minio-init:
     image: minio/mc:latest
-    container_name: stellar-minio-init
+    container_name: astra-minio-init
     restart: "no"
     depends_on:
       - minio
@@ -77,9 +77,9 @@ services:
       TZ: Asia/Shanghai
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-      S3_BUCKET: ${S3_BUCKET:-stellar-agent}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-stellar-uploader}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-stellar-uploader-secret}
+      S3_BUCKET: ${S3_BUCKET:-astra-agent}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-astra-uploader}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-astra-uploader-secret}
     entrypoint: ["sh", "-c"]
     command: |
       "set -e
@@ -114,13 +114,13 @@ services:
       mc admin policy attach local uploader-writer --user "$S3_ACCESS_KEY" || true;
       echo 'MinIO initialization completed.'"
     networks:
-      - stellar-agent-net
+      - astra-agent-net
 
   # auth:
   #   build:
   #     context: ..
   #     dockerfile: auth/Dockerfile
-  #   container_name: stellar-auth
+  #   container_name: astra-auth
   #   restart: unless-stopped
   #   depends_on:
   #     - db
@@ -131,7 +131,7 @@ services:
   #   ports:
   #     - "8081:8081"
   #   networks:
-  #     - stellar-agent-net
+  #     - astra-agent-net
 
   # hub:
   #   build:
@@ -145,15 +145,15 @@ services:
   #     - minio
   #   environment:
   #     - SPRING_PROFILES_ACTIVE=default
-  #     - S3_ACCESS_KEY=${S3_ACCESS_KEY:-stellar-uploader}
-  #     - S3_SECRET_KEY=${S3_SECRET_KEY:-stellar-uploader-secret}
-  #     - S3_BUCKET=${S3_BUCKET:-stellar-agent}
+  #     - S3_ACCESS_KEY=${S3_ACCESS_KEY:-astra-uploader}
+  #     - S3_SECRET_KEY=${S3_SECRET_KEY:-astra-uploader-secret}
+  #     - S3_BUCKET=${S3_BUCKET:-astra-agent}
   #   ports:
   #     - "8080:8080"
   #   networks:
-  #     - stellar-agent-net
+  #     - astra-agent-net
 
 
 networks:
-  stellar-agent-net:
+  astra-agent-net:
     driver: bridge

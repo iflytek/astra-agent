@@ -65,7 +65,7 @@
 cd ../hub
 
 # 运行toolkit模块的测试
-mvn test -Dtest=com.iflytek.stellar.console.toolkit.controller.database.*
+mvn test -Dtest=com.iflytek.astra.console.toolkit.controller.database.*
 ```
 
 ### 方式二：Mock环境运行
