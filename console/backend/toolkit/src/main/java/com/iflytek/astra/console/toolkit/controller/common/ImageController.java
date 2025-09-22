@@ -26,7 +26,7 @@ public class ImageController {
 
     @PostMapping("/upload")
     public Result<JSONObject> upload(@RequestParam("file") MultipartFile file) {
-        //文件名称后缀校验
+        // 文件名称后缀校验
         List<String> allowedSuffixes = Arrays.asList("png", "jpg", "jpeg");
         String fileName = file.getOriginalFilename();
 
@@ -41,7 +41,7 @@ public class ImageController {
         String s3Key = imageService.upload(file);
         JSONObject res = new JSONObject();
         // 生成唯一的文件名
-        res.put("s3Key",s3Key);
+        res.put("s3Key", s3Key);
         res.put("downloadLink", s3UtilClient.getS3Url(s3Key));
         return Result.success(res);
     }

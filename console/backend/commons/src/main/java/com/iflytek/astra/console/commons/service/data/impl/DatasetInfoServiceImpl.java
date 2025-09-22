@@ -30,20 +30,20 @@ public class DatasetInfoServiceImpl implements IDatasetInfoService {
     public List<DatasetInfo> getDatasetByBot(String uid, Integer botId) {
         List<DatasetInfo> infoList = new ArrayList<>();
         List<BotDataset> botDatasetList = botDatasetMapper.selectList(Wrappers.lambdaQuery(BotDataset.class)
-                .eq(BotDataset::getBotId, botId)
-                .eq(BotDataset::getIsAct, 1));
+                        .eq(BotDataset::getBotId, botId)
+                        .eq(BotDataset::getIsAct, 1));
         if (Objects.isNull(botDatasetList) || botDatasetList.isEmpty()) {
             return infoList;
         }
 
         Set<Long> infoIdSet = botDatasetList.stream()
-                .map(BotDataset::getDatasetId)
-                .collect(Collectors.toSet());
+                        .map(BotDataset::getDatasetId)
+                        .collect(Collectors.toSet());
 
         infoList = datasetInfoMapper.selectList(Wrappers.lambdaQuery(DatasetInfo.class)
-                .in(DatasetInfo::getId, infoIdSet)
-                .eq(DatasetInfo::getUid, uid)
-                .eq(DatasetInfo::getStatus, 2));
+                        .in(DatasetInfo::getId, infoIdSet)
+                        .eq(DatasetInfo::getUid, uid)
+                        .eq(DatasetInfo::getStatus, 2));
         return infoList;
     }
 }

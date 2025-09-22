@@ -40,9 +40,9 @@ public class ShareServiceImpl implements ShareService {
     /**
      * 生产智能体分享的密钥
      *
-     * @param uid         uid
+     * @param uid uid
      * @param relatedType type
-     * @param relatedId   id
+     * @param relatedId id
      * @return string
      */
     @Override

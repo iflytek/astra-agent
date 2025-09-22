@@ -51,7 +51,7 @@ public class ShareController {
         int relatedType = body.getRelateType();
         log.info("****** uid: {} 分享智能体: {}", uid, JSONUtil.toJsonStr(body));
         int status = shareService.getBotStatus(relatedId);
-        //检验是否已发布
+        // 检验是否已发布
         if (ShelfStatusEnum.isOffShelf(status)) {
             // 如果未发布 检验是否越权
             botPermissionUtil.checkBot(Math.toIntExact(relatedId));

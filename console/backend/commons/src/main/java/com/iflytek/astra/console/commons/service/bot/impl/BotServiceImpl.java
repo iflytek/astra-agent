@@ -100,12 +100,12 @@ public class BotServiceImpl implements BotService {
     public static final String BOT_INPUT_EXAMPLE_SPLIT = "%%split%%";
 
     private final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .readTimeout(Duration.ofSeconds(30))
-            .writeTimeout(Duration.ofSeconds(30))
-            .connectionPool(new ConnectionPool(20, 5, java.util.concurrent.TimeUnit.MINUTES))
-            .retryOnConnectionFailure(true)
-            .build();
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .readTimeout(Duration.ofSeconds(30))
+                    .writeTimeout(Duration.ofSeconds(30))
+                    .connectionPool(new ConnectionPool(20, 5, java.util.concurrent.TimeUnit.MINUTES))
+                    .retryOnConnectionFailure(true)
+                    .build();
 
     @Override
     public List<BotTypeList> getBotTypeList() {
@@ -344,27 +344,27 @@ public class BotServiceImpl implements BotService {
             }
             // Update bot
             ChatBotBase botBase = ChatBotBase.builder()
-                    .uid(uid)
-                    .id(botId)
-                    .botType(bot.getBotType())
-                    .botName(botName)
-                    .avatar(bot.getAvatar())
-                    .pcBackground(bot.getPcBackground())
-                    .appBackground(bot.getAppBackground())
-                    .prologue(bot.getPrologue())
-                    .botDesc(bot.getBotDesc())
-                    .botTemplate(bot.getBotTemplate())
-                    .prompt(bot.getPrompt())
-                    .supportContext(0)
-                    .supportDocument(bot.getSupportDocument())
-                    .supportSystem(bot.getSupportSystem())
-                    .promptType(bot.getPromptType())
-                    .inputExample(bot.getInputExample() != null && bot.getInputExample().size() > 0 ? String.join(",", bot.getInputExample()) : null)
-                    .build();
+                            .uid(uid)
+                            .id(botId)
+                            .botType(bot.getBotType())
+                            .botName(botName)
+                            .avatar(bot.getAvatar())
+                            .pcBackground(bot.getPcBackground())
+                            .appBackground(bot.getAppBackground())
+                            .prologue(bot.getPrologue())
+                            .botDesc(bot.getBotDesc())
+                            .botTemplate(bot.getBotTemplate())
+                            .prompt(bot.getPrompt())
+                            .supportContext(0)
+                            .supportDocument(bot.getSupportDocument())
+                            .supportSystem(bot.getSupportSystem())
+                            .promptType(bot.getPromptType())
+                            .inputExample(bot.getInputExample() != null && bot.getInputExample().size() > 0 ? String.join(",", bot.getInputExample()) : null)
+                            .build();
             chatBotDataService.updateBot(botBase);
             chatListDataService.updateChatBotList(botBase);
             chatBotMarketService.
-                    // Update market
+            // Update market
                             updateBotMarketStatus(uid, botId);
             // Find flowId to synchronize to Astra, then publish
             UserLangChainInfo userLangChainInfo = userLangChainDataService.findOneByBotId(botId);
@@ -405,43 +405,42 @@ public class BotServiceImpl implements BotService {
 
             // Update bot basic information only
             ChatBotBase botBase = ChatBotBase.builder()
-                    .uid(uid)
-                    .id(botId)
-                    .botType(bot.getBotType())
-                    .botName(botName)
-                    .avatar(bot.getAvatar())
-                    .pcBackground(bot.getPcBackground())
-                    .appBackground(bot.getAppBackground())
-                    .backgroundColor(bot.getBackgroundColor())
-                    .prologue(bot.getPrologue())
-                    .botDesc(bot.getBotDesc())
-                    .botTemplate(bot.getBotTemplate())
-                    .supportSystem(bot.getSupportSystem())
-                    .supportDocument(bot.getSupportDocument())
-                    .promptType(bot.getPromptType())
-                    .prompt(bot.getPrompt())
-                    .promptSystem(bot.getPromptSystem())
-                    .supportUpload(bot.getSupportUpload())
-                    .model(bot.getModel())
-                    .vcnCn(bot.getVcnCn())
-                    .vcnEn(bot.getVcnEn())
-                    .vcnSpeed(bot.getVcnSpeed())
-                    .isSentence(bot.getIsSentence())
-                    .openedTool(bot.getOpenedTool())
-                    .clientType(bot.getClientType())
-                    .botNameEn(bot.getBotNameEn())
-                    .botDescEn(bot.getBotDescEn())
-                    .prologueEn(bot.getPrologueEn())
-                    .clientHide(bot.getClientHide())
-                    .virtualBotType(bot.getVirtualBotType())
-                    .virtualAgentId(bot.getVirtualAgentId())
-                    .style(bot.getStyle())
-                    .background(bot.getBackground())
-                    .virtualCharacter(bot.getVirtualCharacter())
-                    .massBotId(bot.getMassBotId())
-                    .inputExample(bot.getInputExample() != null && !bot.getInputExample().isEmpty() ?
-                            String.join(BOT_INPUT_EXAMPLE_SPLIT, bot.getInputExample()) : null)
-                    .build();
+                            .uid(uid)
+                            .id(botId)
+                            .botType(bot.getBotType())
+                            .botName(botName)
+                            .avatar(bot.getAvatar())
+                            .pcBackground(bot.getPcBackground())
+                            .appBackground(bot.getAppBackground())
+                            .backgroundColor(bot.getBackgroundColor())
+                            .prologue(bot.getPrologue())
+                            .botDesc(bot.getBotDesc())
+                            .botTemplate(bot.getBotTemplate())
+                            .supportSystem(bot.getSupportSystem())
+                            .supportDocument(bot.getSupportDocument())
+                            .promptType(bot.getPromptType())
+                            .prompt(bot.getPrompt())
+                            .promptSystem(bot.getPromptSystem())
+                            .supportUpload(bot.getSupportUpload())
+                            .model(bot.getModel())
+                            .vcnCn(bot.getVcnCn())
+                            .vcnEn(bot.getVcnEn())
+                            .vcnSpeed(bot.getVcnSpeed())
+                            .isSentence(bot.getIsSentence())
+                            .openedTool(bot.getOpenedTool())
+                            .clientType(bot.getClientType())
+                            .botNameEn(bot.getBotNameEn())
+                            .botDescEn(bot.getBotDescEn())
+                            .prologueEn(bot.getPrologueEn())
+                            .clientHide(bot.getClientHide())
+                            .virtualBotType(bot.getVirtualBotType())
+                            .virtualAgentId(bot.getVirtualAgentId())
+                            .style(bot.getStyle())
+                            .background(bot.getBackground())
+                            .virtualCharacter(bot.getVirtualCharacter())
+                            .massBotId(bot.getMassBotId())
+                            .inputExample(bot.getInputExample() != null && !bot.getInputExample().isEmpty() ? String.join(BOT_INPUT_EXAMPLE_SPLIT, bot.getInputExample()) : null)
+                            .build();
 
             // Handle English input examples
             if (bot.getInputExampleEn() != null && !bot.getInputExampleEn().isEmpty()) {
@@ -467,25 +466,25 @@ public class BotServiceImpl implements BotService {
         // Synchronize MAAS table
         JSONObject data = maas.getJSONObject("data");
         UserLangChainLog userLangChainLog = UserLangChainLog.builder()
-                .id(Long.parseLong(botId.toString()))
-                .botId(Long.parseLong(botId.toString()))
-                .maasId(data.getLong("id"))
-                .flowId(data.getString("flowId"))
-                .uid(uid)
-                .spaceId(spaceId)
-                .updateTime(LocalDateTime.now())
-                .build();
+                        .id(Long.parseLong(botId.toString()))
+                        .botId(Long.parseLong(botId.toString()))
+                        .maasId(data.getLong("id"))
+                        .flowId(data.getString("flowId"))
+                        .uid(uid)
+                        .spaceId(spaceId)
+                        .updateTime(LocalDateTime.now())
+                        .build();
 
         userLangChainLogService.insertUserLangChainLog(userLangChainLog);
         UserLangChainInfo userLangChainInfo = UserLangChainInfo.builder()
-                .id(Long.parseLong(botId.toString()))
-                .botId(Integer.parseInt(botId.toString()))
-                .maasId(data.getLong("id"))
-                .flowId(data.getString("flowId"))
-                .uid(uid)
-                .spaceId(spaceId)
-                .updateTime(LocalDateTime.now())
-                .build();
+                        .id(Long.parseLong(botId.toString()))
+                        .botId(Integer.parseInt(botId.toString()))
+                        .maasId(data.getLong("id"))
+                        .flowId(data.getString("flowId"))
+                        .uid(uid)
+                        .spaceId(spaceId)
+                        .updateTime(LocalDateTime.now())
+                        .build();
         userLangChainDataService.insertUserLangChainInfo(userLangChainInfo);
     }
 
@@ -502,7 +501,7 @@ public class BotServiceImpl implements BotService {
      * Set file upload configuration.
      *
      * @param botInfo Bot information data transfer object
-     * @param botId   Bot ID
+     * @param botId Bot ID
      */
     private void setupFileUploadConfig(BotInfoDto botInfo, Integer botId) {
         try {
@@ -520,7 +519,7 @@ public class BotServiceImpl implements BotService {
     /**
      * Function to handle file upload configuration
      *
-     * @param botInfo           Bot information object
+     * @param botInfo Bot information object
      * @param userLangChainInfo User language chain information object
      */
     private void processFileUploadConfig(BotInfoDto botInfo, UserLangChainInfo userLangChainInfo) {
@@ -624,8 +623,8 @@ public class BotServiceImpl implements BotService {
     private void setupDatasetInfo(BotInfoDto botInfo, Integer botId) {
         List<DatasetInfo> datasetInfoList = datasetDataService.selectDatasetListByBotId(botId);
         List<String> datasetNameList = datasetInfoList.stream()
-                .map(DatasetInfo::getName)
-                .collect(Collectors.toList());
+                        .map(DatasetInfo::getName)
+                        .collect(Collectors.toList());
         botInfo.setDataset(CollectionUtil.isNotEmpty(datasetNameList) ? datasetNameList : new ArrayList<>());
     }
 
@@ -643,7 +642,7 @@ public class BotServiceImpl implements BotService {
     }
 
     private void setupWorkflowInfo(BotInfoDto botInfo, ChatBotBase chatBotBase, HttpServletRequest request,
-                                   Integer botId, String workflowVersion, String uid) {
+                    Integer botId, String workflowVersion, String uid) {
         Integer version = chatBotBase.getVersion();
         if (!version.equals(BotTypeEnum.WORKFLOW_BOT.getType())) {
             return;
@@ -690,14 +689,14 @@ public class BotServiceImpl implements BotService {
 
     public String getFlowAdvancedConfig(Integer botId, String authorizationHeaderValue) {
         RequestBody formBody = new FormBody.Builder()
-                .add("botId", String.valueOf(botId))
-                .build();
+                        .add("botId", String.valueOf(botId))
+                        .build();
 
         Request request = new Request.Builder()
-                .url(workflowConfigUrl)
-                .addHeader("Authorization", authorizationHeaderValue)
-                .post(formBody)
-                .build();
+                        .url(workflowConfigUrl)
+                        .addHeader("Authorization", authorizationHeaderValue)
+                        .post(formBody)
+                        .build();
 
         String response = null;
         try (Response okResponse = httpClient.newCall(request).execute()) {
@@ -731,9 +730,9 @@ public class BotServiceImpl implements BotService {
 
     private JSONObject getWorkflowApiResponse(String url) {
         Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
+                        .url(url)
+                        .get()
+                        .build();
 
         try (Response okResponse = httpClient.newCall(request).execute()) {
             if (!okResponse.isSuccessful()) {

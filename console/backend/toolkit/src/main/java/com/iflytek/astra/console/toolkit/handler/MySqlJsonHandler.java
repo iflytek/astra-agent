@@ -16,6 +16,7 @@ import java.sql.SQLException;
 public class MySqlJsonHandler extends BaseTypeHandler<JSONObject> {
     /**
      * 设置非空参数
+     *
      * @param ps
      * @param i
      * @param parameter
@@ -24,10 +25,12 @@ public class MySqlJsonHandler extends BaseTypeHandler<JSONObject> {
      */
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, JSONObject parameter, JdbcType jdbcType) throws SQLException {
-        ps.setString(i,String.valueOf(parameter.toJSONString()));
+        ps.setString(i, String.valueOf(parameter.toJSONString()));
     }
+
     /**
      * 根据列名，获取可以为空的结果
+     *
      * @param rs
      * @param columnName
      * @return
@@ -41,8 +44,10 @@ public class MySqlJsonHandler extends BaseTypeHandler<JSONObject> {
         }
         return new JSONObject();
     }
+
     /**
      * 根据列索引，获取可以为内控的接口
+     *
      * @param rs
      * @param columnIndex
      * @return
@@ -56,6 +61,7 @@ public class MySqlJsonHandler extends BaseTypeHandler<JSONObject> {
         }
         return new JSONObject();
     }
+
     /**
      *
      * @param cs

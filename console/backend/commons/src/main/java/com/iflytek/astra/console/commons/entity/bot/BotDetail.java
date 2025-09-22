@@ -52,8 +52,8 @@ public class BotDetail {
     private LocalDateTime updateTime;
 
     /**
-     * Parse inputExample string to inputExampleList manually
-     * Call this method when you need to populate inputExampleList
+     * Parse inputExample string to inputExampleList manually Call this method when you need to populate
+     * inputExampleList
      */
     public void parseInputExampleList() {
         this.inputExampleList = parseInputExamples(this.inputExample);
@@ -74,9 +74,9 @@ public class BotDetail {
         }
 
         return Arrays.stream(inputExample.split(separator))
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toList());
     }
 
 

@@ -38,7 +38,7 @@ public class BotCreateController {
      * Create workflow assistant
      *
      * @param request HTTP request containing space context
-     * @param bot     Assistant creation form
+     * @param bot Assistant creation form
      * @return Created assistant ID
      */
     @PostMapping("/create")
@@ -149,7 +149,7 @@ public class BotCreateController {
      * Update workflow assistant
      *
      * @param request HTTP request containing space context
-     * @param bot     Assistant update form (must contain botId)
+     * @param bot Assistant update form (must contain botId)
      * @return Update result
      */
     @PostMapping("/update")

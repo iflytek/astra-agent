@@ -27,15 +27,15 @@ public class MassDatasetInfoService {
     public List<DatasetInfo> getDatasetMaasByBot(String uid, Integer botId, HttpServletRequest request) {
         List<DatasetInfo> infoList = new ArrayList<>();
         List<BotDatasetMaas> botDatasetList = botDatasetMaasMapper.selectList(Wrappers.lambdaQuery(BotDatasetMaas.class)
-                .eq(BotDatasetMaas::getBotId, botId)
-                .eq(BotDatasetMaas::getIsAct, 1));
+                        .eq(BotDatasetMaas::getBotId, botId)
+                        .eq(BotDatasetMaas::getIsAct, 1));
         if (Objects.isNull(botDatasetList) || botDatasetList.isEmpty()) {
             return infoList;
         }
 
         // Set<Long> infoIdSet = botDatasetList.stream()
-        //         .map(BotDatasetMaas::getDatasetId)
-        //         .collect(Collectors.toSet());
+        // .map(BotDatasetMaas::getDatasetId)
+        // .collect(Collectors.toSet());
 
         botDatasetList.forEach(e -> {
             RepoDto detail = repoService.getDetail(e.getDatasetId(), "", request);

@@ -8,23 +8,24 @@ import java.util.*;
 
 @Component
 public class ProjectContent {
-    
+
     /**
      * Business configuration instance for accessing RAG source compatibility settings
      */
     private static BizConfig bizConfig;
-    
+
     /**
-     * Setter method for dependency injection of BizConfig.
-     * This method is used by Spring to inject the BizConfig instance and make it available
-     * for static methods to access RAG source compatibility configurations.
-     * 
+     * Setter method for dependency injection of BizConfig. This method is used by Spring to inject the
+     * BizConfig instance and make it available for static methods to access RAG source compatibility
+     * configurations.
+     *
      * @param bizConfig the business configuration instance containing RAG compatibility settings
      */
     @Autowired
     public void setBizConfig(BizConfig bizConfig) {
         ProjectContent.bizConfig = bizConfig;
     }
+
     public static final Integer REPO_STATUS_CREATED = 1;
     public static final String REPO_OPERATE_CREATED = "create_repo";
     public static final Integer REPO_STATUS_PUBLISHED = 2;
@@ -109,9 +110,10 @@ public class ProjectContent {
     public static boolean isValidFileType(String fileFormat) {
         return VALID_FILE_TYPES.contains(fileFormat.toLowerCase());
     }
-    
+
     /**
      * Check if the source is CBG RAG compatible (includes CBG-RAG and Ragflow-RAG)
+     *
      * @param source the source string to check
      * @return true if the source is CBG RAG compatible
      */
@@ -122,12 +124,13 @@ public class ProjectContent {
         }
         return bizConfig.getCbgRagCompatibleSources().contains(source);
     }
-    
+
     /**
      * Check if the source is AIUI RAG compatible by comparing against configured compatible sources.
-     * This method supports flexible configuration of AIUI RAG compatible source types through application properties.
-     * If configuration is not available, it falls back to the original logic using FILE_SOURCE_AIUI_RAG2_STR.
-     * 
+     * This method supports flexible configuration of AIUI RAG compatible source types through
+     * application properties. If configuration is not available, it falls back to the original logic
+     * using FILE_SOURCE_AIUI_RAG2_STR.
+     *
      * @param source the source string to check for AIUI RAG compatibility, must not be null
      * @return true if the source is AIUI RAG compatible, false otherwise
      */
@@ -138,12 +141,13 @@ public class ProjectContent {
         }
         return bizConfig.getAiuiRagCompatibleSources().contains(source);
     }
-    
+
     /**
      * Check if the source is Spark RAG compatible by comparing against configured compatible sources.
-     * This method supports flexible configuration of Spark RAG compatible source types through application properties.
-     * If configuration is not available, it falls back to the original logic using FILE_SOURCE_SPARK_RAG_STR.
-     * 
+     * This method supports flexible configuration of Spark RAG compatible source types through
+     * application properties. If configuration is not available, it falls back to the original logic
+     * using FILE_SOURCE_SPARK_RAG_STR.
+     *
      * @param source the source string to check for Spark RAG compatibility, must not be null
      * @return true if the source is Spark RAG compatible, false otherwise
      */

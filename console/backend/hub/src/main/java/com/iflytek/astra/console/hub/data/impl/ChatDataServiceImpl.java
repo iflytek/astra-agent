@@ -566,23 +566,23 @@ public class ChatDataServiceImpl implements ChatDataService {
     public ChatFileUser findChatFileUserByIdAndUid(Long linkId, String uid) {
         LocalDateTime lastTime = getLastTime();
         return chatFileUserMapper.selectOne(Wrappers.lambdaQuery(ChatFileUser.class)
-                .eq(ChatFileUser::getId, linkId)
-                .eq(ChatFileUser::getUid, uid)
-                .ge(ChatFileUser::getCreateTime, lastTime));
+                        .eq(ChatFileUser::getId, linkId)
+                        .eq(ChatFileUser::getUid, uid)
+                        .ge(ChatFileUser::getCreateTime, lastTime));
     }
 
     @Override
     public void deleteChatFileReq(String fileId, Long chatId, String uid) {
         ChatFileReq chatFileReq = ChatFileReq.builder()
-                .deleted(1)
-                .updateTime(LocalDateTime.now())
-                .build();
+                        .deleted(1)
+                        .updateTime(LocalDateTime.now())
+                        .build();
         chatFileReqMapper.update(chatFileReq, Wrappers.lambdaQuery(ChatFileReq.class)
-                .eq(ChatFileReq::getChatId, chatId)
-                .eq(ChatFileReq::getFileId, fileId)
-                .eq(ChatFileReq::getUid, uid)
-                .eq(ChatFileReq::getDeleted, 0)
-                .isNull(ChatFileReq::getReqId));
+                        .eq(ChatFileReq::getChatId, chatId)
+                        .eq(ChatFileReq::getFileId, fileId)
+                        .eq(ChatFileReq::getUid, uid)
+                        .eq(ChatFileReq::getDeleted, 0)
+                        .isNull(ChatFileReq::getReqId));
     }
 
     private LocalDateTime getLastTime() {

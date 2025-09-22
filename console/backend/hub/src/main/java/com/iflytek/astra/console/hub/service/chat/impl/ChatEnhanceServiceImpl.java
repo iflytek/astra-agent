@@ -166,8 +166,7 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
     }
 
     /**
-     * 删除chat_file_req表单信息
-     * 注：所有绑定ReqId的信息都不做删除
+     * 删除chat_file_req表单信息 注：所有绑定ReqId的信息都不做删除
      *
      * @param fileId 文件ID
      * @param chatId 聊天ID

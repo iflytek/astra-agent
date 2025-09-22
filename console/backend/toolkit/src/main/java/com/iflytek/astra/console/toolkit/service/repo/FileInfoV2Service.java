@@ -118,7 +118,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
     @Resource
     DataPermissionCheckTool dataPermissionCheckTool;
 
-     @Autowired
+    @Autowired
     ChatFileHttpClient chatFileHttpClient;
     @Autowired
     private S3ClientUtil s3ClientUtil;
@@ -313,12 +313,12 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             String link;
             try (InputStream in = file.getInputStream()) {
                 String contentType = Optional.ofNullable(file.getContentType())
-                        .filter(ct -> !ct.isBlank())
-                        .orElse("application/octet-stream");
+                                .filter(ct -> !ct.isBlank())
+                                .orElse("application/octet-stream");
                 link = s3ClientUtil.uploadObject(fileName, contentType, in);
             }
             // Get doc signature
-             HashMap<String, String> docHeader = chatFileHttpClient.getSignForXinghuoDs();
+            HashMap<String, String> docHeader = chatFileHttpClient.getSignForXinghuoDs();
             // Call upload interface
             String uploadUrl = sparkDocUrl + "/openapi/v1/file/upload";
             Map<String, Object> uploadParams = new HashMap<>();
@@ -965,7 +965,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         if (ProjectContent.isSparkRagCompatible(sliceFileVO.getTag())) {
             try {
                 String embeddingUrl = sparkDocUrl + "/openapi/v1/file/embedding";
-                 HashMap<String, String> header = chatFileHttpClient.getSignForXinghuoDs();
+                HashMap<String, String> header = chatFileHttpClient.getSignForXinghuoDs();
                 Map<String, Object> params = new HashMap<>();
                 List<String> fileIds = sliceFileVO.getSparkFiles().stream().map(SparkFileVo::getFileId).collect(Collectors.toList());
                 params.put("fileIds", String.join(",", fileIds));
@@ -1125,7 +1125,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         if (ProjectContent.isSparkRagCompatible(sliceFileVO.getTag())) {
             try {
                 String embeddingUrl = sparkDocUrl + "/openapi/v1/file/embedding";
-                 HashMap<String, String> header = chatFileHttpClient.getSignForXinghuoDs();
+                HashMap<String, String> header = chatFileHttpClient.getSignForXinghuoDs();
                 Map<String, Object> params = new HashMap<>();
                 List<String> fileIds = sliceFileVO.getSparkFiles().stream().map(SparkFileVo::getFileId).collect(Collectors.toList());
                 params.put("fileIds", String.join(",", fileIds));

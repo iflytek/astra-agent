@@ -17,7 +17,7 @@ import java.util.List;
 public interface BotService {
 
     BotInfoDto getBotInfo(HttpServletRequest request, Integer botId, Long chatId, String workflowVersion);
-    
+
     Boolean deleteBot(Integer botId);
 
     List<BotTypeList> getBotTypeList();

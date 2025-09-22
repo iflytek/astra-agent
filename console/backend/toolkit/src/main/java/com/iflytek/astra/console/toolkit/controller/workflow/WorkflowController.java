@@ -76,32 +76,32 @@ public class WorkflowController {
      * Get workflow list.
      *
      * @param pagination Pagination parameters (required)
-     * @param search     Search keyword (optional)
-     * @param flowId     Workflow unique identifier (optional)
-     * @param status     Publish status: -1=all, 0=unpublished, 1=published (optional)
-     * @param order      Sort order: 1=by creation time, 2=by update time (optional)
-     * @param spaceId    Space ID (optional, fallback to SpaceInfoUtil in service layer if empty)
+     * @param search Search keyword (optional)
+     * @param flowId Workflow unique identifier (optional)
+     * @param status Publish status: -1=all, 0=unpublished, 1=published (optional)
+     * @param order Sort order: 1=by creation time, 2=by update time (optional)
+     * @param spaceId Space ID (optional, fallback to SpaceInfoUtil in service layer if empty)
      * @return Paginated data
      */
     @GetMapping("/list")
     @SpacePreAuth(
-            key = "WorkflowController_list_GET",
-            module = "Workflow",
-            point = "Workflow List",
-            description = "Workflow List")
+                    key = "WorkflowController_list_GET",
+                    module = "Workflow",
+                    point = "Workflow List",
+                    description = "Workflow List")
     public PageData<WorkflowVo> list(
-            @NotNull(message = "Pagination parameters cannot be null") Pagination pagination,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String flowId,
-            @RequestParam(required = false) Integer status,
-            @RequestParam(required = false) Integer order,
-            @RequestParam(required = false) Long spaceId) throws UnsupportedEncodingException {
+                    @NotNull(message = "Pagination parameters cannot be null") Pagination pagination,
+                    @RequestParam(required = false) String search,
+                    @RequestParam(required = false) String flowId,
+                    @RequestParam(required = false) Integer status,
+                    @RequestParam(required = false) Integer order,
+                    @RequestParam(required = false) Long spaceId) throws UnsupportedEncodingException {
 
         if (pagination.isEmpty()) {
             throw new BusinessException(ResponseEnum.PAGE_SEPARATOR_MISS);
         }
         return workflowService.listPage(
-                spaceId, pagination.getCurrent(), pagination.getPageSize(), search, status, order, flowId);
+                        spaceId, pagination.getCurrent(), pagination.getPageSize(), search, status, order, flowId);
     }
 
     /**
@@ -111,10 +111,10 @@ public class WorkflowController {
      */
     @GetMapping
     @SpacePreAuth(
-            key = "WorkflowController_detail_GET",
-            module = "Workflow",
-            point = "Workflow Details",
-            description = "Workflow Details")
+                    key = "WorkflowController_detail_GET",
+                    module = "Workflow",
+                    point = "Workflow Details",
+                    description = "Workflow Details")
     public WorkflowVo detail(@RequestParam @NotBlank String id, @RequestParam(required = false) Long spaceId) {
         return workflowService.detail(id, spaceId);
     }
@@ -124,10 +124,10 @@ public class WorkflowController {
      */
     @PostMapping
     @SpacePreAuth(
-            key = "WorkflowController_getDimension_POST",
-            module = "Workflow",
-            point = "Workflow Creation",
-            description = "Workflow Creation")
+                    key = "WorkflowController_getDimension_POST",
+                    module = "Workflow",
+                    point = "Workflow Creation",
+                    description = "Workflow Creation")
     public Object create(@RequestBody @NotNull WorkflowReq createDto, HttpServletRequest request) {
         return workflowService.create(createDto, request);
     }
@@ -137,10 +137,10 @@ public class WorkflowController {
      */
     @PutMapping
     @SpacePreAuth(
-            key = "WorkflowController_update_PUT",
-            module = "Workflow",
-            point = "Workflow Editing",
-            description = "Workflow Editing")
+                    key = "WorkflowController_update_PUT",
+                    module = "Workflow",
+                    point = "Workflow Editing",
+                    description = "Workflow Editing")
     public Workflow update(@RequestBody @NotNull WorkflowReq updateDto) {
         return workflowService.updateInfo(updateDto);
     }
@@ -150,7 +150,7 @@ public class WorkflowController {
      */
     @DeleteMapping
     public ApiResult delete(
-            @RequestParam(required = false) Long id, @RequestParam(required = false) Long spaceId) {
+                    @RequestParam(required = false) Long id, @RequestParam(required = false) Long spaceId) {
         return workflowService.logicDelete(id, spaceId);
     }
 
@@ -170,9 +170,9 @@ public class WorkflowController {
      */
     @GetMapping("/internal-clone")
     public Object cloneV2(
-            @RequestParam @NotNull Long id,
-            @RequestParam @NotBlank String password,
-            HttpServletRequest request) {
+                    @RequestParam @NotNull Long id,
+                    @RequestParam @NotBlank String password,
+                    HttpServletRequest request) {
         if (!"xfyun".equals(password)) {
             return ApiResult.error(ResponseEnum.INCORRECT_PASSWORD);
         }
@@ -184,10 +184,10 @@ public class WorkflowController {
      */
     @PostMapping("/build")
     @SpacePreAuth(
-            key = "WorkflowController_build_POST",
-            module = "Workflow",
-            point = "Workflow Build",
-            description = "Workflow Build")
+                    key = "WorkflowController_build_POST",
+                    module = "Workflow",
+                    point = "Workflow Build",
+                    description = "Workflow Build")
     public Object build(@RequestBody @NotNull WorkflowReq buildDto) throws InterruptedException {
         return workflowService.build(buildDto);
     }
@@ -236,10 +236,10 @@ public class WorkflowController {
 
     @GetMapping("/square")
     public Object square(
-            @NotNull(message = "Pagination parameters cannot be null") Pagination pagination,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) Integer tagFlag,
-            @RequestParam(required = false) Integer tags) {
+                    @NotNull(message = "Pagination parameters cannot be null") Pagination pagination,
+                    @RequestParam(required = false) String search,
+                    @RequestParam(required = false) Integer tagFlag,
+                    @RequestParam(required = false) Integer tags) {
         if (pagination.isEmpty()) {
             throw new BusinessException(ResponseEnum.PAGE_SEPARATOR_MISS);
         }
@@ -340,19 +340,19 @@ public class WorkflowController {
 
     @GetMapping("/get-mcp-server-list")
     public Object getMcpServerList(
-            @RequestParam(required = false) String categoryId,
-            @RequestParam(required = false, defaultValue = "1") Integer pageNo,
-            @RequestParam(required = false, defaultValue = "1000") Integer pageSize,
-            HttpServletRequest request) {
+                    @RequestParam(required = false) String categoryId,
+                    @RequestParam(required = false, defaultValue = "1") Integer pageNo,
+                    @RequestParam(required = false, defaultValue = "1000") Integer pageSize,
+                    HttpServletRequest request) {
         return workflowService.getMcpServerList(categoryId, pageNo, pageSize, request);
     }
 
     @GetMapping("/get-mcp-server-list-locally")
     public ApiResult<List<McpServerTool>> getMcpServerListLocally(@RequestParam(required = false) String categoryId,
-                                                                  @RequestParam(required = false, defaultValue = "1") Integer pageNo,
-                                                                  @RequestParam(required = false, defaultValue = "1000") Integer pageSize,
-                                                                  @RequestParam(required = false) Boolean authorized,
-                                                                  HttpServletRequest request) {
+                    @RequestParam(required = false, defaultValue = "1") Integer pageNo,
+                    @RequestParam(required = false, defaultValue = "1000") Integer pageSize,
+                    @RequestParam(required = false) Boolean authorized,
+                    HttpServletRequest request) {
         return ApiResult.success(workflowService.getMcpServerListLocally(categoryId, pageNo, pageSize, authorized, request));
     }
 
@@ -446,7 +446,7 @@ public class WorkflowController {
             }
             // Construct download filename: workflow-{id}.yaml
             final String filename =
-                    URLEncoder.encode("workflow-" + id + ".yaml", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+                            URLEncoder.encode("workflow-" + id + ".yaml", StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 
             response.setContentType("application/octet-stream");
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());

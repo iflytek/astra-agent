@@ -5,7 +5,6 @@ import com.iflytek.astra.console.commons.entity.bot.BotDataset;
 import com.iflytek.astra.console.commons.entity.bot.DatasetInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 

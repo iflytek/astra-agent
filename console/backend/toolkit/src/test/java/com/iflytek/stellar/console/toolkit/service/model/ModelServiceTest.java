@@ -72,8 +72,8 @@ class ModelServiceTest {
     @BeforeEach
     void setUp() {
         modelServiceUnderTest = new ModelService(mockMapper, mockLlmService, mockConfigInfoMapper, mockRestTemplate,
-                mockS3UtilClient, mockWorkflowMapper, mockSparkBotMapper, mockModelCategoryService,
-                mockModelCommonService, mockModelHandler);
+                        mockS3UtilClient, mockWorkflowMapper, mockSparkBotMapper, mockModelCategoryService,
+                        mockModelCommonService, mockModelHandler);
         modelServiceUnderTest.env = "env";
     }
 
@@ -86,7 +86,7 @@ class ModelServiceTest {
         request.setEndpoint("https://api.deepseek.com/v1/chat/completions");
         request.setModelName("dsv3");
         request.setApiKey(
-                "KKaiINFjdi1sOTIo2zqBZcQk8TZCRxJ11kYnB82vV6eYyonlhhXA9LsW0xtJX2vj92r7nd+hY7AiF83sQN0sC9K/LBU8uUOmcxm0clY0H2uBHqMPlH0aPv+RQQYwOBCeScFBVguZ73JOod/IgHr3DIw4r2zEfbWDGxXTUVS+/D99E8BRsM7kBZlL8oXbWj9EGRuv0DbFNxkkHhxK4jEo7Uyn3FKr7juk6BQx9xu2n6uyOlxyqVM/1vu/AzCQfE8Ksmq4vdcflYszMMqwwj3koh4umfLgCvCDW5VBz0Z9fjfu9o5BDnGO5wxW9Z0/yQvx58s3X9ZjYy83FYpKSAZchw==");
+                        "KKaiINFjdi1sOTIo2zqBZcQk8TZCRxJ11kYnB82vV6eYyonlhhXA9LsW0xtJX2vj92r7nd+hY7AiF83sQN0sC9K/LBU8uUOmcxm0clY0H2uBHqMPlH0aPv+RQQYwOBCeScFBVguZ73JOod/IgHr3DIw4r2zEfbWDGxXTUVS+/D99E8BRsM7kBZlL8oXbWj9EGRuv0DbFNxkkHhxK4jEo7Uyn3FKr7juk6BQx9xu2n6uyOlxyqVM/1vu/AzCQfE8Ksmq4vdcflYszMMqwwj3koh4umfLgCvCDW5VBz0Z9fjfu9o5BDnGO5wxW9Z0/yQvx58s3X9ZjYy83FYpKSAZchw==");
         request.setDomain("deepseek-chat");
         request.setDescription("deepSeek model");
         request.setUid("18879796086");
@@ -100,21 +100,21 @@ class ModelServiceTest {
 
         // 3) SSRF黑名单配置（可以返回空，逻辑能兜住）
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST"))
-                .thenReturn(Collections.emptyList());
+                        .thenReturn(Collections.emptyList());
 
         // 4) 工作流前缀过滤配置（允许为空，为空时 just skip）
         when(mockConfigInfoMapper.getByCategoryAndCode("LLM_WORKFLOW_FILTER", "self-model"))
-                .thenReturn(null);
+                        .thenReturn(null);
         when(mockWorkflowMapper.selectList(any(LambdaQueryWrapper.class)))
-                .thenReturn(Collections.emptyList());
+                        .thenReturn(Collections.emptyList());
 
         // 5) mock 调用大模型接口并返回一个合法 JSON（必须包含 choices + usage）
         String okJson = "{\"choices\":[], \"usage\": {\"prompt_tokens\":1, \"completion_tokens\":1, \"total_tokens\":2}}";
         when(mockRestTemplate.exchange(
-                eq("https://api.deepseek.com/v1/chat/completions"),
-                eq(HttpMethod.POST),
-                any(HttpEntity.class),
-                eq(String.class))).thenReturn(new ResponseEntity<>(okJson, HttpStatus.OK));
+                        eq("https://api.deepseek.com/v1/chat/completions"),
+                        eq(HttpMethod.POST),
+                        any(HttpEntity.class),
+                        eq(String.class))).thenReturn(new ResponseEntity<>(okJson, HttpStatus.OK));
 
         // 6) 执行
         String result = modelServiceUnderTest.validateModel(request);
@@ -163,8 +163,8 @@ class ModelServiceTest {
 
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST")).thenReturn(null);
         when(mockRestTemplate.exchange("url", HttpMethod.POST,
-                new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
-                String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
+                        new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
+                        String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
 
         // Configure WorkflowMapper.selectList(...).
         final Workflow workflow = new Workflow();
@@ -250,8 +250,8 @@ class ModelServiceTest {
 
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST")).thenReturn(Collections.emptyList());
         when(mockRestTemplate.exchange("url", HttpMethod.POST,
-                new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
-                String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
+                        new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
+                        String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
 
         // Configure WorkflowMapper.selectList(...).
         final Workflow workflow = new Workflow();
@@ -346,8 +346,8 @@ class ModelServiceTest {
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST")).thenReturn(configInfos);
 
         when(mockRestTemplate.exchange("url", HttpMethod.POST,
-                new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
-                String.class)).thenThrow(RestClientException.class);
+                        new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
+                        String.class)).thenThrow(RestClientException.class);
 
         // Run the test
         assertThrows(BusinessException.class, () -> modelServiceUnderTest.validateModel(request));
@@ -383,8 +383,8 @@ class ModelServiceTest {
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST")).thenReturn(configInfos);
 
         when(mockRestTemplate.exchange("url", HttpMethod.POST,
-                new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
-                String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
+                        new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
+                        String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
         when(mockWorkflowMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
 
         // Configure ConfigInfoMapper.getByCategoryAndCode(...).
@@ -470,8 +470,8 @@ class ModelServiceTest {
         when(mockConfigInfoMapper.getListByCategory("NETWORK_SEGMENT_BLACK_LIST")).thenReturn(configInfos);
 
         when(mockRestTemplate.exchange("url", HttpMethod.POST,
-                new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
-                String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
+                        new HttpEntity<>(Map.ofEntries(Map.entry("value", "value")), new HttpHeaders()),
+                        String.class)).thenReturn(new ResponseEntity<>("body", HttpStatus.OK));
 
         // Configure WorkflowMapper.selectList(...).
         final Workflow workflow = new Workflow();

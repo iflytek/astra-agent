@@ -151,7 +151,7 @@ public class AuthStringUtil {
     /**
      * 获取签名
      *
-     * @param appId    签名的key
+     * @param appId 签名的key
      * @param secret 签名秘钥
      * @return 返回签名
      */
@@ -168,7 +168,7 @@ public class AuthStringUtil {
      * sha1加密
      *
      * @param encryptText 加密文本
-     * @param encryptKey  加密键
+     * @param encryptKey 加密键
      * @return 加密
      */
     private static String hmacSHA1Encrypt(String encryptText, String encryptKey) throws SignatureException {

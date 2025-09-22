@@ -12,9 +12,9 @@ public interface ShareService {
     /**
      * 生产智能体分享的密钥
      *
-     * @param uid         uid
+     * @param uid uid
      * @param relatedType type
-     * @param relatedId   id
+     * @param relatedId id
      * @return string
      */
     String getShareKey(String uid, int relatedType, Long relatedId);

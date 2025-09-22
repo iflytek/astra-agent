@@ -33,7 +33,7 @@ public class McpToolReq {
     private JSONObject toolArgs;
 
     private String toolId;
-    
+
     /**
      * Custom setter to handle both string and object formats for toolArgs
      */

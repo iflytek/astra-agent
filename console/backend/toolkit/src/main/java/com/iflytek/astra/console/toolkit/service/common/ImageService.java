@@ -22,7 +22,7 @@ public class ImageService {
 
     // 允许的 Content-Type（按需扩展）
     private static final String[] ALLOWED_TYPES = {
-            "image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp", "image/svg+xml"
+                    "image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp", "image/svg+xml"
     };
 
     // MinIO/亚马逊分片上传最小建议：5MB
@@ -57,23 +57,26 @@ public class ImageService {
             }
         } catch (Exception e) {
             log.error("Upload image failed, name={}, size={}, type={}, err={}",
-                    original, size, contentType, e.getMessage(), e);
+                            original, size, contentType, e.getMessage(), e);
             throw new BusinessException(ResponseEnum.S3_UPLOAD_ERROR);
         }
-         return objectKey;
+        return objectKey;
     }
 
     private static boolean isAllowedType(String contentType) {
-        if (contentType == null) return false;
+        if (contentType == null)
+            return false;
         for (String t : ALLOWED_TYPES) {
-            if (t.equalsIgnoreCase(contentType)) return true;
+            if (t.equalsIgnoreCase(contentType))
+                return true;
         }
         // 兜底允许 image/*（可按需关闭）
         return contentType.toLowerCase(Locale.ROOT).startsWith("image/");
     }
 
     private static String normalizeContentType(String ct) {
-        if (ct == null || ct.isBlank()) return "application/octet-stream";
+        if (ct == null || ct.isBlank())
+            return "application/octet-stream";
         return ct.trim();
     }
 
@@ -97,13 +100,24 @@ public class ImageService {
         // 内容类型兜底推断
         if (ext.isBlank() && contentType != null) {
             switch (contentType.toLowerCase(Locale.ROOT)) {
-                case "image/png": ext = "png"; break;
+                case "image/png":
+                    ext = "png";
+                    break;
                 case "image/jpeg":
-                case "image/jpg": ext = "jpg"; break;
-                case "image/gif": ext = "gif"; break;
-                case "image/webp": ext = "webp"; break;
-                case "image/svg+xml": ext = "svg"; break;
-                default: ext = ""; // 保持无后缀
+                case "image/jpg":
+                    ext = "jpg";
+                    break;
+                case "image/gif":
+                    ext = "gif";
+                    break;
+                case "image/webp":
+                    ext = "webp";
+                    break;
+                case "image/svg+xml":
+                    ext = "svg";
+                    break;
+                default:
+                    ext = ""; // 保持无后缀
             }
         }
         return ext.toLowerCase(Locale.ROOT);
@@ -112,8 +126,8 @@ public class ImageService {
     private static String stripUnsafe(String name) {
         // 去掉空白与危险字符，避免路径穿越；保留基本可读性
         String cleaned = new String(name.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
-                .replaceAll("\\s+", "")
-                .replaceAll("[\\\\/:*?\"<>|]+", "_");
+                        .replaceAll("\\s+", "")
+                        .replaceAll("[\\\\/:*?\"<>|]+", "_");
         // 防止包含路径
         cleaned = cleaned.replaceAll("\\.\\.+", ".");
         cleaned = cleaned.replaceAll("^\\.+", "");

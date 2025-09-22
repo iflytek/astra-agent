@@ -36,14 +36,13 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
 
         // 执行数据库查询，获取 UserLangChainInfo 列表
         List<UserLangChainInfo> records = userLangChainInfoMapper.selectList(
-                Wrappers.<UserLangChainInfo>lambdaQuery()
-                        .in(UserLangChainInfo::getBotId, idSet)
-        );
+                        Wrappers.<UserLangChainInfo>lambdaQuery()
+                                        .in(UserLangChainInfo::getBotId, idSet));
 
         // 使用 Stream API 进行转换
         return records.stream()
-                .map(record -> JSON.parseObject(JSON.toJSONString(record)))
-                .collect(Collectors.toList());
+                        .map(record -> JSON.parseObject(JSON.toJSONString(record)))
+                        .collect(Collectors.toList());
     }
 
     @Override
@@ -59,9 +58,9 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         return userLangChainInfoMapper.selectOne(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getBotId, botId)
-                        .last("LIMIT 1"));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getBotId, botId)
+                                        .last("LIMIT 1"));
     }
 
     @Override
@@ -71,17 +70,17 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         return userLangChainInfoMapper.selectList(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getBotId, botId));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getBotId, botId));
     }
 
     @Override
     public String findFlowIdByBotId(Integer botId) {
         UserLangChainInfo userLangChainInfo = userLangChainInfoMapper.selectOne(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getBotId, botId)
-                        .orderByDesc(UserLangChainInfo::getUpdateTime)
-                        .last("LIMIT 1"));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getBotId, botId)
+                                        .orderByDesc(UserLangChainInfo::getUpdateTime)
+                                        .last("LIMIT 1"));
         return userLangChainInfo.getFlowId();
     }
 
@@ -92,9 +91,9 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         return userLangChainInfoMapper.selectOne(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getFlowId, flowId)
-                        .last("LIMIT 1"));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getFlowId, flowId)
+                                        .last("LIMIT 1"));
     }
 
     @Override
@@ -104,9 +103,9 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         return userLangChainInfoMapper.selectOne(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getMaasId, maasId)
-                        .last("LIMIT 1"));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getMaasId, maasId)
+                                        .last("LIMIT 1"));
     }
 
     @Override
@@ -116,8 +115,8 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         return userLangChainInfoMapper.selectList(
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getMaasId, maasId));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getMaasId, maasId));
     }
 
     @Override
@@ -127,8 +126,8 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
         }
 
         userLangChainInfoMapper.update(userLangChainInfo,
-                new LambdaQueryWrapper<UserLangChainInfo>()
-                        .eq(UserLangChainInfo::getBotId, botId));
+                        new LambdaQueryWrapper<UserLangChainInfo>()
+                                        .eq(UserLangChainInfo::getBotId, botId));
 
         return userLangChainInfo;
     }

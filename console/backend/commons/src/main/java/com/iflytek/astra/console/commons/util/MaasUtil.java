@@ -16,7 +16,6 @@ import com.iflytek.astra.console.commons.mapper.bot.ChatBotBaseMapper;
 import com.iflytek.astra.console.commons.service.bot.ChatBotTagService;
 import com.iflytek.astra.console.commons.service.data.UserLangChainDataService;
 import com.iflytek.astra.console.commons.service.workflow.impl.WorkflowBotParamServiceImpl;
-import com.iflytek.astra.console.commons.util.I18nUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,11 +41,11 @@ public class MaasUtil {
     private static final String X_AUTH_SOURCE_VALUE = "xfyun";
 
     private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .readTimeout(Duration.ofSeconds(30))
-            .writeTimeout(Duration.ofSeconds(30))
-            .retryOnConnectionFailure(true)
-            .build();
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .readTimeout(Duration.ofSeconds(30))
+                    .writeTimeout(Duration.ofSeconds(30))
+                    .retryOnConnectionFailure(true)
+                    .build();
 
     @Resource
     private ChatBotBaseMapper chatBotBaseMapper;
@@ -105,8 +104,8 @@ public class MaasUtil {
     private final OkHttpClient client = new OkHttpClient();
 
     public static final List<String> NO_SUPPORT_TYPE = ListUtil.of("string", "integer", "boolean", "number",
-            "object", "array-string", "array-integer",
-            "array-boolean", "array-number", "array-object");
+                    "object", "array-string", "array-integer",
+                    "array-boolean", "array-number", "array-object");
 
     public JSONObject deleteSynchronize(Integer botId, Long spaceId, HttpServletRequest request) {
         if (botId == null || spaceId == null || request == null) {
@@ -135,17 +134,17 @@ public class MaasUtil {
 
         // Build form data
         FormBody formBody = new FormBody.Builder()
-                .add("id", maasId)
-                .add("spaceId", String.valueOf(spaceId))
-                .build();
+                        .add("id", maasId)
+                        .add("spaceId", String.valueOf(spaceId))
+                        .build();
 
         // Build request
         Request deleteRequest = new Request.Builder()
-                .url(synchronizeUrl)
-                .delete(formBody)
-                .addHeader("Authorization", authHeader)
-                .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
-                .build();
+                        .url(synchronizeUrl)
+                        .delete(formBody)
+                        .addHeader("Authorization", authHeader)
+                        .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
+                        .build();
 
         String response;
         try (Response httpResponse = HTTP_CLIENT.newCall(deleteRequest).execute()) {
@@ -170,7 +169,7 @@ public class MaasUtil {
     }
 
     public JSONObject synchronizeWorkFlow(UserLangChainInfo userLangChainInfo, BotCreateForm botCreateForm,
-                                          HttpServletRequest request, Long spaceId) {
+                    HttpServletRequest request, Long spaceId) {
         AdvancedConfig advancedConfig = new AdvancedConfig(botCreateForm.getPrologue(), botCreateForm.getInputExample(), botCreateForm.getAppBackground());
         JSONObject param = new JSONObject();
         param.put("avatarIcon", botCreateForm.getAvatar());
@@ -202,15 +201,15 @@ public class MaasUtil {
 
         // Build request body
         RequestBody requestBody = RequestBody.create(
-                JSONObject.toJSONString(param),
-                MediaType.parse("application/json; charset=utf-8"));
+                        JSONObject.toJSONString(param),
+                        MediaType.parse("application/json; charset=utf-8"));
 
         // Build request
         Request.Builder requestBuilder = new Request.Builder()
-                .url(synchronizeUrl)
-                .addHeader("Authorization", authHeader)
-                .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
-                .addHeader("Lang-Code", I18nUtil.getLanguage());
+                        .url(synchronizeUrl)
+                        .addHeader("Authorization", authHeader)
+                        .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
+                        .addHeader("Lang-Code", I18nUtil.getLanguage());
 
         if ("PUT".equals(httpMethod)) {
             requestBuilder.put(requestBody);
@@ -247,8 +246,8 @@ public class MaasUtil {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             return Arrays.stream(cookies)
-                    .map(cookie -> cookie.getName() + "=" + cookie.getValue())
-                    .collect(Collectors.joining("; "));
+                            .map(cookie -> cookie.getName() + "=" + cookie.getValue())
+                            .collect(Collectors.joining("; "));
         }
         return "";
     }
@@ -366,16 +365,16 @@ public class MaasUtil {
         Map<String, String> pubAuth = AuthStringUtil.authMap(publishApi, "POST", consumerKey, consumerSecret, JSONObject.toJSONString(maasApi));
         // Build request body
         RequestBody requestBody = RequestBody.create(
-                JSONObject.toJSONString(pubAuth),
-                MediaType.parse("application/json; charset=utf-8"));
+                        JSONObject.toJSONString(pubAuth),
+                        MediaType.parse("application/json; charset=utf-8"));
         Request pubRequest = new Request.Builder()
-                .url(publishApi)
-                .post(requestBody)
-                .addHeader("X-Consumer-Username", consumerId)
-                .addHeader("Lang-Code", I18nUtil.getLanguage())
-                .headers(Headers.of(pubAuth))
-                .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
-                .build();
+                        .url(publishApi)
+                        .post(requestBody)
+                        .addHeader("X-Consumer-Username", consumerId)
+                        .addHeader("Lang-Code", I18nUtil.getLanguage())
+                        .headers(Headers.of(pubAuth))
+                        .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
+                        .build();
 
         String response;
         try (Response httpResponse = HTTP_CLIENT.newCall(pubRequest).execute()) {
@@ -399,16 +398,16 @@ public class MaasUtil {
         Map<String, String> authMap = AuthStringUtil.authMap(authApi, "POST", consumerKey, consumerSecret, JSONObject.toJSONString(maasApi));
         // Build request body
         requestBody = RequestBody.create(
-                JSONObject.toJSONString(authMap),
-                MediaType.parse("application/json; charset=utf-8"));
+                        JSONObject.toJSONString(authMap),
+                        MediaType.parse("application/json; charset=utf-8"));
         Request authRequest = new Request.Builder()
-                .url(authApi)
-                .post(requestBody)
-                .addHeader("X-Consumer-Username", consumerId)
-                .addHeader("Lang-Code", I18nUtil.getLanguage())
-                .headers(Headers.of(pubAuth))
-                .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
-                .build();
+                        .url(authApi)
+                        .post(requestBody)
+                        .addHeader("X-Consumer-Username", consumerId)
+                        .addHeader("Lang-Code", I18nUtil.getLanguage())
+                        .headers(Headers.of(pubAuth))
+                        .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
+                        .build();
 
         String authResponse = "";
         try (Response httpResponse = HTTP_CLIENT.newCall(authRequest).execute()) {
@@ -434,14 +433,14 @@ public class MaasUtil {
     public JSONObject copyWorkFlow(Long maasId, String uid) {
         log.info("----- 复制maas 工作流id: {}", maasId);
         HttpUrl httpUrl = HttpUrl.parse(cloneWorkFlowUrl + "/workflow/internal-clone")
-                .newBuilder()
-                .addQueryParameter("id", String.valueOf(maasId)) // 使用您的 massId
-                .addQueryParameter("password", "xfyun") // 根据目标方法逻辑设置密码
-                .build();
+                        .newBuilder()
+                        .addQueryParameter("id", String.valueOf(maasId)) // 使用您的 massId
+                        .addQueryParameter("password", "xfyun") // 根据目标方法逻辑设置密码
+                        .build();
         Request httpRequest = new Request.Builder()
-                .url(httpUrl)
-                .get() // 指定 GET 方法
-                .build();
+                        .url(httpUrl)
+                        .get() // 指定 GET 方法
+                        .build();
         String responseBody = "";
         try (Response response = client.newCall(httpRequest).execute()) {
             if (!response.isSuccessful()) {
@@ -472,11 +471,11 @@ public class MaasUtil {
 
         // Build request
         Request getInputsRequest = new Request.Builder()
-                .url(urlWithParams)
-                .get()
-                .addHeader("Authorization", authorizationHeaderValue)
-                .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
-                .build();
+                        .url(urlWithParams)
+                        .get()
+                        .addHeader("Authorization", authorizationHeaderValue)
+                        .addHeader(X_AUTH_SOURCE_HEADER, X_AUTH_SOURCE_VALUE)
+                        .build();
 
         String response;
         try (Response httpResponse = HTTP_CLIENT.newCall(getInputsRequest).execute()) {

@@ -84,7 +84,7 @@ public class BotFavoriteServiceImpl implements BotFavoriteService {
         LinkedList<ChatBotMarketPage> result = botFavoriteMapper.selectBotPage(queryDto);
         for (ChatBotMarketPage chatBotMarketPage : result) {
             userInfoDataService.findByUid(chatBotMarketPage.getUid())
-                    .ifPresent(userInfo -> chatBotMarketPage.setCreatorName(userInfo.getNickname()));
+                            .ifPresent(userInfo -> chatBotMarketPage.setCreatorName(userInfo.getNickname()));
         }
         return result;
     }

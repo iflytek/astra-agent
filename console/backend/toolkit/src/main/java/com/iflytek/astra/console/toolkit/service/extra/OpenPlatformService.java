@@ -29,8 +29,8 @@ public class OpenPlatformService {
 
     @Resource
     ApiUrl apiUrl;
-     @Autowired
-     private WorkflowBotService botMassService;
+    @Autowired
+    private WorkflowBotService botMassService;
 
     @Value("${xfyun.api.auth.secret}")
     String secret;

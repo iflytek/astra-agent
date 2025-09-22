@@ -148,8 +148,7 @@ public interface ChatDataService {
     ChatFileUser findChatFileUserByIdAndUid(Long linkId, String uid);
 
     /**
-     * Delete ChatFileReq by marking it as deleted
-     * Only deletes records that are not bound to any reqId
+     * Delete ChatFileReq by marking it as deleted Only deletes records that are not bound to any reqId
      */
     void deleteChatFileReq(String fileId, Long chatId, String uid);
 }

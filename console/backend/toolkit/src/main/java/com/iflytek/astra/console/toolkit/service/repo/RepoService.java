@@ -113,8 +113,8 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
 
     @Resource
     FileInfoV2Mapper fileInfoV2Mapper;
-     @Resource
-     private IDatasetFileService datasetFileService;
+    @Resource
+    private IDatasetFileService datasetFileService;
 
     @Resource
     FileDirectoryTreeService directoryTreeService;
@@ -1036,7 +1036,7 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
             }
         }
 
-         List<DatasetStats> sparkBots = datasetFileService.getMaasDataset(repoId);
+        List<DatasetStats> sparkBots = datasetFileService.getMaasDataset(repoId);
         for (DatasetStats sparkBot : sparkBots) {
             SparkBotVO sparkBotVO = new SparkBotVO();
             sparkBotVO.setName(sparkBot.getName());

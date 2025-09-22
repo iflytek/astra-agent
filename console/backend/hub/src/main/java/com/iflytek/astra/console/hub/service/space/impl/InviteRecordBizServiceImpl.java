@@ -480,8 +480,8 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
             Set<String> joinedUids = getJoinedUids(type);
             Set<String> invitingUids = inviteRecordService.getInvitingUids(type);
             Map<String, String> mobileMap = userInfos.stream()
-                    .filter(i -> i.getUid() != null)
-                    .collect(Collectors.toMap(UserInfo::getUid, i -> i.getMobile() != null ? i.getMobile() : ""));
+                            .filter(i -> i.getUid() != null)
+                            .collect(Collectors.toMap(UserInfo::getUid, i -> i.getMobile() != null ? i.getMobile() : ""));
             return userInfos.stream().map(i -> {
                 ChatUserVO chatUserVO = new ChatUserVO();
                 chatUserVO.setMobile(mobileMap.get(i.getUid()));

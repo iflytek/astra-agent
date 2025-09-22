@@ -12,7 +12,6 @@ import com.iflytek.astra.console.commons.mapper.space.EnterpriseMapper;
 import com.iflytek.astra.console.commons.service.space.EnterpriseService;
 import com.iflytek.astra.console.commons.service.space.EnterpriseUserService;
 import com.iflytek.astra.console.commons.util.space.EnterpriseInfoUtil;
-import com.iflytek.astra.console.commons.util.space.OrderInfoUtil;
 import com.iflytek.astra.console.commons.dto.space.EnterpriseVO;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -67,16 +66,16 @@ public class EnterpriseServiceImpl extends ServiceImpl<EnterpriseMapper, Enterpr
     public Integer checkNeedCreateTeam() {
         // TODO refactor: never need to create team for now.
         return 0;
-//        String uid = RequestContextUtil.getUID();
-//        Enterprise enterprise = getEnterpriseByUid(uid);
-//        if (enterprise != null) {
-//            return 0;
-//        }
-//        OrderInfoUtil.EnterpriseResult result = OrderInfoUtil.getEnterpriseResult(uid);
-//        if (result.getServiceType() == null) {
-//            return 0;
-//        }
-//        return result.getServiceType().getCode();
+        // String uid = RequestContextUtil.getUID();
+        // Enterprise enterprise = getEnterpriseByUid(uid);
+        // if (enterprise != null) {
+        // return 0;
+        // }
+        // OrderInfoUtil.EnterpriseResult result = OrderInfoUtil.getEnterpriseResult(uid);
+        // if (result.getServiceType() == null) {
+        // return 0;
+        // }
+        // return result.getServiceType().getCode();
     }
 
     @Override

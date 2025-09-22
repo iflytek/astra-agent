@@ -15,8 +15,7 @@ public interface ChatEnhanceService {
     ChatFileUser findById(Long linkId, String uid);
 
     /**
-     * 删除chat_file_req表单信息
-     * 注：所有绑定ReqId的信息都不做删除
+     * 删除chat_file_req表单信息 注：所有绑定ReqId的信息都不做删除
      */
     void delete(String fileId, Long chatId, String uid);
 }

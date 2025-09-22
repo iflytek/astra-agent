@@ -145,8 +145,8 @@ public interface ChatBotDataService {
     /**
      * 检查用户在指定空间内是否有重复的助手名称
      *
-     * @param uid     用户ID
-     * @param botId   助手ID（编辑时传入，创建时传null）
+     * @param uid 用户ID
+     * @param botId 助手ID（编辑时传入，创建时传null）
      * @param botName 助手名称
      * @param spaceId 空间ID
      * @return 如果存在重复名称返回true，否则返回false

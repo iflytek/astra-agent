@@ -1,7 +1,6 @@
 package com.iflytek.astra.console.toolkit.tool;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.iflytek.astra.console.commons.util.S3ClientUtil;
 import com.iflytek.astra.console.toolkit.common.constant.ProjectContent;
 import com.iflytek.astra.console.toolkit.util.S3Util;
 import org.springframework.stereotype.Component;

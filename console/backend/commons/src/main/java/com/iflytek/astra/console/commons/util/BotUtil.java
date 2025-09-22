@@ -25,8 +25,7 @@ public class BotUtil {
 
     public static final String BOT_INPUT_EXAMPLE_SPLIT = "%%split%%";
 
-    public BotUtil(ChatBotDataService chatBotDataService) {
-    }
+    public BotUtil(ChatBotDataService chatBotDataService) {}
 
     public static String convertNumToStr(int number, String langCode) {
         String numStr = "";
