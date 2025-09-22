@@ -1,17 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 📖 Documentation
-    url: https://github.com/iflytek/astra-agent#readme
-    about: Please check our documentation first before creating an issue
   - name: 💬 Discussions
     url: https://github.com/iflytek/astra-agent/discussions
     about: Ask questions and discuss ideas with the community
-  - name: 🐛 Bug Report
-    url: https://github.com/iflytek/astra-agent/issues/new?template=bug_report.md
-    about: Report a bug to help us improve
-  - name: ✨ Feature Request
-    url: https://github.com/iflytek/astra-agent/issues/new?template=feature_request.md
-    about: Suggest an idea for this project
-  - name: ❓ General Issue
-    url: https://github.com/iflytek/astra-agent/issues/new?template=general_issue.md
-    about: Questions, documentation, performance, or other general topics
