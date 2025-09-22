@@ -4,7 +4,7 @@ version = 1
 [[java.apps]]
 name = "console-backend"
 dir = "console/backend"
-enabled = false
+enabled = true
 
 [[typescript.apps]]
 name = "console-frontend"

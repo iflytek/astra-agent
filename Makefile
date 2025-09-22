@@ -10,7 +10,7 @@ include makefiles/core/workflows.mk
 # Include original language modules (for internal calls)
 include makefiles/go.mk
 include makefiles/typescript.mk
-# include makefiles/java.mk
+include makefiles/java.mk
 include makefiles/python.mk
 include makefiles/git.mk
 include makefiles/common.mk
