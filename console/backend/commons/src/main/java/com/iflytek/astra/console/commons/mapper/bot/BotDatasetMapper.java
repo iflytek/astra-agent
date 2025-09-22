@@ -11,10 +11,5 @@ import java.util.List;
 
 @Mapper
 public interface BotDatasetMapper extends BaseMapper<BotDataset> {
-
-    @Select("select d.id, d.uid, d.name, d.description " +
-                    "from bot_dataset b " +
-                    "left join dataset_info d on b.dataset_id = d.id " +
-                    "where b.bot_id = #{botId} and b.is_act = 1 and d.status = 2")
     List<DatasetInfo> selectDatasetListByBotId(@Param("botId") Integer botId);
 }
