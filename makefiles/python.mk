@@ -3,7 +3,7 @@
 # =============================================================================
 
 # Python project variables - use dynamic directories from config
-PYTHON := /Users/scguo/.virtualenvs/mydemos/bin/python
+PYTHON := $(shell which python3 || which python)
 BLACK := black
 ISORT := isort
 FLAKE8 := flake8
@@ -50,7 +50,7 @@ install-tools-python: ## 🛠️ Install Python development tools
 check-tools-python: ## ✅ Check Python development tools availability
 	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Checking Python tools...$(RESET)"; \
-		test -f $(PYTHON) || (echo "$(RED)Python virtual environment not found at $(PYTHON)$(RESET)" && exit 1); \
+		command -v $(PYTHON) >/dev/null 2>&1 || (echo "$(RED)Python not found. Please install Python or set PYTHON environment variable$(RESET)" && exit 1); \
 		$(PYTHON) -c "import black" 2>/dev/null || (echo "$(RED)black is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
 		$(PYTHON) -c "import isort" 2>/dev/null || (echo "$(RED)isort is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
 		$(PYTHON) -c "import flake8" 2>/dev/null || (echo "$(RED)flake8 is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
