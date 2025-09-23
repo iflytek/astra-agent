@@ -1,7 +1,0 @@
-[meta]
-version = 1
-
-[[java.apps]]
-name = "console-backend"
-dir = "console/backend"
-enabled = true
