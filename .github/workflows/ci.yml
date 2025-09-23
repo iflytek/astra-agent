@@ -185,14 +185,21 @@ jobs:
               ;;
             go)
               echo "🔍 Running Go quality checks..."
-              echo "🛠️ Installing Go quality tools..."
-              go install github.com/mgechev/revive@latest
-              echo "✨ Running go fmt..."
-              go fmt ./...
+              echo "🛠️ Installing golangci-lint..."
+              curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.0
+              export PATH=$PATH:$(go env GOPATH)/bin
+              echo "✨ Checking go fmt compliance..."
+              UNFORMATTED=$(gofmt -l .) && \
+              if [ -n "$UNFORMATTED" ]; then \
+                echo "Files that need formatting:" && \
+                echo "$UNFORMATTED" && \
+                echo "Run 'go fmt ./...' to fix formatting issues." && \
+                exit 1; \
+              fi
               echo "🔍 Running go vet..."
               go vet ./...
-              echo "📋 Running revive (modern replacement for golint)..."
-              revive -config revive.toml ./... || revive ./...
+              echo "📋 Running golangci-lint..."
+              golangci-lint run --timeout=5m
               ;;
             python)
               echo "🛠️ Installing Python quality tools..."
