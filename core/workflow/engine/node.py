@@ -20,7 +20,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
-from workflow.exception.e import CustomException, CustomExceptionCM
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.log_trace.workflow_log import WorkflowLog
@@ -244,16 +244,20 @@ class NodeExecutionTemplate:
         :param span_context: Tracing span context
         :raises CustomExceptionCM: When node execution fails
         """
+
+        if not result.error:
+            raise CustomException(
+                CodeEnum.NodeRunErr,
+                cause_error=f"node {result.node_id} run failed, not error",
+            )
+
         self.node.node_log.running_status = False
         span_context.add_error_event(
             f"node {result.node_id} run failed, "
-            f"err code {result.error_code}, err reason: {result.error}"
+            f"err code {result.error.code}, err reason: {result.error}"
         )
         traceback.print_exc()
-        raise CustomExceptionCM(
-            err_code=result.error_code,
-            err_msg=result.error,
-        )
+        raise result.error
 
     async def _handle_successful_result(
         self, result: NodeRunResult, span_context: Span, **kwargs: Any
@@ -365,7 +369,7 @@ class NodeExecutionTemplate:
         except Exception as err:
             raise CustomException(
                 err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _add_end_node_variables(
@@ -389,7 +393,7 @@ class NodeExecutionTemplate:
         except Exception as err:
             raise CustomException(
                 err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _add_default_node_variables(
@@ -411,7 +415,7 @@ class NodeExecutionTemplate:
         except Exception as err:
             raise CustomException(
                 err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _log_success_result(self, result: NodeRunResult, span_context: Span) -> None:
@@ -668,8 +672,8 @@ class NodeFactory:
         if not node_class:
             raise CustomException(
                 CodeEnum.EngNodeProtocolValidateErr,
-                err_msg=f"当前workflow不支持节点类型：{node.get_node_type()}",
-                cause_error=f"当前workflow不支持节点类型：{node.get_node_type()}",
+                err_msg=f"Current workflow does not support node type: {node.get_node_type()}",
+                cause_error=f"Current workflow does not support node type: {node.get_node_type()}",
             )
 
         if not node.data:
@@ -729,7 +733,7 @@ class NodeFactory:
                 )
                 raise CustomException(
                     CodeEnum.EngNodeProtocolValidateErr,
-                    err_msg=f"节点设定输出内容: {custom_output} 不符合格式",
+                    err_msg=f"Node set output content: {custom_output} does not match format",
                 )
         else:
             custom_output = NodeFactory._create_default_output(outputs)
@@ -841,7 +845,7 @@ class NodeFactory:
                 elif type_str == "object":
                     custom_output[name] = {}
                 else:
-                    custom_output[name] = None  # 未知类型兜底
+                    custom_output[name] = None  # Fallback for unknown types
         return custom_output
 
     @staticmethod

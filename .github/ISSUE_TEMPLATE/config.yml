@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussions
+    url: https://github.com/iflytek/astra-agent/discussions
+    about: Ask questions and discuss ideas with the community

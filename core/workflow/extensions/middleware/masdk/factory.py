@@ -38,28 +38,28 @@ class MASDKServiceFactory(ServiceFactory):
         # Read Polaris service discovery configuration from environment variables
         polaris_url = os.getenv("MASDK_POLARIS_URL")
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         polaris_project = os.getenv("MASDK_POLARIS_PROJECT")
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         polaris_group = os.getenv("MASDK_POLARIS_GROUP")
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         polaris_service = os.getenv("MASDK_POLARIS_SERVICE")
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         polaris_version = os.getenv("MASDK_POLARIS_VERSION")
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         # Configure channel list with fallback to empty string
         channel_list = [os.getenv("MASDK_CHANNEL") or ""]
         if not polaris_url:
-            raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
+            raise ValueError("MASDK_POLARIS_URL environment variable is not configured")
 
         # Set default metrics service name and strategy types
         metrics_service_name = "masdk"

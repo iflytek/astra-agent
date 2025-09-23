@@ -1,4 +1,3 @@
-import time
 from typing import Any, Dict, List, Optional
 
 from workflow.engine.entities.variable_pool import VariablePool
@@ -8,6 +7,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.if_else.entities import IfElseNodeData
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
@@ -231,8 +231,10 @@ class IFElseNode(BaseNode):
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=node_inputs,
                     process_data=process_datas,
-                    error=f"{err}",
-                    error_code=CodeEnum.IfElseNodeExecutionError.code,
+                    error=CustomException(
+                        CodeEnum.IfElseNodeExecutionError,
+                        cause_error=err,
+                    ),
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
@@ -285,7 +287,6 @@ class IFElseNode(BaseNode):
         :param kwargs: Additional parameters including callback methods
         :return: Node execution result from the first matching branch
         """
-        start_time = time.time()
         res: NodeRunResult
         inputs: dict[str, Any] = {}
         errors: dict[str, Any] = {}
@@ -303,13 +304,11 @@ class IFElseNode(BaseNode):
                         node_id=self.node_id,
                         alias_name=self.alias_name,
                         node_type=self.node_type,
-                        time_cost=str(round(time.time() - start_time, 2)),
                     )
 
                 res = await self.do_one_branch(
                     variable_pool=variable_pool, span=span, branch_data=cur_branch
                 )
-                res.time_cost = str(round(time.time() - start_time, 3))
                 # If a branch condition fails, collect error info and try next branch
                 if res.status == WorkflowNodeExecutionStatus.FAILED:
                     inputs.update({f"Branch {index + 1} inputs: ": res.inputs})
@@ -349,7 +348,6 @@ class IFElseNode(BaseNode):
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
-                    time_cost=str(round(time.time() - start_time, 2)),
                 )
 
         if res is None:
@@ -369,7 +367,6 @@ class IFElseNode(BaseNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 2)),
             )
         return res
 

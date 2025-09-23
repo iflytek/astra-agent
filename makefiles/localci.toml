@@ -4,49 +4,49 @@ version = 1
 [[java.apps]]
 name = "console-backend"
 dir = "console/backend"
-enabled = false
+enabled = true
 
 [[typescript.apps]]
 name = "console-frontend"
 dir = "console/frontend"
-enabled = false
+enabled = true
 
 [[go.apps]]
 name = "core-tenant"
 dir = "core/tenant"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-memory"
 dir = "core/memory/database"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-rpa"
 dir = "core/plugin/rpa"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-link"
 dir = "core/plugin/link"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-aitools"
 dir = "core/plugin/aitools"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-agent"
 dir = "core/agent"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-knowledge"
 dir = "core/knowledge"
-enabled = false
+enabled = true
 
 [[python.apps]]
 name = "core-workflow"
 dir = "core/workflow"
-enabled = false
+enabled = true

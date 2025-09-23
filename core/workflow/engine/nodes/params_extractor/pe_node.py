@@ -1,7 +1,6 @@
 import copy
 import json
 import re
-import time
 import traceback
 from typing import Any, Dict
 
@@ -131,7 +130,6 @@ class ParamsExtractorNode(BaseLLMNode):
         :param event_log_node_trace: Optional node trace logging
         :return: Node execution result with extracted parameters
         """
-        start_time = time.time()
         try:
             schema_content = self.assemble_schema_info()
             span.add_info_events(
@@ -192,7 +190,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -206,8 +203,7 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.cause_error}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             span.record_exception(err)
@@ -216,8 +212,10 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.ExtractExecutionError.code,
+                error=CustomException(
+                    CodeEnum.ExtractExecutionError,
+                    cause_error=err,
+                ),
             )
 
     async def async_execute(
@@ -247,7 +245,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 event_log_node_trace=event_log_node_trace,
                 flow_id=callbacks.flow_id,
             )
-        start_time = time.time()
         try:
             schema_content = self.assemble_schema_info()
             functions = [Function(parameters=schema_content)]
@@ -319,7 +316,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -335,8 +331,7 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             traceback.print_exc()
@@ -346,8 +341,10 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.ExtractExecutionError.code,
+                error=CustomException(
+                    CodeEnum.ExtractExecutionError,
+                    cause_error=err,
+                ),
             )
 
     def schema_fixed_data(self, res_dict: dict, variable_pool: VariablePool) -> dict:

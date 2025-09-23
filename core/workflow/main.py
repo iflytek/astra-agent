@@ -231,7 +231,7 @@ if __name__ == "__main__":
     uvicorn.run(
         app="main:create_app",  # Reference to the FastAPI app factory function
         host="0.0.0.0",  # Bind to all available network interfaces
-        port=int(os.getenv("SERVICE_PORT", "7880")),  # Default port 7881
+        port=int(os.getenv("SERVICE_PORT", "7880")),  # Default port 7880
         workers=(
             None  # Single worker for Windows and macOS (development platforms)
             if sys.platform in ["win", "win32", "darwin"]

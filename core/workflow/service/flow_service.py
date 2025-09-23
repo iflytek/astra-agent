@@ -29,7 +29,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.flow.flow_node import FlowNode
-from workflow.exception.e import CustomException, CustomExceptionCM
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.cache.base import BaseCacheService
 from workflow.extensions.middleware.database.utils import session_getter
@@ -276,8 +276,8 @@ async def node_debug(workflow_dsl: WorkflowDSL, span: Span) -> NodeDebugRespVo:
     res: NodeRunResult = await node_instance.async_execute(variable_pool, span=span)
 
     # Check execution status and raise exception if failed
-    if res.status != WorkflowNodeExecutionStatus.SUCCEEDED:
-        raise CustomExceptionCM(res.error_code or 500, res.error or "Unknown error")
+    if res.status != WorkflowNodeExecutionStatus.SUCCEEDED and res.error:
+        raise res.error
 
     # Calculate execution time
     time_cost = time.time() * 1000 - time_start

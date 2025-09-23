@@ -220,7 +220,9 @@ class LLMGenerate(BaseModel):
         :return: LLMGenerate instance with the specified parameters
         """
         workflow_step = WorkflowStep(
-            node=node_info, seq=0, progress=progress  # 帧序号在队列出队时重新赋值
+            node=node_info,
+            seq=0,
+            progress=progress,  # Frame sequence number is reassigned when dequeued
         )
         choice = Choice(
             delta=Delta(
@@ -268,7 +270,9 @@ class LLMGenerate(BaseModel):
         :return: LLMGenerate instance for the interrupt event
         """
         workflow_step = WorkflowStep(
-            node=node_info, seq=0, progress=progress  # 帧序号在队列出队时重新赋值
+            node=node_info,
+            seq=0,
+            progress=progress,  # Frame sequence number is reassigned when dequeued
         )
         choice = Choice(
             delta=Delta(role="assistant", content="", reasoning_content=""),

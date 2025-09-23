@@ -76,6 +76,7 @@ tmp/
 # IDEs
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 
@@ -170,3 +171,6 @@ core/.serena/project.yml
 
 
 *.venv*
+
+# local ci
+.localci.toml

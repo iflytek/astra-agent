@@ -1,6 +1,5 @@
 import json
 import re
-import time
 from typing import Any, Dict, List, Optional, Union
 
 from workflow.consts.database import DBMode, ExecuteEnv
@@ -536,7 +535,6 @@ class PGSqlNode(BaseNode):
         :param span: Tracing span for monitoring
         :return: Node execution result with status and output data
         """
-        start_time = time.time()
         inputs, outputs = {}, {}
         # Get input variables from variable pool
         inputs.update(
@@ -612,7 +610,7 @@ class PGSqlNode(BaseNode):
                         ]
             else:
                 outputList = exec_result.get("data", {}).get("exec_success", [])
-            # DELETE语句不需要outputList
+            # DELETE statement does not need outputList
             outputs = {
                 "isSuccess": True,
                 "message": exec_result.get("message", ""),
@@ -629,8 +627,7 @@ class PGSqlNode(BaseNode):
             span.record_exception(e)
             return NodeRunResult(
                 status=status,
-                error=e.message,
-                error_code=e.code,
+                error=e,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -640,8 +637,10 @@ class PGSqlNode(BaseNode):
             span.add_error_event(str(e))
             return NodeRunResult(
                 status=status,
-                error=f"{str(e)}",
-                error_code=CodeEnum.PGSqlNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.PGSqlNodeExecutionError,
+                    cause_error=e,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -653,5 +652,4 @@ class PGSqlNode(BaseNode):
             node_id=self.node_id,
             alias_name=self.alias_name,
             node_type=self.node_type,
-            time_cost=str(round(time.time() - start_time, 3)),
         )

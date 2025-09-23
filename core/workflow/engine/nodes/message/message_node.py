@@ -5,7 +5,6 @@ This module provides the MessageNode class which handles intermediate message ou
 during workflow execution. It supports template-based message generation and streaming output.
 """
 
-import time
 from typing import Any, Dict, Optional
 
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
@@ -92,7 +91,6 @@ class MessageNode(BaseOutputNode):
         content = ""
         reasoning_content = ""
         inputs = {}
-        start_time = time.time()
 
         try:
             # Extract dependency information and node run status
@@ -171,7 +169,6 @@ class MessageNode(BaseOutputNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
             # Notify callbacks that node execution has completed
@@ -189,8 +186,7 @@ class MessageNode(BaseOutputNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
@@ -199,8 +195,10 @@ class MessageNode(BaseOutputNode):
             node_run_result = NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
                 inputs=inputs,
-                error=f"{err}",
-                error_code=CodeEnum.MessageNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.MessageNodeExecutionError,
+                    cause_error=err,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,

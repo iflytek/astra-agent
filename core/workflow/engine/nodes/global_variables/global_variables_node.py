@@ -7,7 +7,6 @@ that extends BaseNode to handle global variable operations (set/get) in workflow
 """
 
 import json
-import time
 from typing import Any, Dict
 
 from workflow.engine.entities.variable_pool import VariablePool
@@ -16,6 +15,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.getters import get_cache_service
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
@@ -179,7 +179,6 @@ class GlobalVariablesNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: NodeRunResult with execution status and data
         """
-        start_time = time.time()
         try:
             inputs: dict = {}
             outputs: dict = {}
@@ -251,15 +250,16 @@ class GlobalVariablesNode(BaseNode):
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except Exception as err:
             # Record exception in tracing span and return failed result
             span.record_exception(err)
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.VariableNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.VariableNodeExecutionError,
+                    cause_error=err,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,

@@ -38,7 +38,7 @@ def generate_agent_output_optimize(
     )  # Ensure Chinese characters are not escaped and format is clear
 
     md = (
-        f"**推理工具 {type}**\n"
+        f"**Reasoning tool {type}**\n"
         f"> {reason}\n\n"
         f"```json\n"
         f"{json_content}\n"

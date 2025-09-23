@@ -1,7 +1,6 @@
 import copy
 import json
 import re
-import time
 from typing import Any, Dict
 
 from jsonschema import ValidationError, validate  # type: ignore
@@ -159,7 +158,6 @@ class DecisionNode(BaseLLMNode):
         :param event_log_node_trace: Optional event logging for node execution
         :return: NodeRunResult containing the selected intent and execution details
         """
-        start_time = time.time()
         # Initialize function call instances and mapping
         fs_instances = []
         id_map = {}
@@ -243,8 +241,7 @@ class DecisionNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         # Ensure user input is string and apply variable replacements
@@ -274,7 +271,6 @@ class DecisionNode(BaseLLMNode):
                 raw_output=str(name),
                 outputs={self.output_identifier[0]: str(name)},
                 edge_source_handle=id_map.get(name, default_id),
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -294,7 +290,6 @@ class DecisionNode(BaseLLMNode):
                 raw_output="DEFAULT",
                 outputs={self.output_identifier[0]: "DEFAULT"},
                 edge_source_handle=default_id,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(),
             )
 
@@ -313,18 +308,17 @@ class DecisionNode(BaseLLMNode):
 
         :param variable_pool: Pool of variables available to the node
         :param span: Tracing span for monitoring
-        :param flow_id: Unique identifier for the workflow flow
+        :param flow_id: Unique identifier for the workflow
         :param event_log_node_trace: Optional event logging for node execution
         :return: NodeRunResult containing the selected intent and execution details
         """
-        start_time = time.time()
         raw_output = ""
         try:
             # Process user input and build input dictionary
             input_dict = {}
             input = ""
             for input_key in self.input_identifier:
-                # Get user input values from variable pool
+                # Get user input values from the variable pool
                 input_value = variable_pool.get_variable(
                     node_id=self.node_id, key_name=input_key, span=span
                 )
@@ -372,12 +366,12 @@ class DecisionNode(BaseLLMNode):
                 "classification_instructions": [instructions],
             }
             destinations = json.dumps(destinations_dict, ensure_ascii=False)
-            # 1. 替换{destinations}字段
+            # 1. Replace the {destinations} placeholder in the system template
             router_template = system_prompt_template.replace(
                 "{{destinations}}", destinations
             )
 
-            # 2. 将模板中的占位换成上个节点的输入，由input传入
+            # 2. Replace the {{histories}} placeholder with content from the previous node input
             user_input_template = router_template.replace("{{histories}}", "")
 
             history_v2 = None
@@ -387,11 +381,11 @@ class DecisionNode(BaseLLMNode):
                 else None
             )
 
-            # 端对端历史
+            # End-to-end chat history support
             if self.enableChatHistoryV2 and self.enableChatHistoryV2.get("isEnabled"):
-                # 关闭旧历史
+                # Disable legacy chat history when v2 is enabled
                 history_chat = None
-                # 历史参数配置 max_token, rounds
+                # Configure history parameters: max_token and rounds
                 rounds = self.enableChatHistoryV2.get("rounds", 1)
                 max_token = self.maxTokens
                 history_v2 = (
@@ -413,12 +407,12 @@ class DecisionNode(BaseLLMNode):
                 variable_pool=variable_pool,
                 event_log_node_trace=event_log_node_trace,
             )
-            # 把历史对话放在inputs供debug接口前端解析
+            # Attach processed chat history to inputs for front-end debugging
             if processed_history:
                 input_dict.update({"chatHistory": processed_history})
             # print("raw_output:",res)
 
-            # 保存raw_output
+            # Persist raw_output for downstream use and debugging
             raw_output = res
             # print("res before process:", res)
             match = re.search(r"```(json)?(.*)```", res, re.DOTALL)
@@ -435,13 +429,12 @@ class DecisionNode(BaseLLMNode):
                 "properties": {"category_name": {"type": "string"}},
             }
 
-            # 使用JSON Schema进行校验
+            # Validate the result using JSON Schema
             try:
                 validate(instance=result, schema=schema)
-                # print("llm返回的JSON数据通过了校验")
             except ValidationError as e:
-                # print(f"JSON数据未通过校验： {e.message}")
-                logger.debug(f"JSON数据未通过校验： {e.message}")
+                # JSON does not pass schema validation
+                logger.debug(f"JSON data does not pass schema validation: {e.message}")
 
             edge_source_handle = idMap.get(result["category_name"], defalut_id)
             category_name = (
@@ -462,7 +455,6 @@ class DecisionNode(BaseLLMNode):
                 raw_output=str(raw_output),
                 outputs=outputs,
                 edge_source_handle=edge_source_handle,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -482,7 +474,6 @@ class DecisionNode(BaseLLMNode):
                 raw_output=str(raw_output),
                 outputs={self.output_identifier[0]: "DEFAULT"},
                 edge_source_handle=defalut_id,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(),
             )
 
@@ -493,25 +484,34 @@ class DecisionNode(BaseLLMNode):
         flow_id: str,
         event_log_node_trace: NodeLog | None = None,
     ) -> NodeRunResult:
-        start_time = time.time()
+        """
+        Execute decision node in normal (non-function-call, non-structured-prompt) mode.
+
+        The model receives a constructed prompt including candidate destinations and
+        returns a JSON object with the selected destination and optional next inputs.
+
+        :param variable_pool: Pool of variables available to the node
+        :param span: Tracing span for monitoring
+        :param flow_id: Unique identifier for the workflow
+        :param event_log_node_trace: Optional event logging for node execution
+        :return: NodeRunResult containing the selected intent and execution details
+        """
         raw_output = ""
         try:
-            # 将用户输入的prompt和变量进行拼接
-            # 1 . 获取用户传入的prompt
+            # Build the complete input string by concatenating all declared inputs
+            # 1. Read user-provided inputs
             input_dict = {}
             input = ""
             for input_key in self.input_identifier:
-                # 替换prompt中的变量，产生真正的prompt
-                # 2. 获取用户的变量,并将input增加到input字符串里
+                # 2. Read each variable and append to the input string
                 input_value = variable_pool.get_variable(
                     node_id=self.node_id, key_name=input_key, span=span
                 )
                 input += str(input_value)
-                # 3. 添加input， 方便后续节点传入
+                # 3. Record inputs for downstream nodes
                 input_dict.update({input_key: input_value})
 
-            # 获取intentChains中下一个目标链的id
-            # 使用列表+ 元组
+            # Build a mapping from intent name to next node id (and find default id)
             idMap = {}
             defalut_id = ""
             for p in self.intentChains:
@@ -520,10 +520,10 @@ class DecisionNode(BaseLLMNode):
                 else:
                     defalut_id = str(p["id"])
 
-            # 套入设定好的prompt模板
-            # 0. 处理意图描述和意图名
+            # Construct the prompt using the predefined template
+            # 0. Prepare intent descriptions and names
             destinations_list: list = []
-            # 把所有非默认的意图键入意图列表，后续发给大模型
+            # Collect all non-default intents to send to the model
             destinations_list.extend(
                 f"{p['name']}: {p['description']}"
                 for p in self.intentChains
@@ -532,20 +532,20 @@ class DecisionNode(BaseLLMNode):
 
             destinations_str = "\n".join(destinations_list)
 
-            # 1. 替换{destinations}字段
+            # 1. Replace the {destinations} placeholder
             router_template = prompt_template.replace(
                 "{destinations}", destinations_str
             )
 
-            # 2. 将模板中的占位换成上个节点的输入，由input传入
+            # 2. Replace {{__input__}} with the concatenated input from the previous node(s)
             router_template = router_template.replace("{{__input__}}", str(input))
 
-            # 3. 拼接promptPrefix
+            # 3. Prepend the custom promptPrefix if provided
             # print("self.promptPrefix:", self.promptPrefix)
             user_input_template = self.promptPrefix + "\n" + router_template
             # print("user_input_template:", user_input_template)
 
-            # 发送给大模型
+            # Send the constructed prompt to the LLM
             history_v2 = None
             history_chat = (
                 variable_pool.get_history(self.node_id)
@@ -553,11 +553,11 @@ class DecisionNode(BaseLLMNode):
                 else None
             )
 
-            # 端对端历史
+            # End-to-end chat history support
             if self.enableChatHistoryV2 and self.enableChatHistoryV2.get("isEnabled"):
-                # 关闭旧历史
+                # Disable legacy chat history when v2 is enabled
                 history_chat = None
-                # 历史参数配置 max_token, rounds
+                # Configure history parameters: max_token and rounds
                 rounds = self.enableChatHistoryV2.get("rounds", 1)
                 max_token = self.maxTokens
                 history_v2 = (
@@ -579,12 +579,12 @@ class DecisionNode(BaseLLMNode):
                 variable_pool=variable_pool,
                 event_log_node_trace=event_log_node_trace,
             )
-            # 把历史对话放在inputs供debug接口前端解析
+            # Attach processed chat history to inputs for front-end debugging
             if processed_history:
                 input_dict.update({"chatHistory": processed_history})
             # print("raw_output:",res)
 
-            # 保存raw_output
+            # Persist raw_output for downstream use and debugging
             raw_output = res
             # print("res before process:", res)
             match = re.search(r"```(json)?(.*)```", res, re.DOTALL)
@@ -604,13 +604,12 @@ class DecisionNode(BaseLLMNode):
                 },
             }
 
-            # 使用JSON Schema进行校验
+            # Validate the result using JSON Schema
             try:
                 validate(instance=result, schema=schema)
-                # print("llm返回的JSON数据通过了校验")
             except ValidationError as e:
-                # print(f"JSON数据未通过校验： {e.message}")
-                logger.debug(f"JSON数据未通过校验： {e.message}")
+                # JSON does not pass schema validation
+                logger.debug(f"JSON data does not pass schema validation: {e.message}")
 
             outputs = {self.output_identifier[0]: result["destination"]}
             edge_source_handle = (
@@ -629,7 +628,6 @@ class DecisionNode(BaseLLMNode):
                 raw_output=str(raw_output),
                 outputs=outputs,
                 edge_source_handle=edge_source_handle,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -658,6 +656,19 @@ class DecisionNode(BaseLLMNode):
         event_log_node_trace: NodeLog | None = None,
         **kwargs: Any,
     ) -> NodeRunResult:
+        """
+        Orchestrate decision node execution by selecting the appropriate mode.
+
+        When reasonMode equals 1, the prompt-based path is used. If function-call
+        mode is enabled, the function-call path is selected. Otherwise, normal
+        mode is executed.
+
+        :param variable_pool: Pool of variables available to the node
+        :param span: Tracing span for monitoring
+        :param event_log_node_trace: Optional event logging for node execution
+        :param kwargs: Extra keyword arguments (e.g., callbacks containing flow_id)
+        :return: NodeRunResult produced by the selected execution path
+        """
         callbacks: ChatCallBacks = kwargs.get("callbacks", None)
 
         if self.reasonMode == 1:

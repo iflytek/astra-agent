@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import time
 from typing import Any, Dict, Literal
 
 from pydantic import Field
@@ -122,7 +121,6 @@ class CodeNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: Node execution result with outputs and timing information
         """
-        start_time = time.time()
         try:
             actual_parameters = self._get_actual_parameter(
                 variable_pool=variable_pool, span_context=span
@@ -143,7 +141,6 @@ class CodeNode(BaseNode):
                 raw_output=(
                     code_result if isinstance(code_result, str) else str(code_result)
                 ),
-                time_cost=round(time.time() - start_time, 3),
             )
         except Exception as err:
             return self.fail(err, CodeEnum.CodeExecutionError, span)

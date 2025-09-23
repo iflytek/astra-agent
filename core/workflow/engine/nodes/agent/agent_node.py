@@ -1,8 +1,6 @@
 import asyncio
 import json
 import os
-import time
-import traceback
 from typing import Any, Dict, List, Tuple
 
 import aiohttp
@@ -549,7 +547,6 @@ class AgentNode(BaseNode):
         :return: Node execution result
         """
         try:
-            start_time = time.time()
             self.metaData.callerSid = span.sid
             msg_or_end_node_deps = kwargs.get("msg_or_end_node_deps", {})
             inputs = {}
@@ -584,7 +581,6 @@ class AgentNode(BaseNode):
                 status=WorkflowNodeExecutionStatus.SUCCEEDED,
                 inputs=inputs,
                 outputs=outputs,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -597,17 +593,17 @@ class AgentNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
-            traceback.print_exc()
             span.record_exception(err)
             return NodeRunResult(
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.AgentNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.AgentNodeExecutionError,
+                    cause_error=err,
+                ),
             )

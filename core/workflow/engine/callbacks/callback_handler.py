@@ -28,7 +28,7 @@ from workflow.engine.entities.chains import Chains
 from workflow.engine.entities.node_entities import NodeType
 from workflow.engine.entities.output_mode import EndNodeOutputModeEnum
 from workflow.engine.nodes.entities.node_run_result import NodeRunResult
-from workflow.exception.e import CustomException, CustomExceptionCM
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 
 
@@ -189,8 +189,8 @@ class ChatCallBacks:
         resp = LLMGenerate.workflow_end(
             sid=self.sid,
             workflow_usage=self.generate_usage,
-            code=message.error_code,
-            message=message.error,
+            code=message.error.code if message.error else CodeEnum.Successes.code,
+            message=message.error.message if message.error else CodeEnum.Successes.msg,
         )
         await self.stream_queue.put(resp)
         await self._interrupt_event_stream(resp)
@@ -381,11 +381,11 @@ class ChatCallBacks:
                 ),
             )
 
-        if message.error_code and message.error_code != 0:
+        if message.error:
             return await self._on_node_end_error(
                 node_id,
                 alias_name,
-                CustomExceptionCM(message.error_code, message.error),
+                message.error,
             )
 
         if message.token_cost:

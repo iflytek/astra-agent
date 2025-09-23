@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import time
 from typing import Any, Dict
 
 from workflow.consts.model_provider import ModelProviderEnum
@@ -194,7 +193,6 @@ class SparkLLMNode(BaseLLMNode):
         """
         callbacks: ChatCallBacks = kwargs.get("callbacks", None)
         msg_or_end_node_deps = kwargs.get("msg_or_end_node_deps", {})
-        start_time = time.time()
         try:
             inputs = {}
             inputs.update(
@@ -319,7 +317,6 @@ class SparkLLMNode(BaseLLMNode):
                 inputs=inputs,
                 raw_output=res,
                 outputs=order_outputs,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -334,8 +331,7 @@ class SparkLLMNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             span.record_exception(err)
@@ -344,8 +340,10 @@ class SparkLLMNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.LLMNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.LLMNodeExecutionError,
+                    cause_error=err,
+                ),
             )
 
     def get_full_prompt(

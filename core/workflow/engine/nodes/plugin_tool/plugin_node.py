@@ -1,5 +1,4 @@
 import os
-import time
 from typing import Any, Dict
 
 from workflow.engine.entities.variable_pool import (
@@ -13,6 +12,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.plugin_tool.link_client import Link
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
@@ -128,7 +128,6 @@ class PluginNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: NodeRunResult containing execution status and outputs
         """
-        start_time = time.time()
         try:
             event_log_node_trace = kwargs.get("event_log_node_trace")
             # Initialize Link client for tool communication
@@ -199,7 +198,6 @@ class PluginNode(BaseNode):
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except Exception as e:
             # Handle execution errors and return failure result
@@ -207,12 +205,13 @@ class PluginNode(BaseNode):
             span.record_exception(e)
             return NodeRunResult(
                 status=status,
-                error=f"{CodeEnum.PluginNodeExecutionError.value}. {e}",
-                error_code=CodeEnum.PluginNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.PluginNodeExecutionError,
+                    cause_error=e,
+                ),
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
     def sync_execute(
@@ -270,57 +269,3 @@ class PluginNode(BaseNode):
                 event_log_node_trace=event_log_node_trace,
                 **kwargs,
             )
-
-
-# def get_business_input(business, action_input):
-#     """
-#     description: business
-#     """
-#     if not business:
-#         return {}
-#     business_input = {}
-#
-#     for input_key in business:
-#         iter_list: list = [action_input]
-#         while True:
-#             if not iter_list:
-#                 break
-#             iter_one = iter_list.pop(0)
-#             if isinstance(iter_one, dict):
-#                 for iter_key in iter_one:
-#                     if iter_key == input_key:
-#                         business_input.update({input_key: iter_one.get(input_key)})
-#                         break
-#                     elif isinstance(iter_one.get(iter_key), dict):
-#                         iter_list.append(iter_one.get(iter_key))
-#                     elif isinstance(iter_one.get(iter_key), list):
-#                         iter_list.append(iter_one.get(iter_key))
-#             elif isinstance(iter_one, list):
-#                 for content in iter_one:
-#                     if isinstance(content, dict) or isinstance(content, list):
-#                         iter_list.append(content)
-#     return business_input
-#
-#
-# if __name__ == "__main__":
-#     action_input = \
-#         {
-#             "business": "你好",
-#             "content": "英文",
-#             "business1": {
-#                 "business2": "hello",
-#                 "business3": [
-#                     {
-#                         "business4": "hello1"
-#                     }
-#                 ]
-#             },
-#             "business5": [
-#                 {
-#                     "business6": "hello2"
-#                 }
-#             ]
-#         }
-#     business = ["business", "business2", "business4", "business5", "business6"]
-#     business_input = get_business_input(business, action_input)
-#     print(business_input)

@@ -1,6 +1,5 @@
 # Standard library imports
 import json
-import time
 from enum import Enum
 from typing import Any, Dict, List, Union
 
@@ -12,9 +11,11 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.util.prompt import prompt_template_replace
+
 # Exception handling imports
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
+
 # Logging and tracing imports
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
@@ -112,7 +113,6 @@ class TextJoinerNode(BaseNode):
         try:
             inputs: Dict[str, Any] = {}
             final_res: Union[str, List[str]] = ""
-            start_time = time.time()
 
             if self.mode == TextProcessModeEnum.JOIN_MODE.value:
                 # Text concatenation mode - combine multiple inputs using template
@@ -154,7 +154,6 @@ class TextJoinerNode(BaseNode):
                     else json.dumps(final_res, ensure_ascii=False)
                 ),
                 outputs={self.output_identifier[0]: final_res},
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except CustomException as err:
             # Handle workflow-specific custom exceptions
@@ -164,8 +163,7 @@ class TextJoinerNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
@@ -176,6 +174,8 @@ class TextJoinerNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.TextJoinerNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.TextJoinerNodeExecutionError,
+                    cause_error=err,
+                ),
             )

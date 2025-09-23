@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from workflow.extensions.otlp.trace.span import Span
-
 from ..audit_api.base import AuditAPI
 from ..base import AuditContext, InputFrameAudit, OutputFrameAudit
 

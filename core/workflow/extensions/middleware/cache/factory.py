@@ -2,7 +2,7 @@ import os
 
 from loguru import logger
 
-from workflow.extensions.middleware.cache.base import BaseCacheService
+from workflow.extensions.middleware.cache.base import BaseCacheService, RedisModel
 from workflow.extensions.middleware.cache.manager import RedisCache
 from workflow.extensions.middleware.factory import ServiceFactory
 
@@ -36,11 +36,18 @@ class CacheServiceFactory(ServiceFactory):
         :raises RuntimeError: If unable to connect to Redis cluster.
         """
         logger.debug("Creating Redis cache")
+        redis_cluster_addr = os.getenv("REDIS_CLUSTER_ADDR", "")
+        redis_addr = os.getenv("REDIS_ADDR", "")
+        if not redis_cluster_addr and not redis_addr:
+            raise RuntimeError("REDIS_CLUSTER_ADDR or REDIS_ADDR must be set")
+
         redis_cache = RedisCache(
             expiration_time=int(os.getenv("REDIS_EXPIRE") or "3600"),
-            cluster_addr=os.getenv("REDIS_CLUSTER_ADDR") or "",
-            password=os.getenv("REDIS_PASSWORD") or "",
+            addr=redis_cluster_addr or redis_addr,
+            password=os.getenv("REDIS_PASSWORD", ""),
+            model=RedisModel.CLUSTER if redis_cluster_addr else RedisModel.SINGLE,
         )
+
         if redis_cache.is_connected():
             logger.debug("Redis cache is connected")
             return redis_cache

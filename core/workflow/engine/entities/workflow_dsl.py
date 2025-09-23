@@ -35,6 +35,16 @@ class Node(BaseModel):
         return self.id.split(":")[0]
 
 
+class Edge(BaseModel):
+    """
+    Represents a connection between two nodes in a workflow.
+    """
+
+    sourceNodeId: str
+    targetNodeId: str
+    sourceHandle: str = ""
+
+
 class WorkflowDSL(BaseModel):
     """
     Workflow DSL (Domain Specific Language) information.
@@ -44,7 +54,7 @@ class WorkflowDSL(BaseModel):
     nodes: List[Node]
 
     # Edge information
-    edges: List[dict]
+    edges: List[Edge]
 
     def check_nodes_exist(self, node_id: str) -> Node:
         """

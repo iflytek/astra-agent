@@ -1,6 +1,5 @@
 import asyncio
 import copy
-import time
 import traceback
 from typing import Any, Dict
 
@@ -86,7 +85,6 @@ class IterationNode(BaseNode):
         with span.start(
             func_name="async_execute", add_source_function_name=True
         ) as span_context:
-            start_time = time.time()
             callbacks: ChatCallBacks = kwargs.get("callbacks", {})
             event_log_trace: WorkflowLog = kwargs.get("event_log_trace", {})
             node_run_status: Dict[str, NodeRunningStatus] = kwargs.get(
@@ -141,8 +139,7 @@ class IterationNode(BaseNode):
                 return NodeRunResult(
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=inputs,
-                    error=f"{err}",
-                    error_code=err.code,
+                    error=err,
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
@@ -153,8 +150,10 @@ class IterationNode(BaseNode):
                 return NodeRunResult(
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=inputs,
-                    error=f"{err}",
-                    error_code=CodeEnum.IterationExecutionError.code,
+                    error=CustomException(
+                        CodeEnum.IterationExecutionError,
+                        cause_error=err,
+                    ),
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
@@ -169,7 +168,6 @@ class IterationNode(BaseNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
     async def _process_single_batch(
@@ -327,7 +325,6 @@ class IterationStartNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: NodeRunResult containing execution status and retrieved variables
         """
-        start_time = time.time()
         outputs: dict = {}  # node outputs
         try:
             for key in self.output_identifier:
@@ -345,14 +342,15 @@ class IterationStartNode(BaseNode):
         except Exception as e:
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{e}",
-                error_code=CodeEnum.IterationExecutionError.code,
+                error=CustomException(
+                    CodeEnum.IterationExecutionError,
+                    cause_error=e,
+                ),
                 inputs=outputs,
                 outputs={},
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
 
@@ -415,7 +413,6 @@ class IterationEndNode(BaseNode):
         :return: NodeRunResult containing execution status and processed outputs
         """
         prompt_template = self.template
-        start_time = time.time() * 1000
         inputs: dict = {}
         outputs: dict = {}
         try:
@@ -449,7 +446,6 @@ class IterationEndNode(BaseNode):
                 node_answer_content=prompt_template,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(time.time() * 1000 - start_time),
             )
         except Exception as err:
             span.record_exception(err)
@@ -458,6 +454,8 @@ class IterationEndNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.EndNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.EndNodeExecutionError,
+                    cause_error=err,
+                ),
             )

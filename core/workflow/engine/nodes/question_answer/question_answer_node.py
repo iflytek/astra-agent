@@ -2,7 +2,6 @@ import copy
 import json
 import re
 import time
-import traceback
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, cast
 
@@ -282,7 +281,7 @@ class QuestionAnswerNode(BaseLLMNode):
         if required:
             schemas.update({"required": required})
         validator = JsonSchemaValidator(schemas)
-        # 校验并修正
+        # Validate and fix data
         is_valid, fixed_data = validator.validate_and_fix(res_dict)
         return fixed_data
 
@@ -922,8 +921,7 @@ class QuestionAnswerNode(BaseLLMNode):
         outputs: dict,
         raw_outputs: str = "",
         branch_id: str = "",
-        error: str = "",
-        error_code: int = CodeEnum.QuestionAnswerNodeExecutionError.code,
+        error: Optional[CustomException] = None,
     ) -> NodeRunResult:
         """
         Build node execution result
@@ -943,12 +941,10 @@ class QuestionAnswerNode(BaseLLMNode):
             node_type=self.node_type,
             status=status,
             inputs=inputs,
-            error=error if error else "",
-            error_code=error_code if error else 0,
+            error=error,
             outputs=outputs,
             raw_output=raw_outputs if raw_outputs else "",
             edge_source_handle=branch_id if branch_id else None,
-            time_cost=str(round(time.time() - self.start_time, 2)),
         )
         return res
 
@@ -1082,23 +1078,21 @@ class QuestionAnswerNode(BaseLLMNode):
             EventRegistry().on_interrupt_node_end(event_id=self.event_id)
             return node_res
 
-        except Exception as e:
-            # span.add_error_event(f"执行异常: {str(e)}")
-            traceback.print_exc()
-            span.record_exception(e)
+        except CustomException as e:
             EventRegistry().on_interrupt_node_end(event_id=self.event_id)
-
-            # Determine error code based on exception type
-            if isinstance(e, CustomException):
-                error_code = e.code
-                err_msg = e.message
-            else:
-                error_code = CodeEnum.QuestionAnswerNodeExecutionError.code
-                err_msg = str(e)
             return self._build_node_result(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err_msg,
-                error_code=error_code,
-                inputs=inputs,
+                error=e,
+                inputs={},
+                outputs={},
+            )
+        except Exception as e:
+            EventRegistry().on_interrupt_node_end(event_id=self.event_id)
+            return self._build_node_result(
+                status=WorkflowNodeExecutionStatus.FAILED,
+                error=CustomException(
+                    err_code=CodeEnum.QuestionAnswerNodeExecutionError, cause_error=e
+                ),
+                inputs={},
                 outputs={},
             )

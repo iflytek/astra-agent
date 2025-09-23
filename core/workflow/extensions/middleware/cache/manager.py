@@ -5,7 +5,7 @@ from typing import Any, Dict, Tuple
 from loguru import logger
 
 from workflow.extensions.middleware.base import Service
-from workflow.extensions.middleware.cache.base import BaseCacheService
+from workflow.extensions.middleware.cache.base import BaseCacheService, RedisModel
 
 
 class RedisCache(BaseCacheService, Service):
@@ -17,16 +17,24 @@ class RedisCache(BaseCacheService, Service):
     """
 
     def __init__(
-        self, cluster_addr: str, password: str, expiration_time: int = 60 * 60
+        self,
+        addr: str,
+        password: str,
+        expiration_time: int = 60 * 60,
+        model: RedisModel = RedisModel.CLUSTER,
     ) -> None:
         """
         Initialize Redis cache with cluster configuration.
 
-        :param cluster_addr: Redis cluster addresses in format "host1:port1,host2:port2"
+        :param addr: Redis addresses in format "host1:port1,host2:port2" or "host:port"
         :param password: Redis authentication password
         :param expiration_time: Default expiration time in seconds (default: 3600)
+        :param model: Redis model type (default: RedisModel.CLUSTER)
         """
-        self._client = self.init_redis_cluster(cluster_addr, password)
+        if model == RedisModel.CLUSTER:
+            self._client = self.init_redis_cluster(addr, password)
+        else:
+            self._client = self.init_redis(addr, password)
         logger.debug("redis init success")
         self.expiration_time = expiration_time
 
@@ -50,6 +58,20 @@ class RedisCache(BaseCacheService, Service):
                 port = match.group(2)
                 cluster_nodes.append({"host": host, "port": port})
         return RedisCluster(startup_nodes=cluster_nodes, password=password)
+
+    def init_redis(self, addr: str, password: str) -> Any:
+        """
+        Initialize Redis connection.
+
+        :param addr: Redis addresses in format "host:port"
+        :param password: Redis authentication password
+        :return: Redis client instance
+        """
+        logger.debug("redis init in progress")
+        from redis import Redis  # type: ignore
+
+        host, port = addr.split(":")
+        return Redis(host=host, port=port, password=password)
 
     def is_connected(self) -> bool:
         """

@@ -1,4 +1,3 @@
-import time
 import traceback
 from typing import Any, Dict
 
@@ -93,7 +92,6 @@ class EndNode(BaseOutputNode):
         # Initialize execution variables
         content = ""
         reasoning_content = ""
-        start_time = time.time()
         inputs: dict = {}
         outputs: dict = {}
         prompt_template = ""
@@ -184,7 +182,6 @@ class EndNode(BaseOutputNode):
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
             # Notify callbacks that node execution has completed
             await callbacks.on_node_end(
@@ -203,8 +200,7 @@ class EndNode(BaseOutputNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
@@ -216,7 +212,9 @@ class EndNode(BaseOutputNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.EndNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.EndNodeExecutionError,
+                    cause_error=err,
+                ),
             )
             return run_result

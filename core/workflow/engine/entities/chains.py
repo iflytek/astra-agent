@@ -119,8 +119,8 @@ class Chains(BaseModel):
 
         for edge in self.workflow_schema.edges:
 
-            source_node_id = str(edge.get("sourceNodeId") or "")
-            target_node_id = str(edge.get("targetNodeId") or "")
+            source_node_id = edge.sourceNodeId
+            target_node_id = edge.targetNodeId
             if source_node_id not in edge_dict:
                 edge_dict[source_node_id] = []
             if target_node_id not in edge_dict[source_node_id]:

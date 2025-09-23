@@ -2,10 +2,12 @@ import inspect
 import json
 import os
 import time
+import traceback
 import uuid
 from contextlib import contextmanager
 from typing import Any, Dict, Iterator, Optional
 
+from loguru import logger
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 from opentelemetry.util import types
@@ -179,6 +181,8 @@ class Span:
         :param attributes: Optional additional attributes
         :param node_log: Optional node log for additional logging
         """
+        # Log exception
+        logger.opt(depth=1).error(f"sid: {self.sid}, error: {traceback.format_exc()}")
         # Record exception with current timestamp
         self.get_otlp_span().record_exception(
             ex, attributes=attributes, timestamp=int(int(round(time.time() * 1000)))
@@ -205,6 +209,8 @@ class Span:
         :param timestamp: Optional timestamp for the event
         :param node_log: Optional node log for additional logging
         """
+        # Log event
+        logger.opt(depth=1).info(f"sid: {self.sid}, event: {name}={attributes}")
         self.get_otlp_span().add_event(name, attributes=attributes, timestamp=timestamp)
         if node_log and attributes:
             node_log.add_info_log(f"{name}={attributes}")
@@ -218,6 +224,8 @@ class Span:
         :param value: Information content to log
         :param node_log: Optional node log for additional logging
         """
+        # Log event
+        logger.opt(depth=1).info(f"sid: {self.sid}, event: {value}")
         # Check if content exceeds size limit
         value_bytes = value.encode("utf-8")
         if len(value_bytes) >= SPAN_SIZE_LIMIT:
@@ -250,6 +258,8 @@ class Span:
         :param timestamp: Optional timestamp for the event
         :param node_log: Optional node log for additional logging
         """
+        # Log event
+        logger.opt(depth=1).info(f"sid: {self.sid}, event: {attributes}")
         # Check if content exceeds size limit
         value_bytes = json.dumps(attributes, ensure_ascii=False).encode("utf-8")
         if len(value_bytes) >= SPAN_SIZE_LIMIT:
@@ -278,6 +288,8 @@ class Span:
         :param value: Error content to log
         :param node_log: Optional node log for additional logging
         """
+        # Log event
+        logger.opt(depth=1).info(f"sid: {self.sid}, event: {value}")
         # Mark span as having an error
         self.set_attribute("error", True)
         # Add ERROR event to span
@@ -302,6 +314,8 @@ class Span:
         :param timestamp: Optional timestamp for the event
         :param node_log: Optional node log for additional logging
         """
+        # Log event
+        logger.opt(depth=1).info(f"sid: {self.sid}, event: {attributes}")
         # Add ERROR event to span
         self.get_otlp_span().add_event(
             SpanLevel.ERROR.value, attributes=attributes, timestamp=timestamp

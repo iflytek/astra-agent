@@ -1,6 +1,5 @@
 import json
 import os
-import time
 from typing import Any, Dict
 
 from workflow.engine.entities.variable_pool import VariablePool
@@ -80,7 +79,6 @@ class KnowledgeNode(BaseNode):
         :param kwargs: Additional keyword arguments including event_log_node_trace
         :return: NodeRunResult containing the search results or error information
         """
-        start_time = time.time()
         try:
             event_log_node_trace = kwargs.get("event_log_node_trace")
             # Get the query from the variable pool
@@ -119,7 +117,6 @@ class KnowledgeNode(BaseNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except CustomException as err:
             status = self.run_f
@@ -127,8 +124,7 @@ class KnowledgeNode(BaseNode):
             span.record_exception(err)
             return NodeRunResult(
                 status=status,
-                error=err.message,
-                error_code=err.code,
+                error=err,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -138,8 +134,10 @@ class KnowledgeNode(BaseNode):
             status = self.run_f
             return NodeRunResult(
                 status=status,
-                error=f"{str(e)}",
-                error_code=CodeEnum.KnowledgeNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.KnowledgeNodeExecutionError,
+                    cause_error=e,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,

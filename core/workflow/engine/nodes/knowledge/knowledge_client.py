@@ -49,23 +49,6 @@ class KnowledgeConfig:
         self.threshold = threshold
 
 
-"""
-{
-    "code": 0,
-    "data": {
-        "summary": "",
-        "metadata": [
-            "中国移动物联网-生态渠道运营部：和对讲CM13外观是怎样的呢？\n和对讲CM13按键怎么操作呢？\n您好，操作指示如下：  \n电源键：短按锁屏、解锁；长按 3 秒可开关机；\n通话键（PTT）：按下“通话键（PTT）”可发起对讲，松开可结束对讲；\n左右功能键：“左右功能键”对应屏幕下方显示的功能，短按“左右功能键”执行相应功能；\n上下功能键：短按或长按“上下功能键”可上下移动光标，在对讲页时可快捷切换频道； \n和对讲CM13刚开机时按键不能用如何解决呢？\n和对讲CM13主界面如何操作呢？\n和对讲CM13怎样新建或者加入群组呢？",
-            "和对讲 CM13 使用简介： 菜单页面功能： 功能页面功能：2\n![Alt文本](https://oss-beijing-m8.openstorage.cn/SparkBotDev/repoRef/9c81308cce8d4574923db2a13d55ab66/unused1.jpg)\n1.CM13终端简介\n和对讲CM13是中国移动和对讲首批深度定制产品。\n聚焦基础对讲体验，外观小巧\n精致，音质完美。提供高质量的\n公网对讲体验，产品品质有保障。\n3\n![Alt文本](https://oss-beijing-m8.openstorage.cn/SparkBotDev/repoRef/9c81308cce8d4574923db2a13d55ab66/unused2.jpg)\n2.CM13按键说明\n 电源键：短按锁屏、解锁；长按 3 秒可开关机。\n 通话键（PTT）：按下“通话键（PTT）”可发起对讲，松开可结束对讲。\n 左右功能键：“左右功能键”对应屏幕下方显示的功能，短按“左右功能键”执行相应功能。"
-        ]
-    },
-    "message": "success",
-    "sid": "retrieval-summary00110001@sh18f55fae063000f202"
-}
-
-"""
-
-
 class KnowledgeClient:
     """
     Client for interacting with the knowledge base API.

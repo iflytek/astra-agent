@@ -64,7 +64,7 @@ def add(
                 raise CustomException(
                     err_code=CodeEnum.ProtocolCreateError,
                     err_msg=f"{CodeEnum.ProtocolCreateError.msg}。"
-                    f"status值只能为0或1，当前值为{flow.status}",
+                    f"status value can only be 0 or 1, current value is {flow.status}",
                 )
 
             app_info = app_service.get_info(flow.app_id, session, current_span)

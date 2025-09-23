@@ -139,7 +139,6 @@ class FlowNode(BaseNode):
             msg_or_end_node_deps: Dict[str, MsgOrEndDepInfo] = kwargs.get(
                 "msg_or_end_node_deps", {}
             )
-            start_time = time.time()
 
             # Collect input variables from the variable pool
             inputs = {}
@@ -190,7 +189,6 @@ class FlowNode(BaseNode):
                 inputs=inputs,
                 raw_output="",
                 outputs=order_outputs,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -204,8 +202,7 @@ class FlowNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             # Handle unexpected exceptions and record in tracing
@@ -215,8 +212,10 @@ class FlowNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.WorkflowExecutionError.code,
+                error=CustomException(
+                    CodeEnum.WorkflowExecutionError,
+                    cause_error=err,
+                ),
             )
 
     async def req_flow_api_with_see(

@@ -13,6 +13,7 @@ from workflow.consts.model_provider import ModelProviderEnum
 from workflow.consts.template import TemplateSplitType, TemplateType
 from workflow.domain.entities.chat import HistoryItem
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
+from workflow.engine.callbacks.openai_types_sse import GenerateUsage
 from workflow.engine.entities.history import History, ProcessArrayMethod
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_entities import NodeType
@@ -246,7 +247,11 @@ class BaseNode(BaseModel):
         return {"finish_reason": "stop"}
 
     def success(
-        self, inputs: dict, outputs: dict, raw_output: Any, time_cost: float
+        self,
+        inputs: dict,
+        outputs: dict,
+        raw_output: Optional[str] = "",
+        token_cost: Optional[GenerateUsage] = None,
     ) -> NodeRunResult:
         """
         Create a successful node execution result.
@@ -257,19 +262,21 @@ class BaseNode(BaseModel):
         :param inputs: Input parameters for the node
         :param outputs: Output parameters from the node
         :param raw_output: Raw execution result
-        :param time_cost: Execution time in seconds
+        :param token_cost: Token usage information for LLM nodes
         :return: NodeRunResult with SUCCEEDED status
         """
-        return NodeRunResult(
+        result = NodeRunResult(
             status=WorkflowNodeExecutionStatus.SUCCEEDED,
             inputs=inputs,
             outputs=outputs,
-            raw_output=raw_output,
+            raw_output=raw_output if raw_output else "",
             node_id=self.node_id,
             alias_name=self.alias_name,
             node_type=self.node_type,
-            time_cost=str(time_cost),
         )
+        if token_cost:
+            result.token_cost = token_cost
+        return result
 
     def fail(self, error: Exception, code_enum: CodeEnum, span: Span) -> NodeRunResult:
         """
@@ -287,8 +294,7 @@ class BaseNode(BaseModel):
         if isinstance(error, CustomException):
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{error}",
-                error_code=error.code,
+                error=error,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -296,8 +302,10 @@ class BaseNode(BaseModel):
         else:
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{error}",
-                error_code=code_enum.code,
+                error=CustomException(
+                    code_enum,
+                    cause_error=error,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -478,16 +486,17 @@ class BaseOutputNode(BaseNode):
         :return: The final frame of the stream, or None if not applicable
         """
 
-        # 缓存大模型节点输出的内容
+        # Cache content output of LLM nodes
         llm_output_cache: Dict[str, List[OutputNodeFrameData]] = {}
 
-        # 缓存大模型节点推理过程的内容
+        # Cache reasoning/thinking output of LLM nodes
         llm_reasoning_content: Dict[str, List[OutputNodeFrameData]] = {}
 
-        # 标记大模型节点是否执行结束
+        # Track whether each LLM node has finished output
         llm_output_status: Dict[str, bool] = {}
 
-        # 标记大模型节点是否已经发生异常，如果有取值需要应该去变量池中取
+        # Track whether an exception occurred for each LLM node;
+        # if True, values should be fetched directly from the variable pool
         llm_occur_exception: Dict[str, bool] = {}
 
         class TemplateUnit(BaseModel):
@@ -498,7 +507,7 @@ class BaseOutputNode(BaseNode):
             class Config:
                 arbitrary_types_allowed = True
 
-        # 构造模板数据
+        # Build template units for reasoning and normal content
         template_units: list[TemplateUnit] = [
             TemplateUnit(
                 template=reasoning_template,
@@ -514,19 +523,19 @@ class BaseOutputNode(BaseNode):
                 variable_pool=variable_pool, template=template_unit.template, span=span
             )
 
-        # 构造模型输出缓存数据结构
+        # Initialize output caches for all referenced dependency nodes
         for template_unit in template_units:
             for unit in template_unit.unit_list:
                 llm_output_cache[unit.dep_node_id] = []
                 llm_reasoning_content[unit.dep_node_id] = []
 
-        # 非流式输出的输出帧缓存
+        # Cache buffers for non-streaming output frames
         not_stream_output_cache: dict[str, list] = {
             "reasoning_content": [],
             "content": [],
         }
 
-        # 针对不同的模版数据，进行流式输出
+        # Stream outputs for different template types (reasoning and normal)
         for template_unit in template_units:
             async for output_node_frame_data in self.msg_or_end_node_stream_output(
                 variable_pool=variable_pool,
@@ -543,7 +552,7 @@ class BaseOutputNode(BaseNode):
                     output_node_frame_data.is_end
                     and template_unit.template_type == TemplateType.NORMAL
                 ):
-                    # 如果是normal模式下的is_end=true，才是最后一帧
+                    # Only in NORMAL mode with is_end=True should this be treated as the final frame
                     if not self.streamOutput:
                         self.add_output_into_not_stream_output_cache(
                             output_node_frame_data, not_stream_output_cache

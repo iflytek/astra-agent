@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
+from workflow.exception.e import CustomException
 
 
 class WorkflowNodeExecutionStatus(Enum):
@@ -55,7 +56,6 @@ class NodeRunResult(BaseModel):
     :param node_id: Unique identifier of the node
     :param alias_name: Human-readable name of the node
     :param node_type: Type/category of the node
-    :param time_cost: Execution time in seconds
     :param token_cost: Token usage information for LLM nodes
     """
 
@@ -67,13 +67,14 @@ class NodeRunResult(BaseModel):
     edge_source_handle: Optional[str] = (
         None  # Source handle ID for nodes with multiple branches
     )
-    error: str = "Success"  # Error message if status is failed
-    error_code: int = 0  # Numeric error code
+    error: Optional[CustomException] = None  # Error message if status is failed
     raw_output: str = ""  # Raw LLM output
     node_answer_content: str = ""  # Main answer content
     node_answer_reasoning_content: str = ""  # Reasoning content
     node_id: str  # Node metadata - unique identifier
     alias_name: str  # Node metadata - human-readable name
     node_type: str  # Node metadata - type/category
-    time_cost: str = "0"  # Node execution time in seconds
     token_cost: GenerateUsage | None = None  # Token usage for LLM nodes
+
+    class Config:
+        arbitrary_types_allowed = True

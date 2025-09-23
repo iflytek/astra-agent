@@ -8,7 +8,6 @@ operations using various knowledge repositories and LLM providers.
 import asyncio
 import json
 import os
-import time
 from typing import Any, Dict
 
 import aiohttp
@@ -131,7 +130,6 @@ class KnowledgeProNode(BaseNode):
         :param kwargs: Additional keyword arguments including msg_or_end_node_deps
         :return: NodeRunResult containing execution status and outputs
         """
-        start_time = time.time()
         msg_or_end_node_deps = kwargs.get("msg_or_end_node_deps", {})
         status = self.run_s
         # Collection of knowledge base content frames
@@ -242,8 +240,7 @@ class KnowledgeProNode(BaseNode):
             span.record_exception(log_err)
             return NodeRunResult(
                 status=status,
-                error=log_err.message,
-                error_code=log_err.code,
+                error=log_err,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -255,8 +252,7 @@ class KnowledgeProNode(BaseNode):
             span.record_exception(err)
             return NodeRunResult(
                 status=status,
-                error=err.message,
-                error_code=err.code,
+                error=err,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -267,8 +263,10 @@ class KnowledgeProNode(BaseNode):
             status = self.run_f
             return NodeRunResult(
                 status=status,
-                error=f"{str(e)}",
-                error_code=CodeEnum.KnowledgeNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.KnowledgeNodeExecutionError,
+                    cause_error=e,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -282,7 +280,6 @@ class KnowledgeProNode(BaseNode):
             node_id=self.node_id,
             alias_name=self.alias_name,
             node_type=self.node_type,
-            time_cost=str(round(time.time() - start_time, 3)),
         )
 
     def sync_execute(
