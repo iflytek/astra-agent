@@ -84,10 +84,10 @@ public class ModelController {
      */
     @GetMapping("/check-model-base")
     public ApiResult checkModelBase(@RequestParam(name = "llmId") Long llmId,
-                    @RequestParam(name = "uid") String uid,
-                    @RequestParam(name = "spaceId", required = false) Long spaceId,
-                    @RequestParam(name = "serviceId") String serviceId,
-                    @RequestParam(name = "url") String url) {
+            @RequestParam(name = "uid") String uid,
+            @RequestParam(name = "spaceId", required = false) Long spaceId,
+            @RequestParam(name = "serviceId") String serviceId,
+            @RequestParam(name = "url") String url) {
         return ApiResult.success(modelService.checkModelBase(llmId, serviceId, url, uid, spaceId));
     }
 
@@ -110,9 +110,9 @@ public class ModelController {
     @GetMapping("/{option}")
     @SpacePreAuth(key = "ModelController_switchModel_GET", module = "Model Management", point = "Enable/Disable Model", description = "Enable/Disable Model")
     public ApiResult switchModel(@PathVariable String option,
-                    @RequestParam(name = "llmSource") Integer llmSource,
-                    @RequestParam(name = "modelId") Long modelId,
-                    HttpServletRequest request) {
+            @RequestParam(name = "llmSource") Integer llmSource,
+            @RequestParam(name = "modelId") Long modelId,
+            HttpServletRequest request) {
         return modelService.switchModel(modelId, llmSource, option, request);
     }
 
@@ -126,8 +126,8 @@ public class ModelController {
      */
     @GetMapping("/off-model")
     public ApiResult checkModelBase(@RequestParam(name = "llmId") Long llmId,
-                    @RequestParam(name = "serviceId") String serviceId,
-                    @RequestParam(name = "flowId", required = false) String flowId) {
+            @RequestParam(name = "serviceId") String serviceId,
+            @RequestParam(name = "flowId", required = false) String flowId) {
         return ApiResult.success(modelService.offShelfModel(llmId, flowId, serviceId));
     }
 

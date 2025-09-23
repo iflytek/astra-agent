@@ -22,7 +22,7 @@ public enum BotStatusEnum {
 
     public static List<Integer> shelves() {
         return Arrays.asList(
-                        PUBLISHED.ordinal());
+                PUBLISHED.ordinal());
     }
 
     public static BotStatusEnum getByCode(Integer status) {

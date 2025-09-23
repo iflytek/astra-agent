@@ -26,9 +26,9 @@ public class UserLangChainLogServiceImpl implements UserLangChainLogService {
         Long botId = userLangChainLog.getBotId();
         // First check if record count exceeds 20, start rolling replacement if over 20
         List<UserLangChainLog> result = userLangChainLogMapper.selectList(
-                        new LambdaQueryWrapper<UserLangChainLog>()
-                                        .eq(UserLangChainLog::getBotId, botId)
-                                        .orderByAsc(UserLangChainLog::getUpdateTime));
+                new LambdaQueryWrapper<UserLangChainLog>()
+                        .eq(UserLangChainLog::getBotId, botId)
+                        .orderByAsc(UserLangChainLog::getUpdateTime));
         // If historical versions exceed 20 records, perform rolling update
         if (result != null && result.size() >= LOG_MAX_SIZE) {
             LocalDateTime updateTime = result.getFirst().getUpdateTime();

@@ -31,13 +31,13 @@ public class JooqBatchExecutor {
      */
     // JooqBatchExecutor.java
     public static ResultSummary executeInChunks(
-                    DSLContext dsl,
-                    String tableName,
-                    List<Map<String, Object>> rows,
-                    int chunkSize,
-                    int maxRetries,
-                    Function<Map<String, Object>, Query> builder,
-                    SqlSender sender // ★ New: Delegate "how to execute SQL" to the caller
+            DSLContext dsl,
+            String tableName,
+            List<Map<String, Object>> rows,
+            int chunkSize,
+            int maxRetries,
+            Function<Map<String, Object>, Query> builder,
+            SqlSender sender // ★ New: Delegate "how to execute SQL" to the caller
     ) {
         ResultSummary sum = new ResultSummary();
         if (rows == null || rows.isEmpty())

@@ -59,12 +59,12 @@ public class BotChatServiceImpl implements BotChatService {
 
     public static final String LOOSE_PREFIX_PROMPT = """
 
-                    Please use the following document fragments as known information:[]\
-                    Please answer questions accurately based on the original text of the above paragraphs and your knowledge
-                    When answering user questions, please answer in the language the user asked
-                    If the above content cannot answer the user's information, combine the information you know to answer the user's question
-                    Answer the user's questions concisely and professionally, do not allow fabricated components to be added to the answer.
-                    """;
+            Please use the following document fragments as known information:[]\
+            Please answer questions accurately based on the original text of the above paragraphs and your knowledge
+            When answering user questions, please answer in the language the user asked
+            If the above content cannot answer the user's information, combine the information you know to answer the user's question
+            Answer the user's questions concisely and professionally, do not allow fabricated components to be added to the answer.
+            """;
     @Autowired
     private ChatListDataService chatListDataService;
 
@@ -192,20 +192,20 @@ public class BotChatServiceImpl implements BotChatService {
 
         if (chatBotMarket != null && ShelfStatusEnum.isOnShelf(chatBotMarket.getBotStatus())) {
             return new BotConfiguration(
-                            chatBotMarket.getPrompt(),
-                            chatBotMarket.getSupportContext() == 1,
-                            chatBotMarket.getModel(),
-                            chatBotMarket.getOpenedTool(),
-                            chatBotMarket.getVersion());
+                    chatBotMarket.getPrompt(),
+                    chatBotMarket.getSupportContext() == 1,
+                    chatBotMarket.getModel(),
+                    chatBotMarket.getOpenedTool(),
+                    chatBotMarket.getVersion());
         } else {
             ChatBotBase chatBotBase = chatBotDataService.findById(botId)
-                            .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
+                    .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
             return new BotConfiguration(
-                            chatBotBase.getPrompt(),
-                            chatBotBase.getSupportContext() == 1,
-                            chatBotBase.getModel(),
-                            chatBotBase.getOpenedTool(),
-                            chatBotBase.getVersion());
+                    chatBotBase.getPrompt(),
+                    chatBotBase.getSupportContext() == 1,
+                    chatBotBase.getModel(),
+                    chatBotBase.getOpenedTool(),
+                    chatBotBase.getVersion());
         }
     }
 
@@ -255,7 +255,7 @@ public class BotChatServiceImpl implements BotChatService {
         int reservedTokens = systemTokens + currentUserTokens;
 
         log.debug("Token statistics - System message: {}, Current user message: {}, Reserved total: {}, Maximum limit: {}",
-                        systemTokens, currentUserTokens, reservedTokens, maxInputTokens);
+                systemTokens, currentUserTokens, reservedTokens, maxInputTokens);
 
         // 4. Add system message to the top of the list
         messageDtoList.add(systemMessage);
@@ -274,7 +274,7 @@ public class BotChatServiceImpl implements BotChatService {
                 messageDtoList.addAll(truncatedHistory);
 
                 log.debug("History message truncation completed - Original count: {}, After truncation: {}",
-                                historyMessages.size(), truncatedHistory.size());
+                        historyMessages.size(), truncatedHistory.size());
             }
         }
 
@@ -283,11 +283,11 @@ public class BotChatServiceImpl implements BotChatService {
 
         // 7. Output final statistics
         int totalTokens = messageDtoList.stream()
-                        .mapToInt(msg -> estimateTokenCount(msg.getContent()))
-                        .sum();
+                .mapToInt(msg -> estimateTokenCount(msg.getContent()))
+                .sum();
 
         log.info("Message list build completed - Total messages: {}, Estimated total tokens: {}, Maximum limit: {}",
-                        messageDtoList.size(), totalTokens, maxInputTokens);
+                messageDtoList.size(), totalTokens, maxInputTokens);
 
         return messageDtoList;
     }
@@ -311,7 +311,7 @@ public class BotChatServiceImpl implements BotChatService {
             // Check if token limit is exceeded
             if (currentTokens + messageTokens > maxHistoryTokens) {
                 log.debug("History message truncation - Stopped at index {}, current tokens: {}, message tokens: {}, limit: {}",
-                                i, currentTokens, messageTokens, maxHistoryTokens);
+                        i, currentTokens, messageTokens, maxHistoryTokens);
                 break;
             }
 
@@ -352,7 +352,7 @@ public class BotChatServiceImpl implements BotChatService {
         int estimatedTokens = (int) (chineseChars * 1.5 + englishChars * 1.3);
 
         log.trace("Token estimation - Chinese characters: {}, English characters: {}, Estimated tokens: {}",
-                        chineseChars, englishChars, estimatedTokens);
+                chineseChars, englishChars, estimatedTokens);
 
         return Math.max(estimatedTokens, 1); // At least 1 token
     }

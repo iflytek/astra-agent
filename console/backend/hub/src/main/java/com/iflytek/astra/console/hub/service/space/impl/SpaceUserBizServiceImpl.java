@@ -231,7 +231,7 @@ public class SpaceUserBizServiceImpl implements SpaceUserBizService {
             UserLimitVO vo = new UserLimitVO();
             vo.setTotal(total);
             long used = spaceUserService.countBySpaceId(spaceId)
-                            + inviteRecordService.countJoiningBySpaceId(spaceId);
+                    + inviteRecordService.countJoiningBySpaceId(spaceId);
             vo.setUsed((int) used);
             vo.setRemain(vo.getTotal() - vo.getUsed());
             return vo;
@@ -258,13 +258,13 @@ public class SpaceUserBizServiceImpl implements SpaceUserBizService {
         if (Objects.equals(type, SpaceTypeEnum.FREE.getCode())) {
             vo.setTotal(spaceLimitProperties.getFree().getUserCount());
             long used = spaceUserService.countFreeSpaceUser(uid)
-                            + inviteRecordService.countJoiningByUid(uid, SpaceTypeEnum.FREE);
+                    + inviteRecordService.countJoiningByUid(uid, SpaceTypeEnum.FREE);
             vo.setUsed((int) used);
             vo.setRemain(vo.getTotal() - vo.getUsed());
         } else {
             vo.setTotal(spaceLimitProperties.getPro().getUserCount());
             long used = spaceUserService.countProSpaceUser(uid)
-                            + inviteRecordService.countJoiningByUid(uid, SpaceTypeEnum.PRO);
+                    + inviteRecordService.countJoiningByUid(uid, SpaceTypeEnum.PRO);
             vo.setUsed((int) used);
             vo.setRemain(vo.getTotal() - vo.getUsed());
         }

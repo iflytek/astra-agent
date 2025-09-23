@@ -558,7 +558,7 @@ public class SparkChatService {
         trySendCompleteAndEnd(emitter, interruptedData, streamId);
 
         log.info("Saved data at interruption, streamId: {}, finalResult length: {}, thinkingResult length: {}, traceResult length: {}",
-                        streamId, finalResult.length(), thinkingResult.length(), traceResult.length());
+                streamId, finalResult.length(), thinkingResult.length(), traceResult.length());
     }
 
     /**
@@ -659,9 +659,9 @@ public class SparkChatService {
         if (edit) {
             // Edit mode: query existing record and update
             ChatTraceSource existingRecord = chatDataService.findTraceSourceByUidAndChatIdAndReqId(
-                            chatReqRecords.getUid(),
-                            chatReqRecords.getChatId(),
-                            chatReqRecords.getId());
+                    chatReqRecords.getUid(),
+                    chatReqRecords.getChatId(),
+                    chatReqRecords.getId());
 
             if (existingRecord != null) {
                 existingRecord.setContent(traceResult.toString());
@@ -669,7 +669,7 @@ public class SparkChatService {
 
                 chatDataService.updateTraceSourceByUidAndChatIdAndReqId(existingRecord);
                 log.info("Update trace record, reqId: {}, chatId: {}, uid: {}",
-                                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
             }
         } else {
             // New mode: create new record
@@ -692,6 +692,6 @@ public class SparkChatService {
 
         chatDataService.createTraceSource(chatTraceSource);
         log.info("Create new trace record, reqId: {}, chatId: {}, uid: {}",
-                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
     }
 }

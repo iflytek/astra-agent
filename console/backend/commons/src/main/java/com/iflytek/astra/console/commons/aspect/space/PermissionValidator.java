@@ -64,7 +64,7 @@ public class PermissionValidator implements ApplicationListener<ContextRefreshed
 
     private void processSpacePermissions(List<Method> methodList) {
         Map<String, List<Method>> methodMap = methodList.stream()
-                        .collect(Collectors.groupingBy(method -> method.getAnnotation(SpacePreAuth.class).key(), Collectors.toList()));
+                .collect(Collectors.groupingBy(method -> method.getAnnotation(SpacePreAuth.class).key(), Collectors.toList()));
         Set<String> keys = methodMap.keySet();
         if (!keys.isEmpty()) {
             List<String> dbKeys = spacePermissionService.listByKeys(keys);
@@ -90,15 +90,15 @@ public class PermissionValidator implements ApplicationListener<ContextRefreshed
             if (!dbKeys.contains(key)) {
                 SpacePreAuth annotation = entry.getValue().get(0).getAnnotation(SpacePreAuth.class);
                 spacePermissions.add(SpacePermission.builder()
-                                .permissionKey(key)
-                                .module(annotation.module())
-                                .point(annotation.point())
-                                .description(annotation.description())
-                                .owner(true)
-                                .admin(true)
-                                .member(true)
-                                .availableExpired(false)
-                                .build());
+                        .permissionKey(key)
+                        .module(annotation.module())
+                        .point(annotation.point())
+                        .description(annotation.description())
+                        .owner(true)
+                        .admin(true)
+                        .member(true)
+                        .availableExpired(false)
+                        .build());
             }
         }
         spacePermissionService.insertBatch(spacePermissions);
@@ -137,7 +137,7 @@ public class PermissionValidator implements ApplicationListener<ContextRefreshed
 
     private void processEnterprisePermissions(List<Method> methodList) {
         Map<String, List<Method>> methodMap = methodList.stream()
-                        .collect(Collectors.groupingBy(method -> method.getAnnotation(EnterprisePreAuth.class).key(), Collectors.toList()));
+                .collect(Collectors.groupingBy(method -> method.getAnnotation(EnterprisePreAuth.class).key(), Collectors.toList()));
         Set<String> keys = methodMap.keySet();
         if (!keys.isEmpty()) {
             List<String> dbKeys = enterprisePermissionService.listByKeys(keys);
@@ -163,14 +163,14 @@ public class PermissionValidator implements ApplicationListener<ContextRefreshed
             if (!dbKeys.contains(key)) {
                 EnterprisePreAuth annotation = entry.getValue().get(0).getAnnotation(EnterprisePreAuth.class);
                 enterprisePermissions.add(EnterprisePermission.builder()
-                                .permissionKey(key)
-                                .module(annotation.module())
-                                .description(annotation.description())
-                                .officer(true)
-                                .governor(true)
-                                .staff(true)
-                                .availableExpired(false)
-                                .build());
+                        .permissionKey(key)
+                        .module(annotation.module())
+                        .description(annotation.description())
+                        .officer(true)
+                        .governor(true)
+                        .staff(true)
+                        .availableExpired(false)
+                        .build());
             }
         }
         enterprisePermissionService.insertBatch(enterprisePermissions);

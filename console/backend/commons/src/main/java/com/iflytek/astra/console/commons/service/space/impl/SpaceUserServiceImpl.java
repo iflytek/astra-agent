@@ -55,8 +55,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     public List<SpaceUser> listSpaceMember() {
         Long spaceId = SpaceInfoUtil.getSpaceId();
         List<SpaceUser> list = this.list(Wrappers.<SpaceUser>lambdaQuery()
-                        .ne(SpaceUser::getRole, SpaceRoleEnum.OWNER.getCode())
-                        .eq(SpaceUser::getSpaceId, spaceId));
+                .ne(SpaceUser::getRole, SpaceRoleEnum.OWNER.getCode())
+                .eq(SpaceUser::getSpaceId, spaceId));
         return list;
     }
 
@@ -68,41 +68,41 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     @Override
     public Long countSpaceUserByUids(Long spaceId, List<String> uids) {
         return baseMapper.selectCount(Wrappers.<SpaceUser>lambdaQuery()
-                        .eq(SpaceUser::getSpaceId, spaceId)
-                        .in(SpaceUser::getUid, uids));
+                .eq(SpaceUser::getSpaceId, spaceId)
+                .in(SpaceUser::getUid, uids));
     }
 
     @Override
     public Long countBySpaceId(Long spaceId) {
         return baseMapper.selectCount(Wrappers.<SpaceUser>lambdaQuery()
-                        .eq(SpaceUser::getSpaceId, spaceId));
+                .eq(SpaceUser::getSpaceId, spaceId));
     }
 
     @Override
     public boolean updateVisitTime(Long spaceId, String uid) {
         return this.update(Wrappers.<SpaceUser>lambdaUpdate()
-                        .set(SpaceUser::getLastVisitTime, new Date())
-                        .eq(SpaceUser::getSpaceId, spaceId)
-                        .eq(SpaceUser::getUid, uid));
+                .set(SpaceUser::getLastVisitTime, new Date())
+                .eq(SpaceUser::getSpaceId, spaceId)
+                .eq(SpaceUser::getUid, uid));
     }
 
     @Override
     public boolean removeByUid(Collection<Long> spaceIds, String uid) {
         return this.remove(Wrappers.<SpaceUser>lambdaUpdate()
-                        .eq(SpaceUser::getUid, uid)
-                        .in(SpaceUser::getSpaceId, spaceIds));
+                .eq(SpaceUser::getUid, uid)
+                .in(SpaceUser::getSpaceId, spaceIds));
     }
 
     @Override
     public List<SpaceUser> getAllSpaceUsers(Long spaceId) {
         return this.list(Wrappers.<SpaceUser>lambdaQuery()
-                        .eq(SpaceUser::getSpaceId, spaceId));
+                .eq(SpaceUser::getSpaceId, spaceId));
     }
 
     @Override
     public List<SpaceUser> getAllSpaceUsers(List<Long> spaceIds) {
         return this.list(Wrappers.<SpaceUser>lambdaQuery()
-                        .in(SpaceUser::getSpaceId, spaceIds));
+                .in(SpaceUser::getSpaceId, spaceIds));
     }
 
 
@@ -119,8 +119,8 @@ public class SpaceUserServiceImpl extends ServiceImpl<SpaceUserMapper, SpaceUser
     @Override
     public SpaceUser getSpaceOwner(Long spaceId) {
         return this.getOne(Wrappers.<SpaceUser>lambdaQuery()
-                        .eq(SpaceUser::getSpaceId, spaceId)
-                        .eq(SpaceUser::getRole, SpaceRoleEnum.OWNER.getCode()));
+                .eq(SpaceUser::getSpaceId, spaceId)
+                .eq(SpaceUser::getRole, SpaceRoleEnum.OWNER.getCode()));
     }
 
     @Override

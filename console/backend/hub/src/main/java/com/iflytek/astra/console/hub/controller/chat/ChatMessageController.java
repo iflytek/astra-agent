@@ -65,10 +65,10 @@ public class ChatMessageController {
     @PostMapping(path = "/chat", produces = "text/event-stream;charset=UTF-8")
     @Operation(summary = "Conduct chat session based on chatId")
     public SseEmitter chat(@RequestParam Long chatId,
-                    @RequestParam String text,
-                    @RequestParam(required = false) String fileUrl,
-                    @RequestParam(required = false) String workflowOperation,
-                    @RequestParam(required = false) String workflowVersion) {
+            @RequestParam String text,
+            @RequestParam(required = false) String fileUrl,
+            @RequestParam(required = false) String workflowOperation,
+            @RequestParam(required = false) String workflowVersion) {
         String sseId = RandomUtil.randomString(8);
         SseEmitter sseEmitter = SseEmitterUtil.createSseEmitter();
 
@@ -184,8 +184,8 @@ public class ChatMessageController {
      */
     private SseEmitter processChatRequest(ChatContext chatContext, String text, String fileUrl, SseEmitter sseEmitter, String sseId, String workflowOperation, String workflowVersion) {
         log.info("Starting to process chat request, sseId: {}, uid: {}, chatId: {}, botId: {}, text: {}",
-                        sseId, chatContext.uid(), chatContext.chatId(), chatContext.botId(),
-                        text.length() > 50 ? text.substring(0, 50) + "..." : text);
+                sseId, chatContext.uid(), chatContext.chatId(), chatContext.botId(),
+                text.length() > 50 ? text.substring(0, 50) + "..." : text);
 
         ChatBotReqDto chatBotReqDto = buildChatBotRequest(chatContext, text, fileUrl);
 
@@ -228,11 +228,11 @@ public class ChatMessageController {
      */
     private void sendStartSignal(SseEmitter sseEmitter, String sseId, ChatContext chatContext) {
         SseEmitterUtil.sendData(sseEmitter, Map.of(
-                        "type", "start",
-                        "sseId", sseId,
-                        "chatId", chatContext.chatId(),
-                        "botId", chatContext.botId(),
-                        "timestamp", System.currentTimeMillis()));
+                "type", "start",
+                "sseId", sseId,
+                "chatId", chatContext.chatId(),
+                "botId", chatContext.botId(),
+                "timestamp", System.currentTimeMillis()));
     }
 
     private record ValidationResult(boolean isValid) {
@@ -339,7 +339,7 @@ public class ChatMessageController {
      */
     private SseEmitter processReAnswerRequest(ChatContext chatContext, Long requestId, SseEmitter sseEmitter, String sseId) {
         log.info("Starting to process re-answer request, sseId: {}, requestId: {}",
-                        sseId, requestId);
+                sseId, requestId);
 
         try {
             sendStartSignal(sseEmitter, sseId, chatContext);
@@ -371,7 +371,7 @@ public class ChatMessageController {
         try {
             sendStartSignal(sseEmitter, sseId, new ChatContext(uid, 0L, 0));
             botChatService.debugChatMessageBot(debugRequest.getText(), debugRequest.getPrompt(), debugRequest.getArr(),
-                            uid, debugRequest.getOpenedTool(), debugRequest.getModel(), sseEmitter, sseId);
+                    uid, debugRequest.getOpenedTool(), debugRequest.getModel(), sseEmitter, sseId);
             return sseEmitter;
         } catch (Exception e) {
             log.error("Bot debug error, sseId: {}", sseId, e);

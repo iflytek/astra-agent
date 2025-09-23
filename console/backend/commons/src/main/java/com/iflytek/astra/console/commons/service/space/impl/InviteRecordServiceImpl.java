@@ -50,28 +50,28 @@ public class InviteRecordServiceImpl extends ServiceImpl<InviteRecordMapper, Inv
             return Page.of(param.getPageNum(), param.getPageSize());
         }
         return this.baseMapper.selectVOPageByParam(page,
-                        recordType, spaceId, enterpriseId,
-                        param.getNickname(), param.getStatus());
+                recordType, spaceId, enterpriseId,
+                param.getNickname(), param.getStatus());
     }
 
     @Override
     public Long countBySpaceIdAndUids(Long spaceId, List<String> uids) {
         return this.baseMapper.selectCount(Wrappers.<InviteRecord>lambdaQuery()
-                        .in(InviteRecord::getInviteeUid, uids)
-                        .gt(InviteRecord::getExpireTime, LocalDateTime.now())
-                        .eq(InviteRecord::getType, InviteRecordTypeEnum.SPACE.getCode())
-                        .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
-                        .eq(InviteRecord::getSpaceId, spaceId));
+                .in(InviteRecord::getInviteeUid, uids)
+                .gt(InviteRecord::getExpireTime, LocalDateTime.now())
+                .eq(InviteRecord::getType, InviteRecordTypeEnum.SPACE.getCode())
+                .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
+                .eq(InviteRecord::getSpaceId, spaceId));
     }
 
     @Override
     public Long countByEnterpriseIdAndUids(Long enterpriseId, List<String> uids) {
         return this.baseMapper.selectCount(Wrappers.<InviteRecord>lambdaQuery()
-                        .in(InviteRecord::getInviteeUid, uids)
-                        .gt(InviteRecord::getExpireTime, LocalDateTime.now())
-                        .eq(InviteRecord::getType, InviteRecordTypeEnum.ENTERPRISE.getCode())
-                        .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
-                        .eq(InviteRecord::getEnterpriseId, enterpriseId));
+                .in(InviteRecord::getInviteeUid, uids)
+                .gt(InviteRecord::getExpireTime, LocalDateTime.now())
+                .eq(InviteRecord::getType, InviteRecordTypeEnum.ENTERPRISE.getCode())
+                .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
+                .eq(InviteRecord::getEnterpriseId, enterpriseId));
     }
 
     @Override
@@ -114,9 +114,9 @@ public class InviteRecordServiceImpl extends ServiceImpl<InviteRecordMapper, Inv
     public int updateExpireRecord() {
         log.info("Start updating expired invitation records");
         int updated = this.baseMapper.update(Wrappers.<InviteRecord>lambdaUpdate()
-                        .set(InviteRecord::getStatus, InviteRecordStatusEnum.EXPIRED.getCode())
-                        .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
-                        .lt(InviteRecord::getExpireTime, LocalDateTime.now()));
+                .set(InviteRecord::getStatus, InviteRecordStatusEnum.EXPIRED.getCode())
+                .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
+                .lt(InviteRecord::getExpireTime, LocalDateTime.now()));
         log.info("Finished updating expired invitation records, updated {} rows", updated);
         return updated;
     }
@@ -124,8 +124,8 @@ public class InviteRecordServiceImpl extends ServiceImpl<InviteRecordMapper, Inv
     @Override
     public Set<String> getInvitingUids(InviteRecordTypeEnum type) {
         LambdaQueryWrapper<InviteRecord> wrapper = Wrappers.<InviteRecord>lambdaQuery()
-                        .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
-                        .gt(InviteRecord::getExpireTime, LocalDateTime.now());
+                .eq(InviteRecord::getStatus, InviteRecordStatusEnum.INIT.getCode())
+                .gt(InviteRecord::getExpireTime, LocalDateTime.now());
         if (type == InviteRecordTypeEnum.SPACE) {
             Long spaceId = SpaceInfoUtil.getSpaceId();
             wrapper.eq(InviteRecord::getSpaceId, spaceId).eq(InviteRecord::getType, type.getCode());

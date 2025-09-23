@@ -24,8 +24,8 @@ public class RestfulAuthenticationEntryPoint implements AuthenticationEntryPoint
 
     @Override
     public void commence(HttpServletRequest request,
-                    HttpServletResponse response,
-                    AuthenticationException authException) throws IOException {
+            HttpServletResponse response,
+            AuthenticationException authException) throws IOException {
 
         // Set HTTP status code to: 401 Unauthorized
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

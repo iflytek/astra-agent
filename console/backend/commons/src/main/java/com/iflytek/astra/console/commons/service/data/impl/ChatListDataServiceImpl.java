@@ -43,9 +43,9 @@ public class ChatListDataServiceImpl implements ChatListDataService {
         }
 
         LambdaQueryWrapper<ChatList> wrapper = Wrappers.lambdaQuery(ChatList.class)
-                        .eq(ChatList::getUid, uid)
-                        .eq(ChatList::getId, chatId)
-                        .eq(ChatList::getIsDelete, 0);
+                .eq(ChatList::getUid, uid)
+                .eq(ChatList::getId, chatId)
+                .eq(ChatList::getIsDelete, 0);
 
         ChatList result = chatListMapper.selectOne(wrapper);
         log.debug("Found chat list by uid={} and chatId={}: {}", uid, chatId, result);
@@ -56,8 +56,8 @@ public class ChatListDataServiceImpl implements ChatListDataService {
     @Override
     public List<ChatTreeIndex> findChatTreeIndexByChatIdOrderById(Long rootChatId) {
         LambdaQueryWrapper<ChatTreeIndex> chatTreeQuery = new LambdaQueryWrapper<ChatTreeIndex>()
-                        .eq(ChatTreeIndex::getRootChatId, rootChatId)
-                        .orderByDesc(ChatTreeIndex::getId);
+                .eq(ChatTreeIndex::getRootChatId, rootChatId)
+                .orderByDesc(ChatTreeIndex::getId);
         return chatTreeIndexMapper.selectList(chatTreeQuery);
     }
 
@@ -76,8 +76,8 @@ public class ChatListDataServiceImpl implements ChatListDataService {
     @Override
     public List<ChatTreeIndex> getListByRootChatId(Long rootChatId, String uid) {
         LambdaQueryWrapper<ChatTreeIndex> chatTreeQuery = new LambdaQueryWrapper<ChatTreeIndex>()
-                        .eq(ChatTreeIndex::getRootChatId, rootChatId)
-                        .orderByAsc(ChatTreeIndex::getId);
+                .eq(ChatTreeIndex::getRootChatId, rootChatId)
+                .orderByAsc(ChatTreeIndex::getId);
         return chatTreeIndexMapper.selectList(chatTreeQuery);
     }
 
@@ -94,11 +94,11 @@ public class ChatListDataServiceImpl implements ChatListDataService {
         }
 
         LambdaQueryWrapper<ChatList> wrapper = Wrappers.lambdaQuery(ChatList.class)
-                        .eq(ChatList::getUid, uid)
-                        .eq(ChatList::getBotId, botId)
-                        .eq(ChatList::getEnable, 1)
-                        .orderByDesc(ChatList::getUpdateTime)
-                        .last("LIMIT 1");
+                .eq(ChatList::getUid, uid)
+                .eq(ChatList::getBotId, botId)
+                .eq(ChatList::getEnable, 1)
+                .orderByDesc(ChatList::getUpdateTime)
+                .last("LIMIT 1");
 
         ChatList result = chatListMapper.selectOne(wrapper);
         log.debug("Found latest enabled chat list by uid={} and botId={}: {}", uid, botId, result);
@@ -132,7 +132,7 @@ public class ChatListDataServiceImpl implements ChatListDataService {
 
         // Use MyBatis-Plus batch update
         LambdaQueryWrapper<ChatList> wrapper = Wrappers.lambdaQuery(ChatList.class)
-                        .in(ChatList::getId, chatIdList);
+                .in(ChatList::getId, chatIdList);
 
         ChatList updateEntity = new ChatList();
         updateEntity.setIsDelete(0);
@@ -147,20 +147,20 @@ public class ChatListDataServiceImpl implements ChatListDataService {
     public long addRootTree(Long curChatId, String uid) {
         // Check if current chat already exists in child nodes
         LambdaQueryWrapper<ChatTreeIndex> chatTreeQuery1 = new LambdaQueryWrapper<ChatTreeIndex>()
-                        .eq(ChatTreeIndex::getChildChatId, curChatId)
-                        .eq(ChatTreeIndex::getUid, uid)
-                        .orderByAsc(ChatTreeIndex::getId);
+                .eq(ChatTreeIndex::getChildChatId, curChatId)
+                .eq(ChatTreeIndex::getUid, uid)
+                .orderByAsc(ChatTreeIndex::getId);
         List<ChatTreeIndex> childChatTreeIndexList = chatTreeIndexMapper.selectList(chatTreeQuery1);
         if (CollectionUtil.isNotEmpty(childChatTreeIndexList)) {
             return childChatTreeIndexList.getFirst().getRootChatId();
         } else {
             // Add record
             ChatTreeIndex chatTreeIndex = ChatTreeIndex.builder()
-                            .rootChatId(curChatId)
-                            .parentChatId(0L)
-                            .childChatId(curChatId)
-                            .uid(uid)
-                            .build();
+                    .rootChatId(curChatId)
+                    .parentChatId(0L)
+                    .childChatId(curChatId)
+                    .uid(uid)
+                    .build();
             chatTreeIndexMapper.insert(chatTreeIndex);
             return curChatId;
         }
@@ -194,13 +194,13 @@ public class ChatListDataServiceImpl implements ChatListDataService {
         }
 
         ChatTreeIndex childChatTreeIndex = chatTreeIndexMapper.selectOne(Wrappers.lambdaQuery(ChatTreeIndex.class)
-                        .eq(ChatTreeIndex::getChildChatId, childChatId)
-                        .eq(ChatTreeIndex::getUid, uid));
+                .eq(ChatTreeIndex::getChildChatId, childChatId)
+                .eq(ChatTreeIndex::getUid, uid));
         if (childChatTreeIndex == null) {
             return List.of();
         }
         List<ChatTreeIndex> result = chatTreeIndexMapper.selectList(Wrappers.lambdaQuery(ChatTreeIndex.class)
-                        .eq(ChatTreeIndex::getRootChatId, childChatTreeIndex.getRootChatId()));
+                .eq(ChatTreeIndex::getRootChatId, childChatTreeIndex.getRootChatId()));
         log.debug("Found chat tree index by childChatId={} and uid={}: {}", childChatId, uid, result);
 
         return result;
@@ -232,7 +232,7 @@ public class ChatListDataServiceImpl implements ChatListDataService {
         }
 
         LambdaQueryWrapper<ChatList> wrapper = Wrappers.lambdaQuery(ChatList.class)
-                        .in(ChatList::getId, idList);
+                .in(ChatList::getId, idList);
 
         ChatList updateEntity = new ChatList();
         updateEntity.setIsDelete(1);
@@ -247,13 +247,13 @@ public class ChatListDataServiceImpl implements ChatListDataService {
     @Override
     public ChatList getBotChat(String uid, Long botId) {
         return chatListMapper.selectOne(Wrappers.lambdaQuery(ChatList.class)
-                        .eq(ChatList::getUid, uid)
-                        .eq(ChatList::getBotId, botId)
-                        .eq(ChatList::getEnable, 1)
-                        .eq(ChatList::getIsDelete, 0)
-                        .eq(ChatList::getRootFlag, 1)
-                        .orderByDesc(ChatList::getId)
-                        .last("limit 1"));
+                .eq(ChatList::getUid, uid)
+                .eq(ChatList::getBotId, botId)
+                .eq(ChatList::getEnable, 1)
+                .eq(ChatList::getIsDelete, 0)
+                .eq(ChatList::getRootFlag, 1)
+                .orderByDesc(ChatList::getId)
+                .last("limit 1"));
     }
 
     @Override

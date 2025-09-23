@@ -14,13 +14,13 @@ public class JooqConfig {
     @Bean
     public DSLContext dslContext() {
         Settings settings = new Settings()
-                        // Do not render schema
-                        .withRenderSchema(false)
-                        // Identifiers do not automatically include quotes (we handle whitelist/escaping ourselves)
-                        .withRenderQuotedNames(RenderQuotedNames.NEVER)
-                        // Do not execute SQL
-                        .withExecuteLogging(false)
-                        .withStatementType(org.jooq.conf.StatementType.STATIC_STATEMENT);
+                // Do not render schema
+                .withRenderSchema(false)
+                // Identifiers do not automatically include quotes (we handle whitelist/escaping ourselves)
+                .withRenderQuotedNames(RenderQuotedNames.NEVER)
+                // Do not execute SQL
+                .withExecuteLogging(false)
+                .withStatementType(org.jooq.conf.StatementType.STATIC_STATEMENT);
         // STATIC_STATEMENT: Only construct SQL template/parameters, do not attempt actual execution
 
         return DSL.using(SQLDialect.POSTGRES, settings);

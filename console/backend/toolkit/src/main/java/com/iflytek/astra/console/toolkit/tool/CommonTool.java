@@ -209,14 +209,14 @@ public class CommonTool {
 
     public static String getMultipartFileInfoStr(MultipartFile file) {
         return new JSONObject()
-                        .fluentPut("OriginalFilename", file.getOriginalFilename())
-                        .fluentPut("Size", file.getSize())
-                        .fluentPut("Name", file.getName())
-                        .fluentPut("ContentType", file.getContentType())
-                        .fluentPut("Resource", new JSONObject()
-                                        .fluentPut("Filename", file.getResource().getFilename())
-                                        .fluentPut("Description", file.getResource().getDescription()))
-                        .toString();
+                .fluentPut("OriginalFilename", file.getOriginalFilename())
+                .fluentPut("Size", file.getSize())
+                .fluentPut("Name", file.getName())
+                .fluentPut("ContentType", file.getContentType())
+                .fluentPut("Resource", new JSONObject()
+                        .fluentPut("Filename", file.getResource().getFilename())
+                        .fluentPut("Description", file.getResource().getDescription()))
+                .toString();
     }
 
     public static MultipartFile getMultipartFile(File file) {
@@ -224,10 +224,10 @@ public class CommonTool {
             // Try to detect contentType, returning null if detection fails is also fine
             String contentType = Files.probeContentType(file.toPath());
             return new MockMultipartFile(
-                            "file",
-                            file.getName(),
-                            contentType,
-                            input);
+                    "file",
+                    file.getName(),
+                    contentType,
+                    input);
         } catch (IOException e) {
             throw new IllegalArgumentException("Invalid file: " + e, e);
         }

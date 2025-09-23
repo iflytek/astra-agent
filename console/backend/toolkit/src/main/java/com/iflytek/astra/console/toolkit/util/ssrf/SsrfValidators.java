@@ -27,11 +27,11 @@ public final class SsrfValidators {
 
     /** Pattern for valid hostnames (letters, digits, '-', '.', length 1~253) */
     private static final Pattern HOSTNAME_PATTERN =
-                    Pattern.compile("^[A-Za-z0-9.-]{1,253}$");
+            Pattern.compile("^[A-Za-z0-9.-]{1,253}$");
 
     /** Allowed URL schemes */
     private static final Set<String> ALLOWED_SCHEMES =
-                    new HashSet<>(Arrays.asList("http", "https", "ws", "wss"));
+            new HashSet<>(Arrays.asList("http", "https", "ws", "wss"));
 
     private SsrfValidators() {}
 
@@ -127,7 +127,7 @@ public final class SsrfValidators {
         URL u = new URL(url);
         try {
             URI uri = new URI(u.getProtocol(), u.getUserInfo(), u.getHost(), u.getPort(),
-                            u.getPath(), u.getQuery(), null);
+                    u.getPath(), u.getQuery(), null);
             return uri.normalize().toURL();
         } catch (URISyntaxException e) {
             throw new BusinessException(ResponseEnum.RESPONSE_FAILED, "Bad URL: " + e.getMessage());
@@ -305,7 +305,7 @@ public final class SsrfValidators {
             URL u = new URL(url);
             try {
                 URI uri = new URI(u.getProtocol(), null, u.getHost(), u.getPort(),
-                                u.getPath(), u.getQuery(), null);
+                        u.getPath(), u.getQuery(), null);
                 return uri.toString();
             } catch (URISyntaxException e) {
                 return url;
@@ -375,8 +375,8 @@ public final class SsrfValidators {
 
         boolean wsLike = "ws".equals(originalScheme) || "wss".equals(originalScheme);
         String mappedScheme = "ws".equals(originalScheme) ? "http"
-                        : "wss".equals(originalScheme) ? "https"
-                                        : originalScheme;
+                : "wss".equals(originalScheme) ? "https"
+                        : originalScheme;
 
         String rest = s.substring(sep + 3);
         String toParse = mappedScheme + "://" + rest;

@@ -13,8 +13,8 @@ public interface EnterpriseUserMapper extends BaseMapper<EnterpriseUser> {
     EnterpriseUser selectByUidAndEnterpriseId(String uid, Long enterpriseId);
 
     Page<EnterpriseUserVO> selectVOPageByParam(Page<EnterpriseUser> page,
-                    @Param("enterpriseId") Long enterpriseId,
-                    @Param("nickname") String nickname,
-                    @Param("role") Integer role);
+            @Param("enterpriseId") Long enterpriseId,
+            @Param("nickname") String nickname,
+            @Param("role") Integer role);
 
 }

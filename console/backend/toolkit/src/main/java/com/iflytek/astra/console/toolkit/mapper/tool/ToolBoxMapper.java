@@ -23,27 +23,27 @@ import java.util.*;
 public interface ToolBoxMapper extends BaseMapper<ToolBox> {
 
     int getModelListCountByCondition(@Param("userId") String userId,
-                    @Param("spaceId") Long spaceId,
-                    @Param("content") String content,
-                    @Param("status") Integer status);
+            @Param("spaceId") Long spaceId,
+            @Param("content") String content,
+            @Param("status") Integer status);
 
     List<ToolBox> getModelListByCondition(@Param("userId") String userId,
-                    @Param("spaceId") Long spaceId,
-                    @Param("content") String content,
-                    @Param("start") Integer start,
-                    @Param("limit") Integer limit,
-                    @Param("status") Integer status);
+            @Param("spaceId") Long spaceId,
+            @Param("content") String content,
+            @Param("start") Integer start,
+            @Param("limit") Integer limit,
+            @Param("status") Integer status);
 
     List<ToolBox> getModelListSquareByCondition(@Param("userId") String userId,
-                    @Param("content") String content,
-                    @Param("start") Integer start,
-                    @Param("limit") Integer limit,
-                    @Param("favorites") Set<String> favorites,
-                    @Param("orderFlag") Integer orderFlag,
-                    @Param("tagFlag") Integer tagFlag,
-                    @Param("tags") Long tags,
-                    @Param("adminUid") String adminUid,
-                    @Param("source") String source);
+            @Param("content") String content,
+            @Param("start") Integer start,
+            @Param("limit") Integer limit,
+            @Param("favorites") Set<String> favorites,
+            @Param("orderFlag") Integer orderFlag,
+            @Param("tagFlag") Integer tagFlag,
+            @Param("tags") Long tags,
+            @Param("adminUid") String adminUid,
+            @Param("source") String source);
 
     @Deprecated
     List<ToolBox> selectPublicTool();

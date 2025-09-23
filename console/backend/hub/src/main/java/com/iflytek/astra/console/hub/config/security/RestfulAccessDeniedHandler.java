@@ -26,9 +26,9 @@ public class RestfulAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(
-                    HttpServletRequest request,
-                    HttpServletResponse response,
-                    AccessDeniedException accessDeniedException) throws IOException {
+            HttpServletRequest request,
+            HttpServletResponse response,
+            AccessDeniedException accessDeniedException) throws IOException {
         // Set HTTP status code to: 403 FORBIDDEN
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

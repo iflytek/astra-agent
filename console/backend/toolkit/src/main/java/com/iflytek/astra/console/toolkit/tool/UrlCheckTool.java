@@ -59,8 +59,8 @@ public class UrlCheckTool {
 
     // Common short link domains
     private static final Set<String> SHORT_LINK_DOMAINS = Set.of(
-                    "bit.ly", "tinyurl.com", "t.co", "rebrandly.com", "is.gd", "t.ly",
-                    "monojson.com", "t.cn", "url.cn", "dwz.cn");
+            "bit.ly", "tinyurl.com", "t.co", "rebrandly.com", "is.gd", "t.ly",
+            "monojson.com", "t.cn", "url.cn", "dwz.cn");
 
     /**
      * Gets the redirected URL after at most one redirect.
@@ -97,8 +97,8 @@ public class UrlCheckTool {
 
             int code = conn.getResponseCode();
             if (code == HttpURLConnection.HTTP_MOVED_TEMP
-                            || code == HttpURLConnection.HTTP_MOVED_PERM
-                            || code == HttpURLConnection.HTTP_SEE_OTHER) {
+                    || code == HttpURLConnection.HTTP_MOVED_PERM
+                    || code == HttpURLConnection.HTTP_SEE_OTHER) {
                 String redirect = conn.getHeaderField("Location");
                 return StringUtils.isNotBlank(redirect) ? redirect : url;
             }

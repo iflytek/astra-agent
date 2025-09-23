@@ -27,20 +27,20 @@ public class DeepSeekChatController {
 
     @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(
-                    summary = "DeepSeek LLM Streaming Chat",
-                    description = "Streaming conversation with DeepSeek LLM, supporting real-time response",
-                    responses = {
-                                    @ApiResponse(responseCode = "200", description = "Streaming connection established successfully"),
-                                    @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
-                                    @ApiResponse(responseCode = "401", description = "Invalid API key"),
-                                    @ApiResponse(responseCode = "429", description = "Request rate limit exceeded"),
-                                    @ApiResponse(responseCode = "500", description = "Internal server error")
-                    })
+            summary = "DeepSeek LLM Streaming Chat",
+            description = "Streaming conversation with DeepSeek LLM, supporting real-time response",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Streaming connection established successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+                    @ApiResponse(responseCode = "401", description = "Invalid API key"),
+                    @ApiResponse(responseCode = "429", description = "Request rate limit exceeded"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            })
     public SseEmitter chatStream(
-                    @Parameter(description = "DeepSeek chat request parameters")
-                    @Valid @RequestBody DeepSeekChatRequest request) {
+            @Parameter(description = "DeepSeek chat request parameters")
+            @Valid @RequestBody DeepSeekChatRequest request) {
         log.info("Starting DeepSeek LLM streaming chat, chatId: {}, userId: {}, model: {}",
-                        request.getChatId(), request.getUserId(), request.getModel());
+                request.getChatId(), request.getUserId(), request.getModel());
 
         return deepSeekChatService.chatStream(request);
     }
@@ -48,25 +48,25 @@ public class DeepSeekChatController {
 
     @GetMapping("/models")
     @Operation(
-                    summary = "Get DeepSeek supported model list",
-                    description = "Returns all model information supported by DeepSeek API")
+            summary = "Get DeepSeek supported model list",
+            description = "Returns all model information supported by DeepSeek API")
     public ResponseEntity<String[]> getSupportedModels() {
         String[] models = {
-                        "deepseek-chat",
-                        "deepseek-coder"
+                "deepseek-chat",
+                "deepseek-coder"
         };
         return ResponseEntity.ok(models);
     }
 
     @PostMapping("/chat/validate")
     @Operation(
-                    summary = "Validate chat request parameters",
-                    description = "Validates whether DeepSeek chat request parameters are valid")
+            summary = "Validate chat request parameters",
+            description = "Validates whether DeepSeek chat request parameters are valid")
     public ResponseEntity<String> validateRequest(
-                    @Parameter(description = "DeepSeek chat request parameters")
-                    @Valid @RequestBody DeepSeekChatRequest request) {
+            @Parameter(description = "DeepSeek chat request parameters")
+            @Valid @RequestBody DeepSeekChatRequest request) {
         log.info("Validating DeepSeek chat request parameters, chatId: {}, userId: {}",
-                        request.getChatId(), request.getUserId());
+                request.getChatId(), request.getUserId());
 
         String validationError = validateRequestParameters(request);
         if (validationError != null) {

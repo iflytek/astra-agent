@@ -79,22 +79,22 @@ public class DatabaseServiceIntegrationTest {
         userInfoMock = mockStatic(com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.class);
 
         spaceInfoUtilMock.when(() -> com.iflytek.astra.console.commons.util.space.SpaceInfoUtil.getSpaceId())
-                        .thenReturn(TEST_SPACE_ID);
+                .thenReturn(TEST_SPACE_ID);
         userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
-                        .thenReturn(TEST_USER_ID);
+                .thenReturn(TEST_USER_ID);
         userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
-                        .thenReturn(TEST_USER_ID);
+                .thenReturn(TEST_USER_ID);
 
         // Mock核心系统服务
         when(coreSystemService.createDatabase(anyString(), anyString(), anyLong(), anyString()))
-                        .thenReturn(MOCK_DB_ID);
+                .thenReturn(MOCK_DB_ID);
         when(coreSystemService.cloneDataBase(anyLong(), anyString(), anyString()))
-                        .thenReturn(MOCK_DB_ID + 1);
+                .thenReturn(MOCK_DB_ID + 1);
         doNothing().when(coreSystemService).modifyDataBase(anyLong(), anyString(), anyString());
         doNothing().when(coreSystemService).dropDataBase(anyLong(), anyString());
         doNothing().when(coreSystemService).execDDL(anyString(), anyString(), anyLong(), anyLong());
         when(coreSystemService.execDML(anyString(), anyString(), anyLong(), anyLong(), anyInt(), anyInt()))
-                        .thenReturn(new ArrayList<>());
+                .thenReturn(new ArrayList<>());
 
         // Mock数据权限检查工具
         /*
@@ -144,7 +144,7 @@ public class DatabaseServiceIntegrationTest {
 
         // 验证核心系统调用
         verify(coreSystemService, times(1))
-                        .createDatabase(eq(databaseDto.getName()), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(databaseDto.getDescription()));
+                .createDatabase(eq(databaseDto.getName()), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(databaseDto.getDescription()));
 
         log.info("✅ 数据库创建测试通过: {}", result);
     }
@@ -227,7 +227,7 @@ public class DatabaseServiceIntegrationTest {
 
         // 验证核心系统调用
         verify(coreSystemService, times(1))
-                        .modifyDataBase(eq(MOCK_DB_ID), eq(TEST_USER_ID), eq("更新后的描述"));
+                .modifyDataBase(eq(MOCK_DB_ID), eq(TEST_USER_ID), eq("更新后的描述"));
 
         log.info("✅ 数据库更新测试通过: {}", updatedDb);
     }
@@ -256,7 +256,7 @@ public class DatabaseServiceIntegrationTest {
 
         // 验证核心系统调用
         verify(coreSystemService, times(1))
-                        .dropDataBase(eq(MOCK_DB_ID), eq(TEST_USER_ID));
+                .dropDataBase(eq(MOCK_DB_ID), eq(TEST_USER_ID));
 
         log.info("✅ 数据库删除测试通过: {}", deletedDb);
     }
@@ -282,12 +282,12 @@ public class DatabaseServiceIntegrationTest {
         // Assert - 验证复制的数据库存在
         List<DbInfo> allDbs = dbInfoMapper.selectList(null);
         boolean copyExists = allDbs.stream()
-                        .anyMatch(db -> db.getName().equals(originalDb.getName() + "_副本"));
+                .anyMatch(db -> db.getName().equals(originalDb.getName() + "_副本"));
         assertTrue(copyExists);
 
         // 验证核心系统调用
         verify(coreSystemService, times(1))
-                        .cloneDataBase(eq(MOCK_DB_ID), contains("_副本"), eq(TEST_USER_ID));
+                .cloneDataBase(eq(MOCK_DB_ID), contains("_副本"), eq(TEST_USER_ID));
 
         log.info("✅ 数据库复制测试通过");
     }
@@ -321,8 +321,8 @@ public class DatabaseServiceIntegrationTest {
 
         // 验证搜索结果
         boolean allMatch = result.getRecords()
-                        .stream()
-                        .allMatch(db -> db.getName().contains("分页测试数据库"));
+                .stream()
+                .allMatch(db -> db.getName().contains("分页测试数据库"));
         assertTrue(allMatch);
 
         log.info("✅ 数据库分页查询测试通过，找到 {} 条记录", result.getRecords().size());
@@ -379,25 +379,25 @@ public class DatabaseServiceIntegrationTest {
         // Assert - 验证表已创建
         List<DbTable> tables = dbTableMapper.selectList(null);
         boolean tableExists = tables.stream()
-                        .anyMatch(table -> table.getName().equals(tableDto.getName()));
+                .anyMatch(table -> table.getName().equals(tableDto.getName()));
         assertTrue(tableExists);
 
         // 验证字段已创建
         DbTable createdTable = tables.stream()
-                        .filter(table -> table.getName().equals(tableDto.getName()))
-                        .findFirst()
-                        .orElse(null);
+                .filter(table -> table.getName().equals(tableDto.getName()))
+                .findFirst()
+                .orElse(null);
         assertNotNull(createdTable);
 
         List<DbTableField> createdFields = dbTableFieldMapper.selectList(null);
         long fieldCount = createdFields.stream()
-                        .filter(field -> field.getTbId().equals(createdTable.getId()))
-                        .count();
+                .filter(field -> field.getTbId().equals(createdTable.getId()))
+                .count();
         assertEquals(5, fieldCount); // 2个用户字段 + 3个系统字段
 
         // 验证DDL执行
         verify(coreSystemService, atLeastOnce())
-                        .execDDL(contains("CREATE TABLE"), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(MOCK_DB_ID));
+                .execDDL(contains("CREATE TABLE"), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(MOCK_DB_ID));
 
         log.info("✅ 创建表测试通过: {}", createdTable);
     }
@@ -501,9 +501,9 @@ public class DatabaseServiceIntegrationTest {
         // 获取创建的表
         List<DbTable> tables = dbTableMapper.selectList(null);
         DbTable table = tables.stream()
-                        .filter(t -> t.getName().equals("数据测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .filter(t -> t.getName().equals("数据测试表"))
+                .findFirst()
+                .orElseThrow();
 
         // 准备插入数据
         DbTableOperateDto operateDto = new DbTableOperateDto();
@@ -528,8 +528,8 @@ public class DatabaseServiceIntegrationTest {
 
         // Assert - 验证DML执行
         verify(coreSystemService, times(1))
-                        .execDML(contains("INSERT INTO"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
-                                        eq(MOCK_DB_ID), eq(DBOperateEnum.UPDATE.getCode()), eq(1));
+                .execDML(contains("INSERT INTO"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
+                        eq(MOCK_DB_ID), eq(DBOperateEnum.UPDATE.getCode()), eq(1));
 
         log.info("✅ 插入表数据测试通过");
     }
@@ -554,9 +554,9 @@ public class DatabaseServiceIntegrationTest {
         // 获取创建的表
         List<DbTable> tables = dbTableMapper.selectList(null);
         DbTable table = tables.stream()
-                        .filter(t -> t.getName().equals("查询测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .filter(t -> t.getName().equals("查询测试表"))
+                .findFirst()
+                .orElseThrow();
 
         // Mock查询结果
         List<JSONObject> mockData = new ArrayList<>();
@@ -567,11 +567,11 @@ public class DatabaseServiceIntegrationTest {
         mockData.add(row1);
 
         when(coreSystemService.execDML(contains("SELECT * FROM"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
-                        eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT.getCode()), anyInt()))
-                        .thenReturn(mockData);
+                eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT.getCode()), anyInt()))
+                .thenReturn(mockData);
         when(coreSystemService.execDML(contains("SELECT COUNT(*)"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
-                        eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT_TOTAL_COUNT.getCode()), anyInt()))
-                        .thenReturn(1L);
+                eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT_TOTAL_COUNT.getCode()), anyInt()))
+                .thenReturn(1L);
 
         // 准备查询参数
         DbTableSelectDataDto selectDto = new DbTableSelectDataDto();
@@ -591,8 +591,8 @@ public class DatabaseServiceIntegrationTest {
 
         // 验证查询执行
         verify(coreSystemService, times(1))
-                        .execDML(contains("SELECT * FROM"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
-                                        eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT.getCode()), eq(1));
+                .execDML(contains("SELECT * FROM"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
+                        eq(MOCK_DB_ID), eq(DBOperateEnum.SELECT.getCode()), eq(1));
 
         log.info("✅ 查询表数据测试通过: {}", result.getRecords());
     }
@@ -619,9 +619,9 @@ public class DatabaseServiceIntegrationTest {
         // 获取创建的表
         List<DbTable> tables = dbTableMapper.selectList(null);
         DbTable table = tables.stream()
-                        .filter(t -> t.getName().equals("模板测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .filter(t -> t.getName().equals("模板测试表"))
+                .findFirst()
+                .orElseThrow();
 
         MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -647,15 +647,15 @@ public class DatabaseServiceIntegrationTest {
     void testImportTableField_Success() {
         // Arrange - 创建模拟Excel文件
         String csvContent = "字段名,字段类型,是否必填,默认值,字段描述\n" +
-                        "name,string,true,,姓名\n" +
-                        "age,integer,false,0,年龄\n" +
-                        "email,string,false,,邮箱";
+                "name,string,true,,姓名\n" +
+                "age,integer,false,0,年龄\n" +
+                "email,string,false,,邮箱";
 
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "fields.csv",
-                        "text/csv",
-                        csvContent.getBytes());
+                "file",
+                "fields.csv",
+                "text/csv",
+                csvContent.getBytes());
 
         // Act & Assert - 由于需要复杂的Excel解析，这里主要测试方法不抛异常
         assertDoesNotThrow(() -> {

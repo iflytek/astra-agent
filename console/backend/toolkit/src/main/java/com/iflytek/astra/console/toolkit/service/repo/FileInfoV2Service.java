@@ -172,14 +172,14 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         // 6. Upload & save
         JSONObject uploadRes = fileUploadTool.uploadFile(file, tag);
         return createFile(repoId,
-                        UUID.randomUUID().toString().replace("-", ""),
-                        originalFilename,
-                        parentId,
-                        uploadRes.getString("s3Key"),
-                        file.getSize(),
-                        (long) charCount,
-                        0,
-                        tag);
+                UUID.randomUUID().toString().replace("-", ""),
+                originalFilename,
+                parentId,
+                uploadRes.getString("s3Key"),
+                file.getSize(),
+                (long) charCount,
+                0,
+                tag);
     }
 
 
@@ -267,8 +267,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             }
         }
         if (cbgRagMaxCharCount < charCount
-                        && originalFilename != null
-                        && getFileFormat(originalFilename).equalsIgnoreCase(ProjectContent.TXT_FILE_TYPE)) {
+                && originalFilename != null
+                && getFileFormat(originalFilename).equalsIgnoreCase(ProjectContent.TXT_FILE_TYPE)) {
             throw new BusinessException(ResponseEnum.REPO_FILE_UPLOAD_FAILED_WORDS_100W);
         }
     }
@@ -288,7 +288,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         }
         long size = file.getSize();
         if (fileType.equalsIgnoreCase(ProjectContent.TXT_FILE_TYPE)
-                        || fileType.equalsIgnoreCase(ProjectContent.MD_FILE_TYPE)) {
+                || fileType.equalsIgnoreCase(ProjectContent.MD_FILE_TYPE)) {
             if (size > 10 * 1024 * 1024) {
                 throw new BusinessException(ResponseEnum.REPO_FILE_UPLOAD_FAILED_FILE_10MB_XINGCHEN);
             }
@@ -313,8 +313,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             String link;
             try (InputStream in = file.getInputStream()) {
                 String contentType = Optional.ofNullable(file.getContentType())
-                                .filter(ct -> !ct.isBlank())
-                                .orElse("application/octet-stream");
+                        .filter(ct -> !ct.isBlank())
+                        .orElse("application/octet-stream");
                 link = s3ClientUtil.uploadObject(fileName, contentType, in);
             }
             // Get doc signature
@@ -360,7 +360,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
      * @return created FileInfoV2 object
      */
     public FileInfoV2 createFile(Long repoId, String sourceId, String originalFilename, Long parentId, String s3Key,
-                    Long size, Long charCount, Integer enable, String tag) {
+            Long size, Long charCount, Integer enable, String tag) {
         FileInfoV2 fileInfoV2 = new FileInfoV2();
         fileInfoV2.setUuid(sourceId);
         fileInfoV2.setUid(UserInfoManagerHandler.getUserId());
@@ -492,9 +492,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             }
         } else {
             List<Long> fileIds = sliceFileVO.getFileIds()
-                            .stream()
-                            .map(Long::valueOf)
-                            .collect(Collectors.toList());
+                    .stream()
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(fileIds)) {
                 ExecutorService executorService = Executors.newFixedThreadPool(fileIds.size());
                 List<FileInfoV2> fileInfoV2List = fileInfoV2Mapper.listByIds(fileIds);
@@ -518,8 +518,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                     Long fileId = fileInfoV2.getId();
                     // Insert data into file_directory_tree table
                     FileDirectoryTree fileDirectoryTree = fileDirectoryTreeService.getOnly(Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                    .eq(FileDirectoryTree::getAppId, fileInfoV2.getRepoId())
-                                    .eq(FileDirectoryTree::getFileId, fileId));
+                            .eq(FileDirectoryTree::getAppId, fileInfoV2.getRepoId())
+                            .eq(FileDirectoryTree::getFileId, fileId));
 
                     if (fileDirectoryTree == null) {
                         fileDirectoryTree = new FileDirectoryTree();
@@ -694,9 +694,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
 
         // Pagination
         result.knowledgeDtoList = result.knowledgeDtoList.stream()
-                        .skip((long) (vo.getPageNo() - 1) * vo.getPageSize())
-                        .limit(vo.getPageSize())
-                        .collect(Collectors.toList());
+                .skip((long) (vo.getPageNo() - 1) * vo.getPageSize())
+                .limit(vo.getPageSize())
+                .collect(Collectors.toList());
 
         return result;
     }
@@ -857,9 +857,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             pageSize = 10;
         }
         List<Long> fileIds = knowledgeQueryVO.getFileIds()
-                        .stream()
-                        .map(Long::valueOf)
-                        .collect(Collectors.toList());
+                .stream()
+                .map(Long::valueOf)
+                .collect(Collectors.toList());
         List<String> fileUuIds = new ArrayList<>();
         List<FileInfoV2> fileInfoV2List = fileInfoV2Mapper.listByIds(fileIds);
         for (FileInfoV2 fileInfoV2 : fileInfoV2List) {
@@ -995,9 +995,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             }
         } else {
             List<Long> fileIds = sliceFileVO.getFileIds()
-                            .stream()
-                            .map(Long::valueOf) // Convert String to Long
-                            .collect(Collectors.toList());
+                    .stream()
+                    .map(Long::valueOf) // Convert String to Long
+                    .collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(fileIds)) {
                 ExecutorService executorService = Executors.newFixedThreadPool(fileIds.size());
                 for (Long fileId : fileIds) {
@@ -1011,8 +1011,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                         }
                     }
                     FileDirectoryTree fileDirectoryTree = fileDirectoryTreeService.getOnly(Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                    .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
-                                    .eq(FileDirectoryTree::getFileId, fileId));
+                            .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
+                            .eq(FileDirectoryTree::getFileId, fileId));
                     fileDirectoryTree.setStatus(1);
                     fileDirectoryTreeMapper.updateById(fileDirectoryTree);
                     executorService.execute(() -> {
@@ -1036,9 +1036,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                                 break;
                             }
                             if (Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_PARSE_SUCCESSED)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_DOING)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_FAILED)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_SUCCESSED)) {
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_DOING)
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_FAILED)
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_SUCCESSED)) {
                                 saveTaskAndUpdateFileStatus(fileId);
                                 new EmbeddingFileTask(this, fileId, fileInfoV2.getSpaceId()).run();
                                 break;
@@ -1060,8 +1060,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             return Arrays.stream(cookies)
-                            .map(cookie -> cookie.getName() + "=" + cookie.getValue())
-                            .collect(Collectors.joining("; "));
+                    .map(cookie -> cookie.getName() + "=" + cookie.getValue())
+                    .collect(Collectors.joining("; "));
         }
         return "";
     }
@@ -1080,8 +1080,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         boolean embeddingSuccess = false;
         FileInfoV2 fileInfoV2 = this.getById(fileId);
         ExtractKnowledgeTask extractKnowledgeTask = extractKnowledgeTaskService.getOnly(Wrappers.lambdaQuery(ExtractKnowledgeTask.class)
-                        .eq(ExtractKnowledgeTask::getFileId, fileInfoV2.getId())
-                        .eq(ExtractKnowledgeTask::getTaskStatus, 2));
+                .eq(ExtractKnowledgeTask::getFileId, fileInfoV2.getId())
+                .eq(ExtractKnowledgeTask::getTaskStatus, 2));
         try {
             Integer failedKnowledgeCount = knowledgeService.embeddingKnowledgeAndStorage(fileId);
             dealFileResult.setFailedCount(failedKnowledgeCount);
@@ -1154,9 +1154,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             }
         } else {
             List<Long> fileIds = sliceFileVO.getFileIds()
-                            .stream()
-                            .map(Long::valueOf) // Convert String to Long
-                            .collect(Collectors.toList());
+                    .stream()
+                    .map(Long::valueOf) // Convert String to Long
+                    .collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(fileIds)) {
                 ExecutorService executorService = Executors.newFixedThreadPool(fileIds.size());
                 for (Long fileId : fileIds) {
@@ -1191,9 +1191,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                                 break;
                             }
                             if (Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_PARSE_SUCCESSED)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_DOING)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_FAILED)
-                                            || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_SUCCESSED)) {
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_DOING)
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_FAILED)
+                                    || Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_SUCCESSED)) {
                                 saveTaskAndUpdateFileStatus(fileId);
                                 new EmbeddingFileTask(this, fileId, fileInfoV2.getSpaceId()).run();
                                 break;
@@ -1348,9 +1348,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                     saveTaskAndUpdateFileStatus(file.getId());
                     // Make directory visible
                     FileDirectoryTree tree = fileDirectoryTreeService.getOnly(
-                                    Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                                    .eq(FileDirectoryTree::getAppId, file.getRepoId())
-                                                    .eq(FileDirectoryTree::getFileId, file.getId()));
+                            Wrappers.lambdaQuery(FileDirectoryTree.class)
+                                    .eq(FileDirectoryTree::getAppId, file.getRepoId())
+                                    .eq(FileDirectoryTree::getFileId, file.getId()));
                     if (tree != null) {
                         tree.setStatus(1);
                         fileDirectoryTreeMapper.updateById(tree);
@@ -1403,9 +1403,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
      */
     private void ensureFileDirectoryTree(FileInfoV2 file) {
         FileDirectoryTree tree = fileDirectoryTreeService.getOnly(
-                        Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                        .eq(FileDirectoryTree::getAppId, file.getRepoId())
-                                        .eq(FileDirectoryTree::getFileId, file.getId()));
+                Wrappers.lambdaQuery(FileDirectoryTree.class)
+                        .eq(FileDirectoryTree::getAppId, file.getRepoId())
+                        .eq(FileDirectoryTree::getFileId, file.getId()));
         if (tree == null) {
             tree = new FileDirectoryTree();
             tree.setIsFile(1);
@@ -1436,8 +1436,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             this.updateById(fileInfoV2);
             // Update task status
             ExtractKnowledgeTask localExtractKnowledgeTask = extractKnowledgeTaskService.getOnly(Wrappers.lambdaQuery(ExtractKnowledgeTask.class)
-                            .eq(ExtractKnowledgeTask::getFileId, fileInfoV2.getId())
-                            .eq(ExtractKnowledgeTask::getTaskStatus, 2));
+                    .eq(ExtractKnowledgeTask::getFileId, fileInfoV2.getId())
+                    .eq(ExtractKnowledgeTask::getTaskStatus, 2));
             if (localExtractKnowledgeTask == null) {
                 ExtractKnowledgeTask extractKnowledgeTask = new ExtractKnowledgeTask();
                 extractKnowledgeTask.setTaskId(fileInfoV2.getUuid());
@@ -1466,19 +1466,19 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
     public void continueSliceOrEmbeddingFile() {
         log.info("Starting to rerun knowledge base embedding tasks");
         List<ExtractKnowledgeTask> tasks = extractKnowledgeTaskService.list(
-                        Wrappers.lambdaQuery(ExtractKnowledgeTask.class).eq(ExtractKnowledgeTask::getStatus, 0).isNotNull(ExtractKnowledgeTask::getTaskStatus));
+                Wrappers.lambdaQuery(ExtractKnowledgeTask.class).eq(ExtractKnowledgeTask::getStatus, 0).isNotNull(ExtractKnowledgeTask::getTaskStatus));
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
         // Get tasks that need to be rerun
         List<ExtractKnowledgeTask> distinctTasks = tasks.stream()
-                        .collect(Collectors.toMap(
-                                        ExtractKnowledgeTask::getFileId,
-                                        Function.identity(),
-                                        (existing, replacement) -> existing.getCreateTime().after(replacement.getCreateTime()) ? existing : replacement))
-                        .values()
-                        .stream()
-                        .collect(Collectors.toList());
+                .collect(Collectors.toMap(
+                        ExtractKnowledgeTask::getFileId,
+                        Function.identity(),
+                        (existing, replacement) -> existing.getCreateTime().after(replacement.getCreateTime()) ? existing : replacement))
+                .values()
+                .stream()
+                .collect(Collectors.toList());
         // Rerun parsing and embedding tasks
         // List<ExtractKnowledgeTask> spliceTask = distinctTasks.stream().filter(item -> item.getTag() ==
         // 1).collect(Collectors.toList());
@@ -1533,9 +1533,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             return fileInfoV2List;
         } else {
             List<Long> fileIds = sliceFileVO.getFileIds()
-                            .stream()
-                            .map(Long::valueOf) // Convert String to Long
-                            .collect(Collectors.toList());
+                    .stream()
+                    .map(Long::valueOf) // Convert String to Long
+                    .collect(Collectors.toList());
             for (Long fileId : fileIds) {
                 FileInfoV2 fileInfoV2 = this.getById(fileId);
                 if (null == spaceId) {
@@ -1600,9 +1600,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             }
         } else {
             List<Long> fileIds = dealFileVO.getFileIds()
-                            .stream()
-                            .map(Long::valueOf) // Convert String to Long
-                            .collect(Collectors.toList());
+                    .stream()
+                    .map(Long::valueOf) // Convert String to Long
+                    .collect(Collectors.toList());
             List<FileInfoV2> fileInfoV2List = fileInfoV2Mapper.listByIds(fileIds);
             List<String> fileUuids = new ArrayList<>();
             for (FileInfoV2 fileInfoV2 : fileInfoV2List) {
@@ -1715,13 +1715,13 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             dataPermissionCheckTool.checkRepoBelong(repo);
             dataPermissionCheckTool.checkRepoVisible(repo);
             List<FileDirectoryTree> modelListLinkFileInfoV2 = fileDirectoryTreeMapper.getModelListLinkFileInfoV2(MapUtil.builder()
-                            .put("appId", repoId.toString())
-                            .put("parentId", parentId)
-                            .put("isRepoPage", isRepoPage)
-                            .put("start", (pageNo - 1) * 10)
-                            .put("limit", pageSize)
-                            .put("safeOrderBy", "create_time desc")
-                            .build());
+                    .put("appId", repoId.toString())
+                    .put("parentId", parentId)
+                    .put("isRepoPage", isRepoPage)
+                    .put("start", (pageNo - 1) * 10)
+                    .put("limit", pageSize)
+                    .put("safeOrderBy", "create_time desc")
+                    .build());
             if (!CollectionUtils.isEmpty(modelListLinkFileInfoV2)) {
                 for (FileDirectoryTree fileDirectoryTree : modelListLinkFileInfoV2) {
                     FileDirectoryTreeDto fileDirectoryTreeDto = new FileDirectoryTreeDto();
@@ -1736,9 +1736,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                 }
             }
             modelListCount = fileDirectoryTreeMapper.selectCount(Wrappers.lambdaQuery(FileDirectoryTree.class)
-                            .eq(FileDirectoryTree::getAppId, repoId.toString())
-                            .eq(FileDirectoryTree::getParentId, parentId)
-                            .eq(FileDirectoryTree::getStatus, 1));
+                    .eq(FileDirectoryTree::getAppId, repoId.toString())
+                    .eq(FileDirectoryTree::getParentId, parentId)
+                    .eq(FileDirectoryTree::getStatus, 1));
         }
 
         pageData.setTotalCount(modelListCount);
@@ -1868,11 +1868,11 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
 
         // First perform local database query by file name (maintain original SQL call)
         List<FileDirectoryTree> matched = fileDirectoryTreeMapper.getModelListSearchByFileName(MapUtil.builder()
-                        .put("appId", repoId)
-                        .put("isFile", isFile)
-                        .put("fileName", fileName)
-                        .put("isRepoPage", isRepoPage)
-                        .build());
+                .put("appId", repoId)
+                .put("isFile", isFile)
+                .put("fileName", fileName)
+                .put("isRepoPage", isRepoPage)
+                .build());
 
         try {
             if (ProjectContent.isSparkRagCompatible(tag)) {
@@ -1895,9 +1895,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
     /* ======================== Spark Branch ======================== */
     private void streamSparkSearch(SseEmitter emitter, Long repoId, String fileName, HttpServletRequest request) throws IOException {
         String url = apiUrl.getDatasetFileUrl() + "?datasetId="
-                        .concat(repoId.toString())
-                        .concat("&searchValue=")
-                        .concat(fileName);
+                .concat(repoId.toString())
+                .concat("&searchValue=")
+                .concat(fileName);
         log.info("searchFile request url: {}", url);
 
         Map<String, String> header = new HashMap<>();
@@ -2297,7 +2297,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
     /* ---------- Data Filling ---------- */
 
     private void fillPreviewRows(HSSFSheet sheet, List<MysqlPreviewKnowledge> list,
-                    Map<String, FileInfoV2> fileMap, HSSFCellStyle body) {
+            Map<String, FileInfoV2> fileMap, HSSFCellStyle body) {
         if (CollectionUtils.isEmpty(list))
             return;
         for (int i = 0; i < list.size(); i++) {
@@ -2305,12 +2305,12 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             HSSFRow r = sheet.createRow(i + 1);
             r.setHeight((short) 1000);
             setCommonCells(r, i, fileMap.get(k.getFileId()), k.getContent().getString("knowledge"),
-                            extractAuditDetail(k.getContent().getJSONArray("auditDetail")), body);
+                    extractAuditDetail(k.getContent().getJSONArray("auditDetail")), body);
         }
     }
 
     private void fillKnowledgeRows(HSSFSheet sheet, List<MysqlKnowledge> list,
-                    Map<String, FileInfoV2> fileMap, HSSFCellStyle body) {
+            Map<String, FileInfoV2> fileMap, HSSFCellStyle body) {
         if (CollectionUtils.isEmpty(list))
             return;
         for (int i = 0; i < list.size(); i++) {
@@ -2318,12 +2318,12 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
             HSSFRow r = sheet.createRow(i + 1);
             r.setHeight((short) 1000);
             setCommonCells(r, i, fileMap.get(k.getFileId()), k.getContent().getString("knowledge"),
-                            extractAuditDetail(k.getContent().getJSONArray("auditDetail")), body);
+                    extractAuditDetail(k.getContent().getJSONArray("auditDetail")), body);
         }
     }
 
     private void setCommonCells(HSSFRow row, int idx, FileInfoV2 fileInfo,
-                    String content, String audit, HSSFCellStyle style) {
+            String content, String audit, HSSFCellStyle style) {
         HSSFCell c0 = row.createCell(0);
         c0.setCellValue(idx + 1);
         c0.setCellStyle(style);
@@ -2365,7 +2365,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         try (ServletOutputStream out = resp.getOutputStream()) {
             resp.reset();
             resp.setHeader("Content-disposition",
-                            "attachment; filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8.name()) + ".xls");
+                    "attachment; filename=" + URLEncoder.encode(filename, StandardCharsets.UTF_8.name()) + ".xls");
             resp.setContentType("application/msexcel");
             wb.write(out);
             out.flush();
@@ -2514,7 +2514,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         String fileType = getFileFormat(fileName);
         if (!StringUtils.isEmpty(fileType)) {
             return fileType.equalsIgnoreCase(ProjectContent.JPG_FILE_TYPE) || fileType.equalsIgnoreCase(ProjectContent.JPEG_FILE_TYPE) || fileType.equalsIgnoreCase(ProjectContent.PNG_FILE_TYPE)
-                            || fileType.equalsIgnoreCase(ProjectContent.BMP_FILE_TYPE);
+                    || fileType.equalsIgnoreCase(ProjectContent.BMP_FILE_TYPE);
         }
         return false;
     }

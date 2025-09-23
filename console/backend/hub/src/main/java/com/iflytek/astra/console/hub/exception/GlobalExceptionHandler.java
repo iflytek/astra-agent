@@ -44,10 +44,10 @@ public class GlobalExceptionHandler {
         String msg;
         try {
             msg = messageSource.getMessage(
-                            e.getResponseEnum().getMessageKey(),
-                            e.getArgs(),
-                            e.getResponseEnum().getMessageKey(),
-                            locale);
+                    e.getResponseEnum().getMessageKey(),
+                    e.getArgs(),
+                    e.getResponseEnum().getMessageKey(),
+                    locale);
         } catch (Exception ex) {
             msg = fallbackFormat(e.getResponseEnum().getMessageKey(), e.getArgs());
         }

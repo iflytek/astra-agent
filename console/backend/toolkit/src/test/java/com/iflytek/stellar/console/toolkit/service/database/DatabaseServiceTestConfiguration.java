@@ -19,17 +19,17 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootConfiguration
 @EnableAutoConfiguration(exclude = {
-                // 排除可能有问题的自动配置
-                org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration.class,
-                org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration.class
+        // 排除可能有问题的自动配置
+        org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration.class
 })
 @ComponentScan(basePackages = {
-                "com.iflytek.astra.console.toolkit.service.database",
-                "com.iflytek.astra.console.toolkit.mapper.database"
+        "com.iflytek.astra.console.toolkit.service.database",
+        "com.iflytek.astra.console.toolkit.mapper.database"
 })
 @EntityScan(basePackages = {
-                "com.iflytek.astra.console.toolkit.entity.table.database"
+        "com.iflytek.astra.console.toolkit.entity.table.database"
 })
 @MapperScan("com.iflytek.astra.console.toolkit.mapper")
 public class DatabaseServiceTestConfiguration {

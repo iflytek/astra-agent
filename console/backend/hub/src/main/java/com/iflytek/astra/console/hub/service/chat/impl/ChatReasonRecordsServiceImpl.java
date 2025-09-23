@@ -26,9 +26,9 @@ public class ChatReasonRecordsServiceImpl implements ChatReasonRecordsService {
             return;
         }
         Map<Long, ChatReasonRecords> reqIdToReasonRecord = reasonRecordsList.stream()
-                        .collect(Collectors.toMap(ChatReasonRecords::getReqId,
-                                        entity -> entity,
-                                        (existing, replacement) -> replacement));
+                .collect(Collectors.toMap(ChatReasonRecords::getReqId,
+                        entity -> entity,
+                        (existing, replacement) -> replacement));
 
         for (ChatRespModelDto chatRespModelDto : respList) {
             ChatReasonRecords reasonRecords = reqIdToReasonRecord.get(chatRespModelDto.getReqId());

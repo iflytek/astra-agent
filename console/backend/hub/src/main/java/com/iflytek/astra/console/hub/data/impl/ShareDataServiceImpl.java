@@ -18,10 +18,10 @@ public class ShareDataServiceImpl implements ShareDataService {
     @Override
     public AgentShareRecord findActiveShareRecord(String uid, int shareType, Long baseId) {
         return shareRecordMapper.selectOne(Wrappers.lambdaQuery(AgentShareRecord.class)
-                        .eq(AgentShareRecord::getUid, uid)
-                        .eq(AgentShareRecord::getShareType, shareType)
-                        .eq(AgentShareRecord::getBaseId, baseId)
-                        .eq(AgentShareRecord::getIsAct, 1));
+                .eq(AgentShareRecord::getUid, uid)
+                .eq(AgentShareRecord::getShareType, shareType)
+                .eq(AgentShareRecord::getBaseId, baseId)
+                .eq(AgentShareRecord::getIsAct, 1));
     }
 
     @Override
@@ -39,7 +39,7 @@ public class ShareDataServiceImpl implements ShareDataService {
     @Override
     public AgentShareRecord findByShareKey(String shareKey) {
         return shareRecordMapper.selectOne(Wrappers.lambdaQuery(AgentShareRecord.class)
-                        .eq(AgentShareRecord::getShareKey, shareKey)
-                        .eq(AgentShareRecord::getIsAct, 1));
+                .eq(AgentShareRecord::getShareKey, shareKey)
+                .eq(AgentShareRecord::getIsAct, 1));
     }
 }

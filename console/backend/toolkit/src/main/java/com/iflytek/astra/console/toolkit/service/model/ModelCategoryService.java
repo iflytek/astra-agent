@@ -43,11 +43,11 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
 
         // 1) First deduplicate by id
         Map<Long, ModelCategory> uniq = list.stream()
-                        .collect(Collectors.toMap(
-                                        ModelCategory::getId,
-                                        x -> x,
-                                        (a, b) -> a,
-                                        LinkedHashMap::new));
+                .collect(Collectors.toMap(
+                        ModelCategory::getId,
+                        x -> x,
+                        (a, b) -> a,
+                        LinkedHashMap::new));
         // 2) Construct all node maps
         Map<Long, CategoryTreeVO> nodeMap = new LinkedHashMap<>(uniq.size());
         Map<Long, Long> id2pid = new HashMap<>(uniq.size());
@@ -57,13 +57,13 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
             id2pid.put(id, pid);
 
             CategoryTreeVO vo = new CategoryTreeVO(
-                            id,
-                            e.getKey(),
-                            e.getName(),
-                            Optional.ofNullable(e.getSortOrder()).orElse(0),
-                            new ArrayList<>(),
-                            // SYSTEM / CUSTOM
-                            e.getSource());
+                    id,
+                    e.getKey(),
+                    e.getName(),
+                    Optional.ofNullable(e.getSortOrder()).orElse(0),
+                    new ArrayList<>(),
+                    // SYSTEM / CUSTOM
+                    e.getSource());
             nodeMap.put(id, vo);
         }
 
@@ -90,9 +90,9 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
 
         // 4) Unified sorting
         Comparator<CategoryTreeVO> cmp = Comparator
-                        .comparingInt(CategoryTreeVO::getSortOrder)
-                        .reversed()
-                        .thenComparing((CategoryTreeVO x) -> x.getId(), Comparator.reverseOrder());
+                .comparingInt(CategoryTreeVO::getSortOrder)
+                .reversed()
+                .thenComparing((CategoryTreeVO x) -> x.getId(), Comparator.reverseOrder());
 
         // Depth-first sort for each branch
         Deque<CategoryTreeVO> stack = new ArrayDeque<>(roots);
@@ -123,8 +123,8 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
         }
         final Long modelId = req.getModelId();
         boolean hasAnyCustom =
-                        (req.getCategoryCustom() != null && StringUtils.isNotBlank(req.getCategoryCustom().getCustomName())) ||
-                                        (req.getSceneCustom() != null && StringUtils.isNotBlank(req.getSceneCustom().getCustomName()));
+                (req.getCategoryCustom() != null && StringUtils.isNotBlank(req.getCategoryCustom().getCustomName())) ||
+                        (req.getSceneCustom() != null && StringUtils.isNotBlank(req.getSceneCustom().getCustomName()));
         if (hasAnyCustom && req.getOwnerUid() == null) {
             throw new BusinessException(ResponseEnum.RESPONSE_FAILED, "Creating custom categories requires recording creator UID");
         }
@@ -231,10 +231,10 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
      * @param ownerUid Creator UID (only used for adding custom items)
      */
     private void replaceMultiSelect(Long modelId,
-                    String key,
-                    List<Long> systemIds,
-                    ModelCategoryReq.CustomItem customItem,
-                    String ownerUid) {
+            String key,
+            List<Long> systemIds,
+            ModelCategoryReq.CustomItem customItem,
+            String ownerUid) {
 
         // 1) Clean up historical bindings for this dimension
         categoryMapper.deleteOfficialRelByKey(modelId, key);
@@ -304,10 +304,10 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
      */
     @Transactional(rollbackFor = Exception.class)
     public void upsertMultiSelect(Long modelId,
-                    List<Long> systemIds,
-                    ModelCategoryReq.CustomItem customNames,
-                    String ownerUid,
-                    String key) {
+            List<Long> systemIds,
+            ModelCategoryReq.CustomItem customNames,
+            String ownerUid,
+            String key) {
 
         // Official items batch binding (idempotent)
         if (systemIds != null && !systemIds.isEmpty()) {
@@ -403,8 +403,8 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
 
         // 1) Deduplicate by id while maintaining order
         Map<Long, ModelCategory> uniq = list.stream()
-                        .collect(
-                                        Collectors.toMap(ModelCategory::getId, x -> x, (a, b) -> a, LinkedHashMap::new));
+                .collect(
+                        Collectors.toMap(ModelCategory::getId, x -> x, (a, b) -> a, LinkedHashMap::new));
 
         // 2) Create all nodes first (without mounting)
         Map<Long, CategoryTreeVO> nodeMap = new LinkedHashMap<>(uniq.size());
@@ -414,12 +414,12 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
             Long pid = e.getPid() == null ? 0L : e.getPid();
             id2pid.put(id, pid);
             nodeMap.put(id, new CategoryTreeVO(
-                            id,
-                            e.getKey(),
-                            e.getName(),
-                            Optional.ofNullable(e.getSortOrder()).orElse(0),
-                            new ArrayList<>(),
-                            "SYSTEM"));
+                    id,
+                    e.getKey(),
+                    e.getName(),
+                    Optional.ofNullable(e.getSortOrder()).orElse(0),
+                    new ArrayList<>(),
+                    "SYSTEM"));
         }
 
         // 3) Mount under parent nodes
@@ -444,9 +444,9 @@ public class ModelCategoryService extends ServiceImpl<ModelCategoryMapper, Model
 
         // 4) Unified sorting (parent/child)
         Comparator<CategoryTreeVO> cmp = Comparator
-                        .comparingInt(CategoryTreeVO::getSortOrder)
-                        .reversed()
-                        .thenComparing((CategoryTreeVO x) -> x.getId(), Comparator.reverseOrder());
+                .comparingInt(CategoryTreeVO::getSortOrder)
+                .reversed()
+                .thenComparing((CategoryTreeVO x) -> x.getId(), Comparator.reverseOrder());
 
         Deque<CategoryTreeVO> stack = new ArrayDeque<>(roots);
         while (!stack.isEmpty()) {

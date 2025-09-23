@@ -38,12 +38,12 @@ public class StopStreamResponse {
      */
     public static StopStreamResponse success(String streamId) {
         return StopStreamResponse.builder()
-                        .success(true)
-                        .message("Stream stopped")
-                        .streamId(streamId)
-                        .operationTime(LocalDateTime.now())
-                        .timestamp(System.currentTimeMillis())
-                        .build();
+                .success(true)
+                .message("Stream stopped")
+                .streamId(streamId)
+                .operationTime(LocalDateTime.now())
+                .timestamp(System.currentTimeMillis())
+                .build();
     }
 
     /**
@@ -51,11 +51,11 @@ public class StopStreamResponse {
      */
     public static StopStreamResponse failure(String streamId, String errorMessage) {
         return StopStreamResponse.builder()
-                        .success(false)
-                        .message(errorMessage)
-                        .streamId(streamId)
-                        .operationTime(LocalDateTime.now())
-                        .timestamp(System.currentTimeMillis())
-                        .build();
+                .success(false)
+                .message(errorMessage)
+                .streamId(streamId)
+                .operationTime(LocalDateTime.now())
+                .timestamp(System.currentTimeMillis())
+                .build();
     }
 }

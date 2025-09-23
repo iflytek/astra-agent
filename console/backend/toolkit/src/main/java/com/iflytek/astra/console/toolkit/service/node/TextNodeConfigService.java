@@ -24,8 +24,8 @@ public class TextNodeConfigService extends ServiceImpl<TextNodeConfigMapper, Tex
         textNodeConfig.setCreateTime(new Date());
         textNodeConfig.setUpdateTime(new Date());
         TextNodeConfig one = this.getOne(new LambdaQueryWrapper<TextNodeConfig>()
-                        .eq(TextNodeConfig::getSeparator, textNodeConfig.getSeparator())
-                        .in(TextNodeConfig::getUid, Arrays.asList(textNodeConfig.getUid(), -1)));
+                .eq(TextNodeConfig::getSeparator, textNodeConfig.getSeparator())
+                .in(TextNodeConfig::getUid, Arrays.asList(textNodeConfig.getUid(), -1)));
         if (one != null) {
             log.error("There are duplicate separators present " + textNodeConfig.getSeparator());
             throw new BusinessException(ResponseEnum.DELIMITER_SAME);

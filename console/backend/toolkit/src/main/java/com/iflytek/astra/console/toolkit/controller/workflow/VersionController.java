@@ -30,15 +30,15 @@ public class VersionController {
      */
     @GetMapping("/list")
     public Object list(
-                    Page<WorkflowVersion> page,
-                    @RequestParam String flowId) {
+            Page<WorkflowVersion> page,
+            @RequestParam String flowId) {
         return versionService.listPage(page, flowId);
     }
 
     @GetMapping("/list-botId")
     public Object list_botId(
-                    Page<WorkflowVersion> page,
-                    @RequestParam String botId) {
+            Page<WorkflowVersion> page,
+            @RequestParam String botId) {
         return versionService.list_botId_Page(page, botId);
     }
 
@@ -88,7 +88,7 @@ public class VersionController {
 
     @GetMapping("/publish-result")
     public Object publishResult(@RequestParam String flowId,
-                    @RequestParam String name) {
+            @RequestParam String name) {
         return versionService.publishResult(flowId, name);
     }
 }

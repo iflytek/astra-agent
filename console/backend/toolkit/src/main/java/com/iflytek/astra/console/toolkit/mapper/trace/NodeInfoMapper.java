@@ -14,26 +14,26 @@ import java.util.List;
 @Mapper
 public interface NodeInfoMapper extends MPJBaseMapper<NodeInfo> {
     Page<NodeDataDto> selectMarkedNodePage(
-                    @Param("botId") String botId,
-                    @Param("flowId") String flowId,
-                    @Param("list") List<String> nodeIdList);
+            @Param("botId") String botId,
+            @Param("flowId") String flowId,
+            @Param("list") List<String> nodeIdList);
 
     List<NodeDataDto> selectMarkedInIdList(
-                    @Param("list") List<String> idList);
+            @Param("list") List<String> idList);
 
     List<NodeDataDto> selectMarkedNodeList(
-                    @Param("sidList") List<String> sidList,
-                    @Param("nodeIdList") List<String> nodeIdList);
+            @Param("sidList") List<String> sidList,
+            @Param("nodeIdList") List<String> nodeIdList);
 
     List<NodeDataDto> selectMarkedNodeList2(
-                    @Param("list") List<String> sidList,
-                    @Param("nodeId") String nodeId);
+            @Param("list") List<String> sidList,
+            @Param("nodeId") String nodeId);
 
     List<WorkflowErrorModelVo> getNodeErrorInfo(@Param("params") WorkflowModelErrorReq workflowModelErrorReq);
 
     List<String> getSidList(@Param("params") WorkflowModelErrorReq params,
-                    @Param("nodeName") String nodeName);
+            @Param("nodeName") String nodeName);
 
     long getNodeCallNum(@Param("params") WorkflowModelErrorReq params,
-                    @Param("nodeName") String nodeName);
+            @Param("nodeName") String nodeName);
 }

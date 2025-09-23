@@ -7,17 +7,17 @@ public class EffectEvalConst {
 
     public static final String SET_S3_PREFIX = "sparkBot/evalSet/";
     public static final JSONObject FINE_TUNE_OPEN_DATASET_TEMPLATE = new JSONObject()
-                    .fluentPut("input", "input")
-                    .fluentPut("output", "output")
-                    .fluentPut("instruction", "");
+            .fluentPut("input", "input")
+            .fluentPut("output", "output")
+            .fluentPut("instruction", "");
     public static final int FINE_TUNE_OPEN_MODEL_TRAIN_DATA_MIN_SIZE = 50;
     public static final CharSequence SUPPORT_FILE_SUFFIX = "csv";
     public static final long SUPPORT_FILE_MAX_SIZE = 20971520L;
 
     public static final JSONObject FC_TEMPLATE = new JSONObject()
-                    .fluentPut("name", "name")
-                    .fluentPut("arguments",
-                                    new JSONObject().fluentPut("next_inputs", "next_inputs"));
+            .fluentPut("name", "name")
+            .fluentPut("arguments",
+                    new JSONObject().fluentPut("next_inputs", "next_inputs"));
 
     public static final class GetDataMode {
         public static final int ONLINE = 1; // 1:线上

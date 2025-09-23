@@ -30,7 +30,7 @@ public class ModelCommonService extends ServiceImpl<ModelCommonMapper, ModelComm
      */
     public List<ModelCommon> getCommonModelList(String uid, String name) {
         LambdaQueryWrapper<ModelCommon> qw = Wrappers.lambdaQuery(ModelCommon.class)
-                        .eq(ModelCommon::getIsDelete, 0);
+                .eq(ModelCommon::getIsDelete, 0);
         qw.eq(StringUtils.isNotBlank(name), ModelCommon::getName, name);
         if (uid == null) {
             // Only public models
@@ -38,8 +38,8 @@ public class ModelCommonService extends ServiceImpl<ModelCommonMapper, ModelComm
         } else {
             // Public models + models for specified uid
             qw.and(w -> w.isNull(ModelCommon::getUid)
-                            .or()
-                            .eq(ModelCommon::getUid, uid));
+                    .or()
+                    .eq(ModelCommon::getUid, uid));
         }
         qw.orderByDesc(ModelCommon::getUpdateTime);
         List<ModelCommon> list = this.list(qw);

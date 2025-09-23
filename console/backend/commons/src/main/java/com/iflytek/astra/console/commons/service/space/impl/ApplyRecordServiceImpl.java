@@ -33,9 +33,9 @@ public class ApplyRecordServiceImpl extends ServiceImpl<ApplyRecordMapper, Apply
     @Override
     public ApplyRecord getByUidAndSpaceId(String uid, Long spaceId) {
         return this.baseMapper.selectOne(Wrappers.<ApplyRecord>lambdaQuery()
-                        .eq(ApplyRecord::getApplyUid, uid)
-                        .eq(ApplyRecord::getSpaceId, spaceId)
-                        .eq(ApplyRecord::getStatus, ApplyRecord.Status.APPLYING.getCode()));
+                .eq(ApplyRecord::getApplyUid, uid)
+                .eq(ApplyRecord::getSpaceId, spaceId)
+                .eq(ApplyRecord::getStatus, ApplyRecord.Status.APPLYING.getCode()));
     }
 
     @Override

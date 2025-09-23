@@ -23,10 +23,10 @@ public class DeepSeekConfig {
     @Bean("deepSeekHttpClient")
     public OkHttpClient deepSeekHttpClient() {
         return new OkHttpClient.Builder()
-                        .connectTimeout(connectTimeout)
-                        .readTimeout(readTimeout)
-                        .writeTimeout(writeTimeout)
-                        .build();
+                .connectTimeout(connectTimeout)
+                .readTimeout(readTimeout)
+                .writeTimeout(writeTimeout)
+                .build();
     }
 
     public String getChatCompletionUrl() {

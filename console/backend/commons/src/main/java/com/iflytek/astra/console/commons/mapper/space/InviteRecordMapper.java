@@ -13,11 +13,11 @@ public interface InviteRecordMapper extends BaseMapper<InviteRecord> {
     InviteRecordVO selectVOById(Long id);
 
     Page<InviteRecordVO> selectVOPageByParam(Page<InviteRecord> page,
-                    @Param("type") Integer type,
-                    @Param("spaceId") Long spaceId,
-                    @Param("enterpriseId") Long enterpriseId,
-                    @Param("nickname") String nickname,
-                    @Param("status") Integer status);
+            @Param("type") Integer type,
+            @Param("spaceId") Long spaceId,
+            @Param("enterpriseId") Long enterpriseId,
+            @Param("nickname") String nickname,
+            @Param("status") Integer status);
 
     Long countJoiningByEnterpriseId(@Param("enterpriseId") Long enterpriseId);
 

@@ -104,11 +104,11 @@ public class UserBotServiceImpl implements UserBotService {
         // Convert to DTOs and return
         Page<MyBotResponseDTO> myBotResponsesPage = createPageResult(list, count);
         return new MyBotPageDTO(
-                        myBotResponsesPage.getRecords(),
-                        Math.toIntExact(myBotResponsesPage.getTotal()),
-                        Math.toIntExact(myBotResponsesPage.getSize()),
-                        Math.toIntExact(myBotResponsesPage.getCurrent()),
-                        Math.toIntExact(myBotResponsesPage.getPages()));
+                myBotResponsesPage.getRecords(),
+                Math.toIntExact(myBotResponsesPage.getTotal()),
+                Math.toIntExact(myBotResponsesPage.getSize()),
+                Math.toIntExact(myBotResponsesPage.getCurrent()),
+                Math.toIntExact(myBotResponsesPage.getPages()));
     }
 
     @Override
@@ -158,20 +158,20 @@ public class UserBotServiceImpl implements UserBotService {
         List<Integer> favoriteBotIdList = botFavoriteService.list(uid);
 
         Set<Long> wechatBotId = botOffiaccountService.getAccountList(uid)
-                        .stream()
-                        .map(BotOffiaccount::getBotId)
-                        .collect(Collectors.toSet());
+                .stream()
+                .map(BotOffiaccount::getBotId)
+                .collect(Collectors.toSet());
 
         Set<Integer> apiBotId = chatBotApiService.getBotApiList(uid)
-                        .stream()
-                        .map(ChatBotApi::getBotId)
-                        .collect(Collectors.toSet());
+                .stream()
+                .map(ChatBotApi::getBotId)
+                .collect(Collectors.toSet());
 
         Set<Integer> botIdMcpSet = mcpDataService.getMcpByUid(uid)
-                        .stream()
-                        .map(McpData::getBotId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet());
+                .stream()
+                .map(McpData::getBotId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
         return new ReleaseInfo(favoriteBotIdList, wechatBotId, apiBotId, botIdMcpSet);
     }
@@ -229,9 +229,9 @@ public class UserBotServiceImpl implements UserBotService {
             map.put("af", "1");
         } else {
             ApplicationForm applicationForm = applicationFormMapper.selectOne(
-                            Wrappers.lambdaQuery(ApplicationForm.class)
-                                            .eq(ApplicationForm::getBotId, botId)
-                                            .last("limit 1"));
+                    Wrappers.lambdaQuery(ApplicationForm.class)
+                            .eq(ApplicationForm::getBotId, botId)
+                            .last("limit 1"));
             map.put("af", applicationForm != null ? "1" : "0");
         }
     }
@@ -253,29 +253,29 @@ public class UserBotServiceImpl implements UserBotService {
     private void processChainInformation(LinkedList<Map<String, Object>> list, Set<Integer> botIdSet) {
         List<JSONObject> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
         Map<Integer, JSONObject> chainMap = chainList.stream()
-                        .collect(Collectors.toMap(
-                                        json -> json.getInteger("botId"),
-                                        Function.identity(),
-                                        (existing, newValue) -> newValue));
+                .collect(Collectors.toMap(
+                        json -> json.getInteger("botId"),
+                        Function.identity(),
+                        (existing, newValue) -> newValue));
 
         Map<Integer, Boolean> multiInputMap = chainList.stream()
-                        .collect(Collectors.toMap(
-                                        json -> json.getInteger("botId"),
-                                        json -> {
-                                            if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
-                                                JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
-                                                int size = extraInputs.size();
-                                                if (extraInputs.containsValue("image")) {
-                                                    size -= 2;
-                                                }
-                                                return size > 0;
-                                            } else {
-                                                return false;
-                                            }
-                                        }));
+                .collect(Collectors.toMap(
+                        json -> json.getInteger("botId"),
+                        json -> {
+                            if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
+                                JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
+                                int size = extraInputs.size();
+                                if (extraInputs.containsValue("image")) {
+                                    size -= 2;
+                                }
+                                return size > 0;
+                            } else {
+                                return false;
+                            }
+                        }));
         list.stream()
-                        .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
-                        .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
+                .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
+                .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
 
         list.forEach(map -> map.put("multiInput", multiInputMap.get(map.get("botId"))));
     }
@@ -296,7 +296,7 @@ public class UserBotServiceImpl implements UserBotService {
         final Set<Integer> botIdMcpSet;
 
         ReleaseInfo(List<Integer> favoriteBotIdList, Set<Long> wechatBotId,
-                        Set<Integer> apiBotId, Set<Integer> botIdMcpSet) {
+                Set<Integer> apiBotId, Set<Integer> botIdMcpSet) {
             this.favoriteBotIdList = favoriteBotIdList;
             this.wechatBotId = wechatBotId;
             this.apiBotId = apiBotId;

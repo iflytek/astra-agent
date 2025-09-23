@@ -47,12 +47,12 @@ public class DeepSeekChatService {
         String requestBody = buildRequestBody(request);
 
         Request httpRequest = new Request.Builder()
-                        .url(deepSeekConfig.getChatCompletionUrl())
-                        .post(RequestBody.create(requestBody, MediaType.get("application/json; charset=utf-8")))
-                        .addHeader("Authorization", "Bearer " + deepSeekConfig.getApiKey())
-                        .addHeader("Content-Type", "application/json")
-                        .addHeader("Accept", "text/event-stream")
-                        .build();
+                .url(deepSeekConfig.getChatCompletionUrl())
+                .post(RequestBody.create(requestBody, MediaType.get("application/json; charset=utf-8")))
+                .addHeader("Authorization", "Bearer " + deepSeekConfig.getApiKey())
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Accept", "text/event-stream")
+                .build();
 
         Call call = deepSeekHttpClient.newCall(httpRequest);
 
@@ -177,13 +177,13 @@ public class DeepSeekChatService {
 
     private List<Map<String, String>> buildMessages(List<DeepSeekChatRequest.MessageDto> messages) {
         return messages.stream()
-                        .map(msg -> {
-                            Map<String, String> message = new HashMap<>();
-                            message.put("role", msg.getRole());
-                            message.put("content", msg.getContent());
-                            return message;
-                        })
-                        .collect(Collectors.toList());
+                .map(msg -> {
+                    Map<String, String> message = new HashMap<>();
+                    message.put("role", msg.getRole());
+                    message.put("content", msg.getContent());
+                    return message;
+                })
+                .collect(Collectors.toList());
     }
 
     private DeepSeekChatResponse createErrorResponse(String errorMessage) {

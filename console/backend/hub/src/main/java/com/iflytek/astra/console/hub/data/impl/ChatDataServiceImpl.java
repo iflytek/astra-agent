@@ -87,8 +87,8 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Override
     public ChatReqRecords createRequest(ChatReqRecords chatReqRecords) {
         ChatList chatList = chatListMapper.selectOne(Wrappers.lambdaQuery(ChatList.class)
-                        .eq(ChatList::getId, chatReqRecords.getChatId())
-                        .eq(ChatList::getUid, chatReqRecords.getUid()));
+                .eq(ChatList::getId, chatReqRecords.getChatId())
+                .eq(ChatList::getUid, chatReqRecords.getUid()));
         if (chatList != null && chatList.getEnable() == 0) {
             throw new BusinessException(ResponseEnum.CHAT_REQ_ZJ_ERROR);
         }
@@ -100,9 +100,9 @@ public class ChatDataServiceImpl implements ChatDataService {
         updateWrapper.set(ChatList::getUpdateTime, LocalDateTime.now());
         chatListMapper.update(null, updateWrapper);
         LambdaQueryWrapper<ChatTreeIndex> chatTreeQuery = new LambdaQueryWrapper<ChatTreeIndex>()
-                        .eq(ChatTreeIndex::getChildChatId, chatReqRecords.getChatId())
-                        .eq(ChatTreeIndex::getUid, chatReqRecords.getUid())
-                        .orderByAsc(ChatTreeIndex::getId);
+                .eq(ChatTreeIndex::getChildChatId, chatReqRecords.getChatId())
+                .eq(ChatTreeIndex::getUid, chatReqRecords.getUid())
+                .orderByAsc(ChatTreeIndex::getId);
         List<ChatTreeIndex> childChatTreeIndexList = chatTreeIndexMapper.selectList(chatTreeQuery);
         Long rootId = childChatTreeIndexList.getFirst().getRootChatId();
         if (rootId != null && !rootId.equals(chatReqRecords.getChatId())) {
@@ -170,11 +170,11 @@ public class ChatDataServiceImpl implements ChatDataService {
     public List<ChatReqModelDto> getReqModelBotHistoryByChatId(String uid, Long chatId) {
         // 1. Get chat_req_records records
         List<ChatReqRecords> queryList = chatReqRecordsMapper.selectList(
-                        Wrappers.<ChatReqRecords>lambdaQuery()
-                                        .eq(ChatReqRecords::getUid, uid)
-                                        .eq(ChatReqRecords::getChatId, chatId)
-                                        .orderByDesc(ChatReqRecords::getCreateTime)
-                                        .last("LIMIT 500"));
+                Wrappers.<ChatReqRecords>lambdaQuery()
+                        .eq(ChatReqRecords::getUid, uid)
+                        .eq(ChatReqRecords::getChatId, chatId)
+                        .orderByDesc(ChatReqRecords::getCreateTime)
+                        .last("LIMIT 500"));
         // 2. Get reqId list
         List<Long> reqIdList = queryList.stream().map(ChatReqRecords::getId).collect(Collectors.toList());
         // 3. Get chat_req_model records
@@ -182,12 +182,12 @@ public class ChatDataServiceImpl implements ChatDataService {
             return new ArrayList<>();
         }
         List<ChatReqModel> chatReqModelList = chatReqModelMapper.selectList(Wrappers.lambdaQuery(ChatReqModel.class)
-                        .in(ChatReqModel::getChatReqId, reqIdList));
+                .in(ChatReqModel::getChatReqId, reqIdList));
         // 4. Process queryList and chatReqModelList data
         Map<Long, ChatReqRecords> chatReqRecordsMap = queryList.stream()
-                        .collect(Collectors.toMap(ChatReqRecords::getId, chatReqRecords -> chatReqRecords, (existing, replacement) -> existing));
+                .collect(Collectors.toMap(ChatReqRecords::getId, chatReqRecords -> chatReqRecords, (existing, replacement) -> existing));
         Map<Long, ChatReqModel> chatReqModelMap = chatReqModelList.stream()
-                        .collect(Collectors.toMap(ChatReqModel::getChatReqId, chatReqModel -> chatReqModel, (existing, replacement) -> existing));
+                .collect(Collectors.toMap(ChatReqModel::getChatReqId, chatReqModel -> chatReqModel, (existing, replacement) -> existing));
         // 5. Perform merge
         List<ChatReqModelDto> chatReqModelDtos = new ArrayList<>();
         for (Long reqId : reqIdList) {
@@ -244,10 +244,10 @@ public class ChatDataServiceImpl implements ChatDataService {
             return null;
         }
         List<ChatRespModel> chatRespModels = chatRespModelMapper.selectList(
-                        Wrappers.lambdaQuery(ChatRespModel.class)
-                                        .eq(ChatRespModel::getUid, uid)
-                                        .eq(ChatRespModel::getChatId, chatId)
-                                        .in(ChatRespModel::getReqId, reqIdsMap.keySet()));
+                Wrappers.lambdaQuery(ChatRespModel.class)
+                        .eq(ChatRespModel::getUid, uid)
+                        .eq(ChatRespModel::getChatId, chatId)
+                        .in(ChatRespModel::getReqId, reqIdsMap.keySet()));
         if (!chatRespModels.isEmpty()) {
             for (int i = 0; i < chatRespModels.size(); i++) {
                 Integer index = reqIdsMap.get(chatRespModels.get(i).getReqId());
@@ -384,7 +384,7 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Override
     public List<ChatTraceSource> findTraceSourcesByChatId(Long chatId) {
         return chatTraceSourceMapper.selectList(Wrappers.lambdaQuery(ChatTraceSource.class)
-                        .eq(ChatTraceSource::getChatId, chatId));
+                .eq(ChatTraceSource::getChatId, chatId));
     }
 
     @Override
@@ -398,9 +398,9 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Override
     public List<ChatFileReq> getFileList(String uid, Long chatId) {
         return chatFileReqMapper.selectList(Wrappers.lambdaQuery(ChatFileReq.class)
-                        .eq(ChatFileReq::getChatId, chatId)
-                        .eq(ChatFileReq::getUid, uid)
-                        .eq(ChatFileReq::getDeleted, 0));
+                .eq(ChatFileReq::getChatId, chatId)
+                .eq(ChatFileReq::getUid, uid)
+                .eq(ChatFileReq::getDeleted, 0));
     }
 
     @Override
@@ -408,10 +408,10 @@ public class ChatDataServiceImpl implements ChatDataService {
         LocalDateTime lastTime = getLastTime();
         // Avoid duplicate fileId in historical dirty data
         List<ChatFileUser> chatFileUsers = chatFileUserMapper.selectList(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getUid, uid)
-                        .eq(ChatFileUser::getFileId, fileId)
-                        .ge(ChatFileUser::getCreateTime, lastTime)
-                        .orderByDesc(ChatFileUser::getCreateTime));
+                .eq(ChatFileUser::getUid, uid)
+                .eq(ChatFileUser::getFileId, fileId)
+                .ge(ChatFileUser::getCreateTime, lastTime)
+                .orderByDesc(ChatFileUser::getCreateTime));
         if (CollectionUtil.isNotEmpty(chatFileUsers)) {
             return chatFileUsers.getFirst();
         }
@@ -422,31 +422,31 @@ public class ChatDataServiceImpl implements ChatDataService {
     public ChatFileUser getByFileId(String fileId, String uid) {
         LocalDateTime lastTime = getLastTime();
         return chatFileUserMapper.selectOne(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getUid, uid)
-                        .eq(ChatFileUser::getFileId, fileId)
-                        .ge(ChatFileUser::getCreateTime, lastTime)
-                        .eq(ChatFileUser::getDeleted, 0));
+                .eq(ChatFileUser::getUid, uid)
+                .eq(ChatFileUser::getFileId, fileId)
+                .ge(ChatFileUser::getCreateTime, lastTime)
+                .eq(ChatFileUser::getDeleted, 0));
     }
 
     @Override
     public List<ChatReqModelDto> getReqModelWithImgByChatId(String uid, Long chatId) {
         List<ChatReqModel> chatReqModels = chatReqModelMapper.selectList(
-                        Wrappers.lambdaQuery(ChatReqModel.class)
-                                        .select(ChatReqModel::getId, ChatReqModel::getUrl, ChatReqModel::getCreateTime)
-                                        .eq(ChatReqModel::getUid, uid)
-                                        .eq(ChatReqModel::getChatId, chatId)
-                                        .eq(ChatReqModel::getType, 1)
-                                        .orderByDesc(ChatReqModel::getCreateTime));
+                Wrappers.lambdaQuery(ChatReqModel.class)
+                        .select(ChatReqModel::getId, ChatReqModel::getUrl, ChatReqModel::getCreateTime)
+                        .eq(ChatReqModel::getUid, uid)
+                        .eq(ChatReqModel::getChatId, chatId)
+                        .eq(ChatReqModel::getType, 1)
+                        .orderByDesc(ChatReqModel::getCreateTime));
 
         return chatReqModels.stream()
-                        .map(model -> {
-                            ChatReqModelDto dto = new ChatReqModelDto();
-                            dto.setId(Long.valueOf(model.getId()));
-                            dto.setUrl(model.getUrl());
-                            dto.setCreateTime(model.getCreateTime());
-                            return dto;
-                        })
-                        .collect(Collectors.toList());
+                .map(model -> {
+                    ChatReqModelDto dto = new ChatReqModelDto();
+                    dto.setId(Long.valueOf(model.getId()));
+                    dto.setUrl(model.getUrl());
+                    dto.setCreateTime(model.getCreateTime());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -467,9 +467,9 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Transactional
     public void updateFileReqId(Long chatId, String uid, List<String> fileIds, Long reqId, boolean edit, Long leftId) {
         List<ChatFileReq> chatFileReqs = chatFileReqMapper.selectList(Wrappers.lambdaQuery(ChatFileReq.class)
-                        .eq(ChatFileReq::getChatId, chatId)
-                        .eq(ChatFileReq::getReqId, leftId)
-                        .eq(ChatFileReq::getDeleted, 0));
+                .eq(ChatFileReq::getChatId, chatId)
+                .eq(ChatFileReq::getReqId, leftId)
+                .eq(ChatFileReq::getDeleted, 0));
         if (CollectionUtil.isNotEmpty(chatFileReqs)) {
             chatFileReqs.forEach(e -> {
                 ChatFileReq chatFileReq = ChatFileReq.builder().reqId(reqId).fileId(e.getFileId()).chatId(chatId).uid(uid).businessType(e.getBusinessType()).build();
@@ -480,11 +480,11 @@ public class ChatDataServiceImpl implements ChatDataService {
             if (CollectionUtil.isNotEmpty(fileIds)) {
                 ChatFileReq chatFileReq = ChatFileReq.builder().reqId(reqId).build();
                 chatFileReqMapper.update(chatFileReq, Wrappers.lambdaQuery(ChatFileReq.class)
-                                .eq(ChatFileReq::getChatId, chatId)
-                                .eq(ChatFileReq::getUid, uid)
-                                .eq(ChatFileReq::getDeleted, 0)
-                                .in(ChatFileReq::getFileId, fileIds)
-                                .isNull(ChatFileReq::getReqId));
+                        .eq(ChatFileReq::getChatId, chatId)
+                        .eq(ChatFileReq::getUid, uid)
+                        .eq(ChatFileReq::getDeleted, 0)
+                        .in(ChatFileReq::getFileId, fileIds)
+                        .isNull(ChatFileReq::getReqId));
             }
         }
     }
@@ -502,9 +502,9 @@ public class ChatDataServiceImpl implements ChatDataService {
         Date endOfDay = Date.from(today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         Long count = chatFileUserMapper.selectCount(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getUid, uid)
-                        .eq(ChatFileUser::getDisplay, 0)
-                        .between(ChatFileUser::getCreateTime, startOfDay, endOfDay));
+                .eq(ChatFileUser::getUid, uid)
+                .eq(ChatFileUser::getDisplay, 0)
+                .between(ChatFileUser::getCreateTime, startOfDay, endOfDay));
         if (count == null) {
             count = 0L;
         }
@@ -515,8 +515,8 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Transactional
     public ChatFileUser setFileId(Long chatFileUserId, String fileId) {
         ChatFileUser chatFileUser = chatFileUserMapper.selectOne(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getId, chatFileUserId)
-                        .eq(ChatFileUser::getDeleted, 0));
+                .eq(ChatFileUser::getId, chatFileUserId)
+                .eq(ChatFileUser::getDeleted, 0));
         if (ObjectUtil.isEmpty(chatFileUser)) {
             return null;
         }
@@ -535,7 +535,7 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Override
     public void setProcessed(Long chatFileUserId) {
         ChatFileUser chatFileUser = chatFileUserMapper.selectOne(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getId, chatFileUserId));
+                .eq(ChatFileUser::getId, chatFileUserId));
         chatFileUser.setFileStatus(LongContextStatusEnum.PROCESSED.getValue());
         chatFileUser.setUpdateTime(LocalDateTime.now());
         chatFileUserMapper.updateById(chatFileUser);
@@ -544,9 +544,9 @@ public class ChatDataServiceImpl implements ChatDataService {
     @Override
     public List<BotChatFileParam> findAllBotChatFileParamByChatIdAndNameAndIsDelete(Long chatId, String name, Integer isDelete) {
         LambdaQueryWrapper<BotChatFileParam> wrapper = Wrappers.lambdaQuery(BotChatFileParam.class)
-                        .eq(BotChatFileParam::getChatId, chatId)
-                        .eq(BotChatFileParam::getName, name)
-                        .eq(BotChatFileParam::getIsDelete, isDelete);
+                .eq(BotChatFileParam::getChatId, chatId)
+                .eq(BotChatFileParam::getName, name)
+                .eq(BotChatFileParam::getIsDelete, isDelete);
         return botChatFileParamMapper.selectList(wrapper);
     }
 
@@ -566,23 +566,23 @@ public class ChatDataServiceImpl implements ChatDataService {
     public ChatFileUser findChatFileUserByIdAndUid(Long linkId, String uid) {
         LocalDateTime lastTime = getLastTime();
         return chatFileUserMapper.selectOne(Wrappers.lambdaQuery(ChatFileUser.class)
-                        .eq(ChatFileUser::getId, linkId)
-                        .eq(ChatFileUser::getUid, uid)
-                        .ge(ChatFileUser::getCreateTime, lastTime));
+                .eq(ChatFileUser::getId, linkId)
+                .eq(ChatFileUser::getUid, uid)
+                .ge(ChatFileUser::getCreateTime, lastTime));
     }
 
     @Override
     public void deleteChatFileReq(String fileId, Long chatId, String uid) {
         ChatFileReq chatFileReq = ChatFileReq.builder()
-                        .deleted(1)
-                        .updateTime(LocalDateTime.now())
-                        .build();
+                .deleted(1)
+                .updateTime(LocalDateTime.now())
+                .build();
         chatFileReqMapper.update(chatFileReq, Wrappers.lambdaQuery(ChatFileReq.class)
-                        .eq(ChatFileReq::getChatId, chatId)
-                        .eq(ChatFileReq::getFileId, fileId)
-                        .eq(ChatFileReq::getUid, uid)
-                        .eq(ChatFileReq::getDeleted, 0)
-                        .isNull(ChatFileReq::getReqId));
+                .eq(ChatFileReq::getChatId, chatId)
+                .eq(ChatFileReq::getFileId, fileId)
+                .eq(ChatFileReq::getUid, uid)
+                .eq(ChatFileReq::getDeleted, 0)
+                .isNull(ChatFileReq::getReqId));
     }
 
     private LocalDateTime getLastTime() {

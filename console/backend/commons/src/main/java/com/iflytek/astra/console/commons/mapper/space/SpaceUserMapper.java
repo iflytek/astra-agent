@@ -15,7 +15,7 @@ public interface SpaceUserMapper extends BaseMapper<SpaceUser> {
     SpaceUser getByUidAndSpaceId(@Param("uid") String uid, @Param("spaceId") Long spaceId);
 
     Page<SpaceUserVO> selectVOPageByParam(Page<SpaceUser> page,
-                    @Param("spaceId") Long spaceId,
-                    @Param("nickname") String nickname,
-                    @Param("role") Integer role);
+            @Param("spaceId") Long spaceId,
+            @Param("nickname") String nickname,
+            @Param("role") Integer role);
 }

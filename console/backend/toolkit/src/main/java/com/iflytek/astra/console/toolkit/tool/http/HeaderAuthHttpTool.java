@@ -46,10 +46,10 @@ public class HeaderAuthHttpTool {
         Map<String, String> headMap = assemble(param);
         RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         Request.Builder build = new Request.Builder().url(url).//
-                        addHeader("Content-Type", "application/json").//
-                        addHeader("Date", headMap.get("date")).//
-                        addHeader("Digest", headMap.get("digest")).//
-                        addHeader("Host", headMap.get("host"));
+                addHeader("Content-Type", "application/json").//
+                addHeader("Date", headMap.get("date")).//
+                addHeader("Digest", headMap.get("digest")).//
+                addHeader("Host", headMap.get("host"));
         build.addHeader("Authorization", headMap.get("authorization"));
         Request request = build.put(requestBody).build();
         OkHttpClient client = new OkHttpClient.Builder().build();
@@ -83,10 +83,10 @@ public class HeaderAuthHttpTool {
         Map<String, String> headMap = assemble(param);
         RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         Request.Builder build = new Request.Builder().url(url).//
-                        addHeader("Content-Type", "application/json").//
-                        addHeader("Date", headMap.get("date")).//
-                        addHeader("Digest", headMap.get("digest")).//
-                        addHeader("Host", headMap.get("host"));
+                addHeader("Content-Type", "application/json").//
+                addHeader("Date", headMap.get("date")).//
+                addHeader("Digest", headMap.get("digest")).//
+                addHeader("Host", headMap.get("host"));
         build.addHeader("Authorization", headMap.get("authorization"));
         Request request = build.delete(requestBody).build();
         OkHttpClient client = new OkHttpClient.Builder().build();
@@ -117,9 +117,9 @@ public class HeaderAuthHttpTool {
         param.setMethod("GET");
         Map<String, String> headMap = assemble(param);
         Request.Builder build = new Request.Builder().url(url).//
-                        addHeader("Content-Type", "text/html").//
-                        addHeader("Date", headMap.get("date")).//
-                        addHeader("Host", headMap.get("host"));
+                addHeader("Content-Type", "text/html").//
+                addHeader("Date", headMap.get("date")).//
+                addHeader("Host", headMap.get("host"));
         build.addHeader("Authorization", headMap.get("authorization"));
         Request request = build.get().build();
         OkHttpClient client = new OkHttpClient.Builder().build();
@@ -156,10 +156,10 @@ public class HeaderAuthHttpTool {
         Map<String, String> headMap = assemble(param);
         RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         Request.Builder build = new Request.Builder().url(url).//
-                        addHeader("Content-Type", "application/json").//
-                        addHeader("Date", headMap.get("date")).//
-                        addHeader("Digest", headMap.get("digest")).//
-                        addHeader("Host", headMap.get("host"));
+                addHeader("Content-Type", "application/json").//
+                addHeader("Date", headMap.get("date")).//
+                addHeader("Digest", headMap.get("digest")).//
+                addHeader("Host", headMap.get("host"));
         build.addHeader("Authorization", headMap.get("authorization"));
         Request request = build.post(requestBody).build();
         OkHttpClient client = new OkHttpClient.Builder().build();
@@ -194,10 +194,10 @@ public class HeaderAuthHttpTool {
         Map<String, String> headMap = assemble(param);
         RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         Request.Builder build = new Request.Builder().url(url).//
-                        addHeader("Content-Type", "application/json").//
-                        addHeader("Date", headMap.get("date")).//
-                        addHeader("Digest", headMap.get("digest")).//
-                        addHeader("Host", headMap.get("host"));
+                addHeader("Content-Type", "application/json").//
+                addHeader("Date", headMap.get("date")).//
+                addHeader("Digest", headMap.get("digest")).//
+                addHeader("Host", headMap.get("host"));
         build.addHeader("Authorization", headMap.get("authorization"));
         Request request = build.patch(requestBody).build();
         OkHttpClient client = new OkHttpClient.Builder().build();
@@ -235,7 +235,7 @@ public class HeaderAuthHttpTool {
         headMap.put("host", url.getHost());
         StringBuilder builder = new StringBuilder("host: ").append(url.getHost()).append("\n");
         builder.append("date: ").append(date).append("\n").append(param.getMethod()).//
-                        append(" ").append(url.getPath()).append(" HTTP/1.1");//
+                append(" ").append(url.getPath()).append(" HTTP/1.1");//
         if (headMap.containsKey("digest")) {
             builder.append("\n").append("digest: ").append(headMap.get("digest"));
         }
@@ -248,13 +248,13 @@ public class HeaderAuthHttpTool {
         String sign = Base64.getEncoder().encodeToString(hexDigits);
         if (headMap.containsKey("digest")) {
             String authorization = String.format("hmac username=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"", //
-                            param.getApiKey(), "hmac-sha256", "host date request-line digest", sign);
+                    param.getApiKey(), "hmac-sha256", "host date request-line digest", sign);
             System.out.println(authorization);
             headMap.put("authorization", authorization);
             return headMap;
         }
         String authorization = String.format("hmac username=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"", //
-                        param.getApiKey(), "hmac-sha256", "host date request-line", sign);
+                param.getApiKey(), "hmac-sha256", "host date request-line", sign);
         headMap.put("authorization", authorization);
         return headMap;
 

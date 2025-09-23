@@ -10,10 +10,10 @@ import java.util.List;
 public interface FlowToolRelMapper extends BaseMapper<FlowToolRel> {
 
     @Select("SELECT COUNT(DISTINCT ftr.flow_id) FROM \n" +
-                    "flow_tool_rel ftr\n" +
-                    "left join workflow w  \n" +
-                    "on ftr.flow_id  = w.flow_id \n" +
-                    "WHERE ftr.tool_id = #{toolId} and w.deleted = 0")
+            "flow_tool_rel ftr\n" +
+            "left join workflow w  \n" +
+            "on ftr.flow_id  = w.flow_id \n" +
+            "WHERE ftr.tool_id = #{toolId} and w.deleted = 0")
     long selectCountByToolId(@Param("toolId") String toolId);
 
     void insertBatch(List<FlowToolRel> tools);

@@ -82,7 +82,7 @@ public class EnterpriseServiceImpl extends ServiceImpl<EnterpriseMapper, Enterpr
     @Transactional
     public void orderChangeNotify(String uid, LocalDateTime endTime) {
         Enterprise enterprise = this.baseMapper.selectOne(Wrappers.<Enterprise>lambdaQuery()
-                        .eq(Enterprise::getUid, uid));
+                .eq(Enterprise::getUid, uid));
         if (enterprise != null) {
             enterprise.setExpireTime(endTime);
             this.updateById(enterprise);
@@ -130,18 +130,18 @@ public class EnterpriseServiceImpl extends ServiceImpl<EnterpriseMapper, Enterpr
     public boolean checkExistByName(String name, Long id) {
         if (id != null) {
             return this.count(Wrappers.<Enterprise>lambdaQuery()
-                            .eq(Enterprise::getName, name)
-                            .ne(Enterprise::getId, id)) > 0;
+                    .eq(Enterprise::getName, name)
+                    .ne(Enterprise::getId, id)) > 0;
         } else {
             return this.count(Wrappers.<Enterprise>lambdaQuery()
-                            .eq(Enterprise::getName, name)) > 0;
+                    .eq(Enterprise::getName, name)) > 0;
         }
     }
 
     @Override
     public boolean checkExistByUid(String uid) {
         return this.count(Wrappers.<Enterprise>lambdaQuery()
-                        .eq(Enterprise::getUid, uid)) > 0;
+                .eq(Enterprise::getUid, uid)) > 0;
     }
 
     @Override
@@ -152,7 +152,7 @@ public class EnterpriseServiceImpl extends ServiceImpl<EnterpriseMapper, Enterpr
     @Override
     public Enterprise getEnterpriseByUid(String uid) {
         return this.baseMapper.selectOne(Wrappers.<Enterprise>lambdaQuery()
-                        .eq(Enterprise::getUid, uid));
+                .eq(Enterprise::getUid, uid));
     }
 
     @Override
@@ -163,8 +163,8 @@ public class EnterpriseServiceImpl extends ServiceImpl<EnterpriseMapper, Enterpr
     @Override
     public int updateExpireTime(Enterprise enterprise) {
         return this.baseMapper.update(Wrappers.<Enterprise>lambdaUpdate()
-                        .set(Enterprise::getExpireTime, enterprise.getExpireTime())
-                        .eq(Enterprise::getId, enterprise.getId()));
+                .set(Enterprise::getExpireTime, enterprise.getExpireTime())
+                .eq(Enterprise::getId, enterprise.getId()));
     }
 
     @Override

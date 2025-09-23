@@ -17,11 +17,11 @@ public class MyThreadTool {
      * LinkedBlockingQueue for queuing tasks. Each thread has a custom uncaught exception handler.
      */
     private static final ThreadPoolExecutor pool = new ThreadPoolExecutor(10, 20, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-                    r -> {
-                        Thread thread = new Thread(r);
-                        thread.setUncaughtExceptionHandler(new CustomUncaughtExceptionHandler());
-                        return thread;
-                    });
+            r -> {
+                Thread thread = new Thread(r);
+                thread.setUncaughtExceptionHandler(new CustomUncaughtExceptionHandler());
+                return thread;
+            });
 
     /**
      * Executes a runnable task using the thread pool.

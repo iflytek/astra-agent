@@ -23,8 +23,8 @@ public class BotDatasetServiceImpl implements BotDatasetService {
     @Override
     public void deleteByBotId(Integer botId) {
         botDatasetMapper.update(null, Wrappers.lambdaUpdate(BotDataset.class)
-                        .eq(BotDataset::getBotId, botId)
-                        .set(BotDataset::getIsAct, 0)
-                        .set(BotDataset::getUpdateTime, LocalDateTime.now()));
+                .eq(BotDataset::getBotId, botId)
+                .set(BotDataset::getIsAct, 0)
+                .set(BotDataset::getUpdateTime, LocalDateTime.now()));
     }
 }

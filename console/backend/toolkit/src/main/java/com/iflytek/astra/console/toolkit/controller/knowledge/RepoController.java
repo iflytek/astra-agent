@@ -49,7 +49,7 @@ public class RepoController {
      */
     @PostMapping("/create-repo")
     @SpacePreAuth(key = "RepoController_createRepo_POST",
-                    module = "Knowledge Base", point = "Create Repository", description = "Create Repository")
+            module = "Knowledge Base", point = "Create Repository", description = "Create Repository")
     public ApiResult<Repo> createRepo(@RequestBody RepoVO repoVO) {
         return ApiResult.success(repoService.createRepo(repoVO));
     }
@@ -68,7 +68,7 @@ public class RepoController {
      */
     @PostMapping("/update-repo")
     @SpacePreAuth(key = "RepoController_updateRepo_POST",
-                    module = "Knowledge Base", point = "Update Repository", description = "Update Repository")
+            module = "Knowledge Base", point = "Update Repository", description = "Update Repository")
     public ApiResult<Repo> updateRepo(@RequestBody RepoVO repoVO) {
         return ApiResult.success(repoService.updateRepo(repoVO));
     }
@@ -107,11 +107,11 @@ public class RepoController {
      */
     @GetMapping("/list-repos")
     @SpacePreAuth(key = "RepoController_listRepos_GET",
-                    module = "Knowledge Base", point = "Repository List", description = "Repository List")
+            module = "Knowledge Base", point = "Repository List", description = "Repository List")
     public ApiResult<PageData<RepoDto>> listRepos(@RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-                    @RequestParam(value = "content", required = false) String content,
-                    HttpServletRequest request) {
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "content", required = false) String content,
+            HttpServletRequest request) {
         return ApiResult.success(repoService.listRepos(pageNo, pageSize, content, request));
     }
 
@@ -134,14 +134,14 @@ public class RepoController {
      */
     @GetMapping("/list")
     @SpacePreAuth(key = "RepoController_list_GET",
-                    module = "Knowledge Base", point = "Simplified Repository List", description = "Simplified Repository List")
+            module = "Knowledge Base", point = "Simplified Repository List", description = "Simplified Repository List")
     public Object list(
-                    @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-                    @RequestParam(value = "content", required = false) String content,
-                    @RequestParam(required = false) String orderBy,
-                    @RequestParam(value = "tag", required = false) String tag,
-                    HttpServletRequest request) {
+            @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "content", required = false) String content,
+            @RequestParam(required = false) String orderBy,
+            @RequestParam(value = "tag", required = false) String tag,
+            HttpServletRequest request) {
         return ApiResult.success(repoService.list(pageNo, pageSize, content, orderBy, request, tag));
     }
 
@@ -162,7 +162,7 @@ public class RepoController {
      */
     @GetMapping("/detail")
     @SpacePreAuth(key = "RepoController_detail_GET",
-                    module = "Knowledge Base", point = "Repository Detail", description = "Repository Detail")
+            module = "Knowledge Base", point = "Repository Detail", description = "Repository Detail")
     public ApiResult<RepoDto> getDetail(@RequestParam("id") Long id, @RequestParam(value = "tag", defaultValue = "") String tag, HttpServletRequest request) {
         return ApiResult.success(repoService.getDetail(id, tag, request));
     }
@@ -183,9 +183,9 @@ public class RepoController {
      */
     @GetMapping("/hit-test")
     public Object hitTest(
-                    @RequestParam("id") Long id,
-                    @RequestParam("query") String query,
-                    @RequestParam(value = "topN", defaultValue = "3") Integer topN) {
+            @RequestParam("id") Long id,
+            @RequestParam("query") String query,
+            @RequestParam(value = "topN", defaultValue = "3") Integer topN) {
         return repoService.hitTest(id, query, topN, true);
     }
 
@@ -205,9 +205,9 @@ public class RepoController {
      */
     @GetMapping("/list-hit-test-history-by-page")
     public ApiResult<PageData<HitTestHistory>> listHitTestHistoryByPage(
-                    @RequestParam(value = "repoId") Long repoId,
-                    @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+            @RequestParam(value = "repoId") Long repoId,
+            @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return ApiResult.success(repoService.listHitTestHistoryByPage(repoId, pageNo, pageSize));
     }
 
@@ -227,7 +227,7 @@ public class RepoController {
      */
     @PutMapping("/enable-repo")
     @SpacePreAuth(key = "RepoController_enableRepo_PUT",
-                    module = "Knowledge Base", point = "Enable Repository", description = "Enable Repository")
+            module = "Knowledge Base", point = "Enable Repository", description = "Enable Repository")
     public ApiResult<Void> enableRepo(@RequestParam("id") Long id, @RequestParam("enabled") Integer enabled) {
         repoService.enableRepo(id, enabled);
         return ApiResult.success();
@@ -250,7 +250,7 @@ public class RepoController {
      */
     @DeleteMapping("/delete-repo")
     @SpacePreAuth(key = "RepoController_deleteRepo_DELETE",
-                    module = "Knowledge Base", point = "Delete Repository", description = "Delete Repository")
+            module = "Knowledge Base", point = "Delete Repository", description = "Delete Repository")
     public Object deleteRepo(@RequestParam("id") Long id, String tag, HttpServletRequest request) {
         return repoService.deleteRepo(id, tag, request);
     }

@@ -152,10 +152,10 @@ public class BotController {
         }
 
         String inputExamples = update.getInputExample()
-                        .stream()
-                        // 限制最多取前 3 个元素
-                        .limit(3)
-                        .collect(Collectors.joining(","));
+                .stream()
+                // 限制最多取前 3 个元素
+                .limit(3)
+                .collect(Collectors.joining(","));
         // 更新描述,开场白,输入示例
         boolean updateResult = chatBotDataService.updateBotBasicInfo(botId, update.getBotDesc(), update.getPrologue(), inputExamples);
         if (!updateResult) {

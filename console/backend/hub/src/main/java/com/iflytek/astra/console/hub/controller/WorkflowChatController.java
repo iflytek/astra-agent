@@ -39,7 +39,7 @@ public class WorkflowChatController {
     @Operation(summary = "Start workflow chat stream", description = "Start streaming chat based on specified workflow ID")
     public SseEmitter workflowChatStream(@Valid @RequestBody WorkflowChatRequest request) {
         log.info("Starting workflow chat stream, flowId: {}, userId: {}, chatId: {}",
-                        request.getFlowId(), request.getUserId(), request.getChatId());
+                request.getFlowId(), request.getUserId(), request.getChatId());
 
         return workflowChatService.workflowChatStream(request);
     }
@@ -54,7 +54,7 @@ public class WorkflowChatController {
     @Operation(summary = "Resume workflow chat", description = "Resume interrupted workflow chat")
     public SseEmitter resumeWorkflowChat(@Valid @RequestBody WorkflowResumeReq request) {
         log.info("Resuming workflow chat, eventId: {}, operation: {}, userId: {}",
-                        request.getEventId(), request.getOperation(), request.getUserId());
+                request.getEventId(), request.getOperation(), request.getUserId());
 
         return workflowChatService.resumeWorkflow(request);
     }
@@ -67,8 +67,8 @@ public class WorkflowChatController {
     @PostMapping("/chat/stop/{streamId}")
     @Operation(summary = "Stop workflow chat stream", description = "Actively stop specified workflow chat stream")
     public void stopWorkflowStream(
-                    @Parameter(description = "Stream ID", required = true)
-                    @PathVariable String streamId) {
+            @Parameter(description = "Stream ID", required = true)
+            @PathVariable String streamId) {
         log.info("Stopping workflow chat stream, streamId: {}", streamId);
 
         SseEmitterUtil.stopStream(streamId);
@@ -84,10 +84,10 @@ public class WorkflowChatController {
     @GetMapping("/chat/status")
     @Operation(summary = "Get workflow chat status", description = "Query current status of specified workflow chat")
     public String getWorkflowChatStatus(
-                    @Parameter(description = "Chat ID", required = true)
-                    @RequestParam String chatId,
-                    @Parameter(description = "User ID", required = true)
-                    @RequestParam String userId) {
+            @Parameter(description = "Chat ID", required = true)
+            @RequestParam String chatId,
+            @Parameter(description = "User ID", required = true)
+            @RequestParam String userId) {
         log.info("Querying workflow chat status, chatId: {}, userId: {}", chatId, userId);
 
         // Status query logic can be implemented here as needed

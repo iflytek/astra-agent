@@ -80,10 +80,10 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String url = apiUrl.getWorkflow().concat(API_PUBLISH_PATH);
         JSONObject jsonObject = new JSONObject()
-                        .fluentPut("flow_id", flowId)
-                        .fluentPut("release_status", status)
-                        .fluentPut("data", null)
-                        .fluentPut("plat", plat);
+                .fluentPut("flow_id", flowId)
+                .fluentPut("release_status", status)
+                .fluentPut("data", null)
+                .fluentPut("plat", plat);
         if (StringUtils.isNotBlank(version)) {
             jsonObject.fluentPut("version", version);
         }
@@ -116,7 +116,7 @@ public class CoreSystemService {
 
         String authUrl = apiUrl.getWorkflow().concat(API_AUTH_PATH);
         JSONObject authJson = new JSONObject()
-                        .fluentPut("flow_id", flowId);
+                .fluentPut("flow_id", flowId);
 
 
         if (StringUtils.equalsAny(env, CommonConst.ENV_DEV)) {
@@ -214,7 +214,7 @@ public class CoreSystemService {
      */
     private byte[] convertMapToBytes(Map<String, Object> map) throws IOException {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
 
             Map<String, Object> serializableMap = new HashMap<>();
 
@@ -278,8 +278,8 @@ public class CoreSystemService {
             }
             // Build parameters required for signature calculation
             StringBuilder builder = new StringBuilder().append("host: ").append(host).append("\n").//
-                            append("date: ").append(date).append("\n").//
-                            append(method).append(" ").append(path).append(" HTTP/1.1").append("\n").append("digest: ").append(digest);
+                    append("date: ").append(date).append("\n").//
+                    append(method).append(" ").append(path).append(" HTTP/1.1").append("\n").append("digest: ").append(digest);
             Charset charset = Charset.forName("UTF-8");
 
             // Use hmac-sha256 to calculate signature
@@ -313,9 +313,9 @@ public class CoreSystemService {
     public void addComparisons(FlowProtocol protocol, String flowId, String version) {
         String url = apiUrl.getWorkflow().concat(ADD_COMPARISONS_PATH);
         JSONObject jsonObject = new JSONObject()
-                        .fluentPut("flow_id", flowId)
-                        .fluentPut("version", version)
-                        .fluentPut("data", protocol);
+                .fluentPut("flow_id", flowId)
+                .fluentPut("version", version)
+                .fluentPut("data", protocol);
 
         String body = jsonObject.toString();
 
@@ -340,8 +340,8 @@ public class CoreSystemService {
         String url = apiUrl.getWorkflow().concat(DELETE_COMPARISONS_PATH);
 
         JSONObject jsonObject = new JSONObject()
-                        .fluentPut("flow_id", flowId)
-                        .fluentPut("version", version);
+                .fluentPut("flow_id", flowId)
+                .fluentPut("version", version);
 
         String body = jsonObject.toString();
 
@@ -369,9 +369,9 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String url = apiUrl.getSparkDB().concat(CREATE_DATABASE_PATH);
         JSONObject params = new JSONObject()
-                        .fluentPut("database_name", databaseName)
-                        .fluentPut("uid", uid)
-                        .fluentPut("description", description);
+                .fluentPut("database_name", databaseName)
+                .fluentPut("uid", uid)
+                .fluentPut("description", description);
         if (spaceId != null) {
             params.fluentPut("space_id", spaceId.toString());
         }
@@ -401,9 +401,9 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String url = apiUrl.getSparkDB().concat(EXEC_DDL_PATH);
         JSONObject params = new JSONObject()
-                        .fluentPut("database_id", databaseId)
-                        .fluentPut("uid", uid)
-                        .fluentPut("ddl", ddl);
+                .fluentPut("database_id", databaseId)
+                .fluentPut("uid", uid)
+                .fluentPut("ddl", ddl);
         if (spaceId != null) {
             params.fluentPut("space_id", spaceId.toString());
         }
@@ -436,11 +436,11 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String url = apiUrl.getSparkDB().concat(EXEC_DML_PATH);
         JSONObject params = new JSONObject()
-                        .fluentPut("app_id", commonConfig.getAppId())
-                        .fluentPut("database_id", databaseId)
-                        .fluentPut("uid", uid)
-                        .fluentPut("dml", dml)
-                        .fluentPut("env", DBTableEnvEnum.getByCode(execEnv));
+                .fluentPut("app_id", commonConfig.getAppId())
+                .fluentPut("database_id", databaseId)
+                .fluentPut("uid", uid)
+                .fluentPut("dml", dml)
+                .fluentPut("env", DBTableEnvEnum.getByCode(execEnv));
         if (spaceId != null) {
             params.fluentPut("space_id", spaceId.toString());
         }
@@ -494,10 +494,10 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String cloneUrl = apiUrl.getSparkDB().concat(CLONE_DATABASE_PATH);
         String body = new JSONObject()
-                        .fluentPut("database_id", dbId)
-                        .fluentPut("uid", uid)
-                        .fluentPut("new_database_name", dbName)
-                        .toString();
+                .fluentPut("database_id", dbId)
+                .fluentPut("uid", uid)
+                .fluentPut("new_database_name", dbName)
+                .toString();
         try {
             requestHeader.put(X_CONSUMER_USERNAME, apiUrl.getTenantId());
             log.info("clone database, url = {},params={}", cloneUrl, body);
@@ -526,9 +526,9 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String dropUrl = apiUrl.getSparkDB().concat(DROP_DATABASE_PATH);
         String body = new JSONObject()
-                        .fluentPut("database_id", dbId)
-                        .fluentPut("uid", uid)
-                        .toString();
+                .fluentPut("database_id", dbId)
+                .fluentPut("uid", uid)
+                .toString();
         try {
             requestHeader.put(X_CONSUMER_USERNAME, apiUrl.getTenantId());
             log.info("drop database, url = {},params={}", dropUrl, body);
@@ -557,10 +557,10 @@ public class CoreSystemService {
         Map<String, String> requestHeader = new HashMap<>();
         String modifyUrl = apiUrl.getSparkDB().concat(MODIFY_DATABASE_PATH);
         String body = new JSONObject()
-                        .fluentPut("database_id", dbId)
-                        .fluentPut("uid", uid)
-                        .fluentPut("description", description)
-                        .toString();
+                .fluentPut("database_id", dbId)
+                .fluentPut("uid", uid)
+                .fluentPut("description", description)
+                .toString();
         try {
             requestHeader.put(X_CONSUMER_USERNAME, apiUrl.getTenantId());
             log.info("modify database, url = {},params={}", modifyUrl, body);

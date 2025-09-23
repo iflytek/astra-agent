@@ -52,7 +52,7 @@ public class ChatListController {
     @PostMapping("/v1/create-chat-list")
     @Operation(summary = "Create Chat List")
     public ApiResult<ChatListCreateResponse> createChatList(
-                    @RequestBody ChatListCreateRequest payload) {
+            @RequestBody ChatListCreateRequest payload) {
         String uid = getCurrentUserId();
         setDefaultChatListName(payload);
         Integer botId = validateBotId(payload.getBotId());
@@ -63,7 +63,7 @@ public class ChatListController {
     @PostMapping("/v1/del-chat-list")
     @Operation(summary = "Delete Chat List")
     public ApiResult<Boolean> deleteChatList(
-                    @RequestBody ChatListDelRequest payload) {
+            @RequestBody ChatListDelRequest payload) {
         String uid = RequestContextUtil.getUID();
         if (payload.getChatListId() == null) {
             throw new BusinessException(ResponseEnum.PARAMS_ERROR);
@@ -150,7 +150,7 @@ public class ChatListController {
      */
     private void validateMarketBotPermissions(ChatBotMarket chatBotMarket, String uid) {
         if (ShelfStatusEnum.isOffShelf(chatBotMarket.getBotStatus()) &&
-                        !chatBotMarket.getUid().equals(uid)) {
+                !chatBotMarket.getUid().equals(uid)) {
             throw new BusinessException(ResponseEnum.USER_NO_APPROVEL);
         }
     }
@@ -163,7 +163,7 @@ public class ChatListController {
      */
     private void validatePrivateBotPermissions(Integer botId, String uid) {
         ChatBotBase chatBotBase = chatBotDataService.findById(botId)
-                        .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
+                .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
 
         if (!chatBotBase.getUid().equals(uid)) {
             validateSpacePermissions(chatBotBase);

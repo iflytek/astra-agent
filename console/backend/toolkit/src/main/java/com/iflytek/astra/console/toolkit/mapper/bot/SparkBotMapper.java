@@ -26,15 +26,15 @@ public interface SparkBotMapper extends BaseMapper<SparkBot> {
     Page<SparkBotVO> listSparkBotByCondition(@Param("content") String content, @Param("uid") String uid);
 
     List<SparkBotVO> botSquareByCondition(
-                    @Param("content") String content,
-                    @Param("uid") String uid,
-                    @Param("favorites") Set<Long> favorites,
-                    @Param("start") Integer start,
-                    @Param("limit") Integer limit,
-                    @Param("tagFlag") Integer tagFlag,
-                    @Param("tags") Long tags,
-                    @Param("adminUid") Long adminUid,
-                    @Param("notContainIds") List<Long> notContainIds
+            @Param("content") String content,
+            @Param("uid") String uid,
+            @Param("favorites") Set<Long> favorites,
+            @Param("start") Integer start,
+            @Param("limit") Integer limit,
+            @Param("tagFlag") Integer tagFlag,
+            @Param("tags") Long tags,
+            @Param("adminUid") Long adminUid,
+            @Param("notContainIds") List<Long> notContainIds
 
     );
 

@@ -41,9 +41,9 @@ public enum WordsTypeEnum {
      */
     public static WordsTypeEnum getByCode(int code) {
         return Arrays.stream(values())
-                        .filter(e -> e.code == code)
-                        .findFirst()
-                        .orElse(null);
+                .filter(e -> e.code == code)
+                .findFirst()
+                .orElse(null);
     }
 
 }

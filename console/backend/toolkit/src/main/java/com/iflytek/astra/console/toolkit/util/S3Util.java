@@ -114,14 +114,14 @@ public class S3Util {
             }
             minioClient.putObject(builder.build());
         } catch (ErrorResponseException
-                        | InsufficientDataException
-                        | InternalException
-                        | InvalidKeyException
-                        | InvalidResponseException
-                        | IOException
-                        | NoSuchAlgorithmException
-                        | ServerException
-                        | XmlParserException e) {
+                | InsufficientDataException
+                | InternalException
+                | InvalidKeyException
+                | InvalidResponseException
+                | IOException
+                | NoSuchAlgorithmException
+                | ServerException
+                | XmlParserException e) {
             log.error("S3 putObject error: {}", e.getMessage(), e);
             throw new BusinessException(ResponseEnum.S3_UPLOAD_ERROR);
         }
@@ -148,14 +148,14 @@ public class S3Util {
             }
             minioClient.putObject(builder.build());
         } catch (ErrorResponseException
-                        | InsufficientDataException
-                        | InternalException
-                        | InvalidKeyException
-                        | InvalidResponseException
-                        | IOException
-                        | NoSuchAlgorithmException
-                        | ServerException
-                        | XmlParserException e) {
+                | InsufficientDataException
+                | InternalException
+                | InvalidKeyException
+                | InvalidResponseException
+                | IOException
+                | NoSuchAlgorithmException
+                | ServerException
+                | XmlParserException e) {
             log.error("S3 putObject(stream, unknown size) error: {}", e.getMessage(), e);
             throw new BusinessException(ResponseEnum.S3_UPLOAD_ERROR);
         }
@@ -204,9 +204,9 @@ public class S3Util {
     public InputStream getObject(String key) {
         try {
             byte[] bytes =
-                            minioClient
-                                            .getObject(io.minio.GetObjectArgs.builder().bucket(bucketName).object(key).build())
-                                            .readAllBytes();
+                    minioClient
+                            .getObject(io.minio.GetObjectArgs.builder().bucket(bucketName).object(key).build())
+                            .readAllBytes();
             return new ByteArrayInputStream(bytes);
         } catch (Exception e) {
             log.error("S3 getObject error: {}", e.getMessage(), e);
@@ -242,23 +242,23 @@ public class S3Util {
         }
         try {
             Iterable<Result<io.minio.messages.DeleteError>> results =
-                            minioClient.removeObjects(
-                                            RemoveObjectsArgs.builder()
-                                                            .bucket(bucketName)
-                                                            .objects(
-                                                                            keysToDelete.stream()
-                                                                                            .map(io.minio.messages.DeleteObject::new)
-                                                                                            .collect(Collectors.toList()))
-                                                            .build());
+                    minioClient.removeObjects(
+                            RemoveObjectsArgs.builder()
+                                    .bucket(bucketName)
+                                    .objects(
+                                            keysToDelete.stream()
+                                                    .map(io.minio.messages.DeleteObject::new)
+                                                    .collect(Collectors.toList()))
+                                    .build());
             // Actively consume error results to aid troubleshooting in logs
             for (Result<io.minio.messages.DeleteError> r : results) {
                 try {
                     io.minio.messages.DeleteError err = r.get();
                     log.warn(
-                                    "S3 batch delete error: key={}, code={}, message={}",
-                                    err.objectName(),
-                                    err.code(),
-                                    err.message());
+                            "S3 batch delete error: key={}, code={}, message={}",
+                            err.objectName(),
+                            err.code(),
+                            err.message());
                 } catch (Exception ex) {
                     log.error("S3 batch delete result parse error", ex);
                 }
@@ -330,21 +330,21 @@ public class S3Util {
         try {
             int exp = (expirySeconds != null && expirySeconds > 0) ? expirySeconds : presignExpirySeconds;
             return minioClient.getPresignedObjectUrl(
-                            GetPresignedObjectUrlArgs.builder()
-                                            .method(Method.PUT)
-                                            .bucket(bucketName)
-                                            .object(objectKey)
-                                            .expiry(exp)
-                                            .build());
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.PUT)
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .expiry(exp)
+                            .build());
         } catch (ErrorResponseException
-                        | InsufficientDataException
-                        | InternalException
-                        | InvalidKeyException
-                        | InvalidResponseException
-                        | IOException
-                        | NoSuchAlgorithmException
-                        | XmlParserException
-                        | ServerException e) {
+                | InsufficientDataException
+                | InternalException
+                | InvalidKeyException
+                | InvalidResponseException
+                | IOException
+                | NoSuchAlgorithmException
+                | XmlParserException
+                | ServerException e) {
             log.debug("S3 presign error:", e);
             throw new BusinessException(ResponseEnum.S3_PRESIGN_ERROR);
         }

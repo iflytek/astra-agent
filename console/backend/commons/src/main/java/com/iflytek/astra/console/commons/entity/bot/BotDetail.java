@@ -74,9 +74,9 @@ public class BotDetail {
         }
 
         return Arrays.stream(inputExample.split(separator))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toList());
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
 

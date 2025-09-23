@@ -142,7 +142,7 @@ public class WorkflowBotChatServiceImpl implements WorkflowBotChatService {
             if (WorkflowEventData.WorkflowValueType.OPTION.getTag().equals(valueType)) {
                 try {
                     WorkflowEventData.EventValue.ValueOption askValue = JSON.parseObject(chatBotReqDto.getAsk(),
-                                    WorkflowEventData.EventValue.ValueOption.class);
+                            WorkflowEventData.EventValue.ValueOption.class);
                     if (askValue != null) {
                         ask = askValue.getId();
                     }
@@ -151,11 +151,11 @@ public class WorkflowBotChatServiceImpl implements WorkflowBotChatService {
                 }
             }
             WorkflowResumeRequest build = WorkflowResumeRequest.builder()
-                            .eventId(redissonClient.<String>getBucket(StrUtil.format(RedisKeyConstant.MASS_WORKFLOW_EVENT_ID, uid,
-                                            chatId)).get())
-                            .eventType(workflowOperation)
-                            .content(ask)
-                            .build();
+                    .eventId(redissonClient.<String>getBucket(StrUtil.format(RedisKeyConstant.MASS_WORKFLOW_EVENT_ID, uid,
+                            chatId)).get())
+                    .eventType(workflowOperation)
+                    .content(ask)
+                    .build();
             body = RequestBody.create(JSON.toJSONString(build), MediaType.parse("application/json; charset=utf-8"));
             apiUsedUrl = resumeUrl;
         }

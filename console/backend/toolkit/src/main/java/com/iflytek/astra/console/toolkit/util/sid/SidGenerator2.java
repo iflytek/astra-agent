@@ -68,7 +68,7 @@ public final class SidGenerator2 {
      *         invalid
      */
     public SidGenerator2(String sub, String location, String localIp, String localPort)
-                    throws UnknownHostException {
+            throws UnknownHostException {
 
         // ---------- Parameter validation and normalization ----------
         this.sub = sub == null ? "" : sub.trim();
@@ -119,14 +119,14 @@ public final class SidGenerator2 {
         // pid: low 8 bits; index: 16 bit; time: last 11 digits; IP: last two segments; port: first 2 chars;
         // suffix: SID2
         return String.format(
-                        "%s%04x%04x@%s%s%s%s%s",
-                        effectiveSub,
-                        PID_LOW8,
-                        next,
-                        this.location,
-                        hexTime.substring(hexTime.length() - 11),
-                        this.shortLocalIP,
-                        this.port.substring(0, 2),
-                        SID2);
+                "%s%04x%04x@%s%s%s%s%s",
+                effectiveSub,
+                PID_LOW8,
+                next,
+                this.location,
+                hexTime.substring(hexTime.length() - 11),
+                this.shortLocalIP,
+                this.port.substring(0, 2),
+                SID2);
     }
 }

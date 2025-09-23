@@ -24,8 +24,8 @@ public class ChatBotTagServiceImpl extends ServiceImpl<ChatBotTagMapper, ChatBot
         }
         LambdaQueryWrapper<ChatBotTag> chatBotTagQueryWrapper = Wrappers.lambdaQuery();
         chatBotTagQueryWrapper.eq(ChatBotTag::getBotId, botId)
-                        .eq(ChatBotTag::getVerify, 1)
-                        .orderByDesc(ChatBotTag::getOrder);
+                .eq(ChatBotTag::getVerify, 1)
+                .orderByDesc(ChatBotTag::getOrder);
         List<ChatBotTag> chatBotTags = baseMapper.selectList(chatBotTagQueryWrapper);
         if (Objects.nonNull(chatBotTags) && !chatBotTags.isEmpty()) {
             List<String> tags = new ArrayList<>();

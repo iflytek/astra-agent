@@ -58,8 +58,8 @@ public class SsrfParamGuard {
             }
             if (!SsrfValidators.isAllowedScheme(u.getProtocol(), props.getAllowedSchemes())) {
                 throw new BusinessException(
-                                ResponseEnum.RESPONSE_FAILED,
-                                "Only allowed schemes: " + props.getAllowedSchemes());
+                        ResponseEnum.RESPONSE_FAILED,
+                        "Only allowed schemes: " + props.getAllowedSchemes());
             }
 
             // 2) IP blacklist (compatible with hostnames and IPs)

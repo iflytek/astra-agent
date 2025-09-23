@@ -272,9 +272,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
             // 正式工具存到缓存字段
             String temporary = JSONObject.toJSONString(toolBox);
             toolBoxMapper.update(null, new UpdateWrapper<ToolBox>().lambda()
-                            .set(ToolBox::getTemporaryData, temporary)
-                            .set(ToolBox::getUpdateTime, new Timestamp(System.currentTimeMillis()))
-                            .eq(ToolBox::getId, toolBox.getId()));
+                    .set(ToolBox::getTemporaryData, temporary)
+                    .set(ToolBox::getUpdateTime, new Timestamp(System.currentTimeMillis()))
+                    .eq(ToolBox::getId, toolBox.getId()));
         } else {
             // 草稿态直接更新
             toolBox.setStatus(ToolboxStatusEnum.DRAFT.getCode());
@@ -437,9 +437,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         }
 
         toolBoxMapper.update(null, new UpdateWrapper<ToolBox>().lambda()
-                        .set(ToolBox::getDeleted, true)
-                        .set(ToolBox::getUpdateTime, new Timestamp(System.currentTimeMillis()))
-                        .eq(ToolBox::getToolId, toolBox.getToolId()));
+                .set(ToolBox::getDeleted, true)
+                .set(ToolBox::getUpdateTime, new Timestamp(System.currentTimeMillis()))
+                .eq(ToolBox::getToolId, toolBox.getToolId()));
 
         String paramStr = "?app_id=" + commonConfig.getAppId() + "&tool_ids=" + toolBox.getToolId();
         ToolResp toolDelResp = toolServiceCallHandler.toolDelete(paramStr);
@@ -669,14 +669,14 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
 
         List<WebSchemaItem> toolRequestInput = webSchema.getToolRequestInput();
         List<WebSchemaItem> filteredItems = toolRequestInput.stream()
-                        .filter(item -> item.getOpen() == null || item.getOpen())
-                        .collect(Collectors.toList());
+                .filter(item -> item.getOpen() == null || item.getOpen())
+                .collect(Collectors.toList());
         webSchema.setToolRequestInput(filteredItems);
 
         List<WebSchemaItem> toolRequestOutput = webSchema.getToolRequestOutput();
         List<WebSchemaItem> toolRequestOutputFilter = toolRequestOutput.stream()
-                        .filter(item -> item.getOpen() == null || item.getOpen())
-                        .collect(Collectors.toList());
+                .filter(item -> item.getOpen() == null || item.getOpen())
+                .collect(Collectors.toList());
         webSchema.setToolRequestOutput(toolRequestOutputFilter);
         return JSON.toJSONString(webSchema);
     }
@@ -689,11 +689,11 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         List<WebSchemaItem> originToolRequestInput = originWebSchema.getToolRequestInput();
         List<WebSchemaItem> toolRequestInput = webSchema.getToolRequestInput();
         Map<String, WebSchemaItem> inputMap = toolRequestInput.stream()
-                        .collect(Collectors.toMap(WebSchemaItem::getName, item -> item));
+                .collect(Collectors.toMap(WebSchemaItem::getName, item -> item));
 
         originToolRequestInput = originToolRequestInput.stream()
-                        .map(item -> inputMap.getOrDefault(item.getName(), item))
-                        .collect(Collectors.toList());
+                .map(item -> inputMap.getOrDefault(item.getName(), item))
+                .collect(Collectors.toList());
         originWebSchema.setToolRequestInput(originToolRequestInput);
         return JSON.toJSONString(originWebSchema);
     }
@@ -777,12 +777,12 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
 
         // 获取普通工具
         List<ToolBox> toolBoxList = toolBoxMapper.getModelListSquareByCondition(
-                        uid, content, null, null, favorites, dto.getOrderFlag(),
-                        dto.getTagFlag(), dto.getTags(), bizConfig.getAdminUid(), CommonConst.Platform.COMMON);
+                uid, content, null, null, favorites, dto.getOrderFlag(),
+                dto.getTagFlag(), dto.getTags(), bizConfig.getAdminUid(), CommonConst.Platform.COMMON);
 
         toolBoxVoList.addAll(toolBoxList.stream()
-                        .map(this::convert2ToolBoxVo)
-                        .collect(Collectors.toList()));
+                .map(this::convert2ToolBoxVo)
+                .collect(Collectors.toList()));
 
         // 处理MCP工具
         if (shouldIncludeMcpTools(dto)) {
@@ -838,9 +838,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private List<ConfigInfo> getTagConfigList() {
         return configInfoService.list(Wrappers.lambdaQuery(ConfigInfo.class)
-                        .eq(ConfigInfo::getCategory, "TAG")
-                        .eq(ConfigInfo::getCode, TAG_STRING)
-                        .eq(ConfigInfo::getIsValid, 1));
+                .eq(ConfigInfo::getCategory, "TAG")
+                .eq(ConfigInfo::getCode, TAG_STRING)
+                .eq(ConfigInfo::getIsValid, 1));
     }
 
     /**
@@ -868,9 +868,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         if (!StringUtils.isEmpty(toolBoxVo.getToolTag())) {
             List<String> tags = Arrays.asList(toolBoxVo.getToolTag().split(","));
             List<String> nameList = configInfoList.stream()
-                            .filter(config -> tags.contains(config.getId().toString()))
-                            .map(ConfigInfo::getName)
-                            .collect(Collectors.toList());
+                    .filter(config -> tags.contains(config.getId().toString()))
+                    .map(ConfigInfo::getName)
+                    .collect(Collectors.toList());
             toolBoxVo.setTags(nameList);
         }
     }
@@ -898,10 +898,10 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private List<ToolBoxVo> sortByHeatValueAndPaginate(List<ToolBoxVo> toolBoxVoList, Integer pageNo, Integer pageSize) {
         return toolBoxVoList.stream()
-                        .sorted(Comparator.comparing(ToolBoxVo::getHeatValue).reversed())
-                        .skip((long) (pageNo - 1) * pageSize)
-                        .limit(pageSize)
-                        .collect(Collectors.toList());
+                .sorted(Comparator.comparing(ToolBoxVo::getHeatValue).reversed())
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -923,14 +923,14 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private Map<String, Integer> buildRecentUseOrderMap(String uid) {
         List<ToolBoxOperateHistory> operateHistories = toolBoxOperateHistoryMapper.selectList(
-                        Wrappers.lambdaQuery(ToolBoxOperateHistory.class)
-                                        .eq(ToolBoxOperateHistory::getUid, uid)
-                                        .orderByDesc(ToolBoxOperateHistory::getCreateTime));
+                Wrappers.lambdaQuery(ToolBoxOperateHistory.class)
+                        .eq(ToolBoxOperateHistory::getUid, uid)
+                        .orderByDesc(ToolBoxOperateHistory::getCreateTime));
 
         LinkedHashSet<String> toolIdSet = operateHistories.stream()
-                        .map(ToolBoxOperateHistory::getToolId)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toCollection(LinkedHashSet::new));
+                .map(ToolBoxOperateHistory::getToolId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         Map<String, Integer> orderMap = new HashMap<>();
         int index = 0;
@@ -945,9 +945,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private List<ToolBoxVo> paginateOnly(List<ToolBoxVo> toolBoxVoList, Integer pageNo, Integer pageSize) {
         return toolBoxVoList.stream()
-                        .skip((long) (pageNo - 1) * pageSize)
-                        .limit(pageSize)
-                        .collect(Collectors.toList());
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -968,9 +968,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
     public void executeToolHeatValueSelect() {
         LambdaQueryWrapper<ToolBox> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ToolBox::getDeleted, 0) // delete = 1
-                        .and(wrapper -> wrapper.eq(ToolBox::getIsPublic, 1)
-                                        .or()
-                                        .eq(ToolBox::getUserId, bizConfig.getAdminUid()));
+                .and(wrapper -> wrapper.eq(ToolBox::getIsPublic, 1)
+                        .or()
+                        .eq(ToolBox::getUserId, bizConfig.getAdminUid()));
         List<ToolBox> toolBoxes = toolBoxMapper.selectList(queryWrapper);
         List<String> tooIds = toolBoxes.stream().map(ToolBox::getToolId).collect(Collectors.toList());
         List<ToolUseDto> flowToolUseList = chatInfoMapper.selectWorkflowUseCount(tooIds);
@@ -979,21 +979,21 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         List<UserFavoriteTool> userFavoriteTools = userFavoriteToolMapper.selectAllList();
         for (ToolBox toolBox : toolBoxes) {
             Long workflowUseCount = flowToolUseList.stream()
-                            .filter(tool -> tool.getToolId() != null && tool.getToolId().contains(toolBox.getToolId()))
-                            .mapToLong(ToolUseDto::getUseCount)
-                            .sum();
+                    .filter(tool -> tool.getToolId() != null && tool.getToolId().contains(toolBox.getToolId()))
+                    .mapToLong(ToolUseDto::getUseCount)
+                    .sum();
             Long botUseCount = botToolUseList.stream()
-                            .filter(tool -> tool.getToolId() != null && tool.getToolId().contains(toolBox.getToolId()))
-                            .mapToLong(ToolUseDto::getUseCount)
-                            .sum();
+                    .filter(tool -> tool.getToolId() != null && tool.getToolId().contains(toolBox.getToolId()))
+                    .mapToLong(ToolUseDto::getUseCount)
+                    .sum();
             List<UserFavoriteTool> favoriteTools = userFavoriteTools.stream()
-                            .filter(tool -> tool.getPluginToolId() != null && tool.getPluginToolId().equals(toolBox.getToolId()))
-                            .collect(Collectors.toList());
+                    .filter(tool -> tool.getPluginToolId() != null && tool.getPluginToolId().equals(toolBox.getToolId()))
+                    .collect(Collectors.toList());
             // 收藏次数
             long favoriteToolCount = favoriteTools.size();
             long favoriteUserCount = favoriteTools.stream()
-                            .filter(tool -> !tool.getDeleted() && tool.getUseFlag() == 1)
-                            .count();
+                    .filter(tool -> !tool.getDeleted() && tool.getUseFlag() == 1)
+                    .count();
             long heatValue = (workflowUseCount + botUseCount - 1) * 3 + (favoriteUserCount - 1) * 10 + favoriteToolCount * 10 + workflowUseCount + botUseCount;
             if (heatValue < 0) {
                 heatValue = 0L;
@@ -1008,10 +1008,10 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
             String mcpName = mcpTool.getName().replaceAll("(?i)-mcp", "");
             LambdaQueryWrapper<ToolBox> newQueryWrapper = new LambdaQueryWrapper<>();
             newQueryWrapper.eq(ToolBox::getDeleted, 0)
-                            .like(ToolBox::getName, mcpName)
-                            .and(wrapper -> wrapper.eq(ToolBox::getIsPublic, 1)
-                                            .or()
-                                            .eq(ToolBox::getUserId, bizConfig.getAdminUid()));
+                    .like(ToolBox::getName, mcpName)
+                    .and(wrapper -> wrapper.eq(ToolBox::getIsPublic, 1)
+                            .or()
+                            .eq(ToolBox::getUserId, bizConfig.getAdminUid()));
             List<ToolBox> toolBoxList = toolBoxMapper.selectList(newQueryWrapper);
             if (!toolBoxList.isEmpty()) {
                 // 查询同名插件的热度值
@@ -1063,8 +1063,8 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         // 手动筛选名称或描述
         if (StringUtils.isNotBlank(dto.getContent())) {
             toolBoxVoList = toolBoxVoList.stream()
-                            .filter(toolBoxVo -> toolBoxVo.getName().contains(dto.getContent()) || toolBoxVo.getDescription().contains(dto.getContent()))
-                            .collect(Collectors.toList());
+                    .filter(toolBoxVo -> toolBoxVo.getName().contains(dto.getContent()) || toolBoxVo.getDescription().contains(dto.getContent()))
+                    .collect(Collectors.toList());
         }
         return toolBoxVoList;
     }
@@ -1095,15 +1095,15 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
             queryWrapper.eq("is_delete", 0);
             List<ToolFavoriteToolDto> userFavoriteTools = userFavoriteToolMapper.findAllTooIdByUserId(userId);
             List<String> favoriteToolIds = userFavoriteTools.stream()
-                            .map(ToolFavoriteToolDto::getPluginToolId)
-                            .filter(Objects::nonNull)
-                            .map(String::valueOf)
-                            .collect(Collectors.toList());
+                    .map(ToolFavoriteToolDto::getPluginToolId)
+                    .filter(Objects::nonNull)
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
             List<String> favoriteMcpToolIds = userFavoriteTools.stream()
-                            .map(ToolFavoriteToolDto::getMcpToolId)
-                            .filter(Objects::nonNull)
-                            .map(String::valueOf)
-                            .collect(Collectors.toList());
+                    .map(ToolFavoriteToolDto::getMcpToolId)
+                    .filter(Objects::nonNull)
+                    .map(String::valueOf)
+                    .collect(Collectors.toList());
             favoriteToolIds.addAll(favoriteMcpToolIds);
             if (CollUtil.isNotEmpty(favoriteToolIds)) {
                 favorites = new HashSet<>(favoriteToolIds);
@@ -1507,7 +1507,7 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      * 处理简单类型参数
      */
     private void processSimpleTypeParam(JSONObject jsonObject, JSONObject targetObject,
-                    String params, String title, String description, String type, boolean input) {
+            String params, String title, String description, String type, boolean input) {
         Integer from = jsonObject.getInteger("from");
         if (input) {
             validateFromValue(from);
@@ -1559,7 +1559,7 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      * 处理复合类型参数
      */
     private void processComplexTypeParam(JSONObject jsonObject, JSONObject targetObject, Integer previewType,
-                    String params, String title, String description, String type, boolean input) {
+            String params, String title, String description, String type, boolean input) {
         JSONObject multiParamObject = createBaseParamObject(title, description, type);
 
         if (previewType != 2) {
@@ -1579,7 +1579,7 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      * 处理对象类型
      */
     private void processObjectType(JSONObject multiParamObject, JSONObject targetObject,
-                    Integer previewType, JSONArray jsonArray, boolean input) {
+            Integer previewType, JSONArray jsonArray, boolean input) {
         JSONObject prop = new JSONObject();
         multiParamObject.put("properties", prop);
         if (previewType == 2) {
@@ -1844,8 +1844,8 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private List<WebSchemaItem> filterByLocation(List<WebSchemaItem> items, String location) {
         return items.stream()
-                        .filter(e -> e.getLocation().equalsIgnoreCase(location))
-                        .collect(Collectors.toList());
+                .filter(e -> e.getLocation().equalsIgnoreCase(location))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -2023,10 +2023,10 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
 
     public List<ToolBoxVo> getToolVersion(String toolId) {
         List<ToolBox> toolBoxes = toolBoxMapper.selectList(
-                        Wrappers.<ToolBox>lambdaQuery()
-                                        .eq(ToolBox::getToolId, toolId)
-                                        .eq(ToolBox::getDeleted, false)
-                                        .orderByDesc(ToolBox::getCreateTime));
+                Wrappers.<ToolBox>lambdaQuery()
+                        .eq(ToolBox::getToolId, toolId)
+                        .eq(ToolBox::getDeleted, false)
+                        .orderByDesc(ToolBox::getCreateTime));
         if (CollectionUtils.isEmpty(toolBoxes)) {
             log.error("tool not exist, toolId={}", toolId);
             throw new BusinessException(ResponseEnum.TOOLBOX_NOT_EXIST);

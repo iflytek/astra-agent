@@ -52,19 +52,19 @@ public class RedisUtil {
 
     // Renew only when "lock value == token"
     private static final DefaultRedisScript<Long> LUA_RENEW =
-                    new DefaultRedisScript<>(
-                                    "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-                                                    "  return redis.call('pexpire', KEYS[1], ARGV[2]) " +
-                                                    "else return 0 end",
-                                    Long.class);
+            new DefaultRedisScript<>(
+                    "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                            "  return redis.call('pexpire', KEYS[1], ARGV[2]) " +
+                            "else return 0 end",
+                    Long.class);
 
     // Delete only when "lock value == token"
     private static final DefaultRedisScript<Long> LUA_UNLOCK =
-                    new DefaultRedisScript<>(
-                                    "if redis.call('get', KEYS[1]) == ARGV[1] then " +
-                                                    "  return redis.call('del', KEYS[1]) " +
-                                                    "else return 0 end",
-                                    Long.class);
+            new DefaultRedisScript<>(
+                    "if redis.call('get', KEYS[1]) == ARGV[1] then " +
+                            "  return redis.call('del', KEYS[1]) " +
+                            "else return 0 end",
+                    Long.class);
 
     /* ========================= Distributed Lock (with token) ========================= */
 
@@ -117,9 +117,9 @@ public class RedisUtil {
         requireKey(key);
         Objects.requireNonNull(token, "token must not be null");
         Long ret = redisTemplate.execute(LUA_RENEW,
-                        Collections.singletonList(key),
-                        token,
-                        String.valueOf(Math.max(1, ttlSeconds) * 1000));
+                Collections.singletonList(key),
+                token,
+                String.valueOf(Math.max(1, ttlSeconds) * 1000));
         boolean ok = ret != null && ret > 0;
         log.debug("redis.renew key={}, ttl={}s, token={}, ok={}", key, ttlSeconds, safe(token), ok);
         return ok;
@@ -417,9 +417,9 @@ public class RedisUtil {
         requirePattern(pattern);
         Set<String> result = new HashSet<>(DEFAULT_SCAN_COUNT);
         ScanOptions options = ScanOptions.scanOptions()
-                        .match(pattern)
-                        .count(DEFAULT_SCAN_COUNT)
-                        .build();
+                .match(pattern)
+                .count(DEFAULT_SCAN_COUNT)
+                .build();
 
         try (Cursor<String> cursor = redisTemplate.scan(options)) {
             while (cursor != null && cursor.hasNext()) {
@@ -445,8 +445,8 @@ public class RedisUtil {
         List<String> toDel = new ArrayList<>(BATCH_DELETE_SIZE);
 
         ScanOptions options = (count == null || count <= 0)
-                        ? ScanOptions.scanOptions().match(pattern).count(DEFAULT_SCAN_COUNT).build()
-                        : ScanOptions.scanOptions().match(pattern).count(count).build();
+                ? ScanOptions.scanOptions().match(pattern).count(DEFAULT_SCAN_COUNT).build()
+                : ScanOptions.scanOptions().match(pattern).count(count).build();
 
         try (Cursor<String> cursor = redisTemplate.scan(options)) {
             while (cursor != null && cursor.hasNext()) {

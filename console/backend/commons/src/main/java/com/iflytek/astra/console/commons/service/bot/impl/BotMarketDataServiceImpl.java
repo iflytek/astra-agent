@@ -56,8 +56,8 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
         // Take down assistants
         LambdaUpdateWrapper<ChatBotMarket> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.in(ChatBotMarket::getBotId, spaceBotIdList)
-                        .set(ChatBotMarket::getBotStatus, 0)
-                        .set(ChatBotMarket::getIsDelete, 1);
+                .set(ChatBotMarket::getBotStatus, 0)
+                .set(ChatBotMarket::getIsDelete, 1);
 
         chatBotMarketMapper.update(null, updateWrapper);
     }
@@ -152,27 +152,27 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
             List<JSONObject> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
             // <botId, chain>map
             Map<Integer, JSONObject> chainMap = chainList.stream()
-                            .collect(Collectors.toMap(
-                                            json -> json.getInteger("botId"), Function.identity(), (existing, newValue) -> newValue));
+                    .collect(Collectors.toMap(
+                            json -> json.getInteger("botId"), Function.identity(), (existing, newValue) -> newValue));
             Map<Integer, Boolean> multiInputMap = chainList.stream()
-                            .collect(Collectors.toMap(
-                                            json -> json.getInteger("botId"),
-                                            json -> {
-                                                // Process extraInputs
-                                                if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
-                                                    JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
-                                                    int size = extraInputs.size();
-                                                    if (extraInputs.containsValue("image")) {
-                                                        size -= 2; // image needs to subtract two
-                                                    }
-                                                    return size > 0;
-                                                } else {
-                                                    return false;
-                                                }
-                                            }));
+                    .collect(Collectors.toMap(
+                            json -> json.getInteger("botId"),
+                            json -> {
+                                // Process extraInputs
+                                if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
+                                    JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
+                                    int size = extraInputs.size();
+                                    if (extraInputs.containsValue("image")) {
+                                        size -= 2; // image needs to subtract two
+                                    }
+                                    return size > 0;
+                                } else {
+                                    return false;
+                                }
+                            }));
             list.stream()
-                            .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
-                            .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
+                    .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
+                    .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
             list.forEach(map -> map.put("multiInput", multiInputMap.get(map.get("botId"))));
         }
 

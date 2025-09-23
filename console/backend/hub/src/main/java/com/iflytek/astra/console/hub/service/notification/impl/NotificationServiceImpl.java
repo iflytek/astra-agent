@@ -76,11 +76,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     @DistributedLock(
-                    key = "notification:mark_read:#{#receiverUid}",
-                    waitTime = 3L,
-                    leaseTime = 10L,
-                    failStrategy = DistributedLock.FailStrategy.CONTINUE,
-                    description = "Lock for marking user messages as read")
+            key = "notification:mark_read:#{#receiverUid}",
+            waitTime = 3L,
+            leaseTime = 10L,
+            failStrategy = DistributedLock.FailStrategy.CONTINUE,
+            description = "Lock for marking user messages as read")
     public boolean markNotificationsAsRead(String receiverUid, MarkReadRequest request) {
         if (receiverUid == null) {
             throw new BusinessException(ResponseEnum.PARAMETER_ERROR);
@@ -96,7 +96,7 @@ public class NotificationServiceImpl implements NotificationService {
             }
 
             log.info("Notifications marked as read successfully, receiverUid: {}, markAll: {}, notificationIds: {}",
-                            receiverUid, request.getMarkAll(), request.getNotificationIds());
+                    receiverUid, request.getMarkAll(), request.getNotificationIds());
 
             return true;
         } catch (Exception e) {
@@ -108,11 +108,11 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     @DistributedLock(
-                    key = "notification:delete:#{#receiverUid}",
-                    waitTime = 2L,
-                    leaseTime = 5L,
-                    failStrategy = DistributedLock.FailStrategy.CONTINUE,
-                    description = "Lock for deleting user messages")
+            key = "notification:delete:#{#receiverUid}",
+            waitTime = 2L,
+            leaseTime = 5L,
+            failStrategy = DistributedLock.FailStrategy.CONTINUE,
+            description = "Lock for deleting user messages")
     public boolean deleteNotification(String receiverUid, Long notificationId) {
         if (receiverUid == null || notificationId == null) {
             throw new BusinessException(ResponseEnum.PARAMETER_ERROR);
@@ -122,7 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
             int deleted = notificationDataService.deleteUserNotification(receiverUid, notificationId);
             if (deleted > 0) {
                 log.info("Notification deleted successfully, receiverUid: {}, notificationId: {}",
-                                receiverUid, notificationId);
+                        receiverUid, notificationId);
                 return true;
             } else {
                 throw new BusinessException(ResponseEnum.NOTIFICATION_NOT_EXISTS);
@@ -131,7 +131,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw e; // Re-throw business exception
         } catch (Exception e) {
             log.error("Failed to delete notification, receiverUid: {}, notificationId: {}",
-                            receiverUid, notificationId, e);
+                    receiverUid, notificationId, e);
             throw new BusinessException(ResponseEnum.NOTIFICATION_DELETE_FAILED);
         }
     }
@@ -177,7 +177,7 @@ public class NotificationServiceImpl implements NotificationService {
         // Validate the recipient quantity limit for batch sending
         if (request.getReceiverUids().size() > MAX_BATCH_SIZE) {
             throw new BusinessException(ResponseEnum.PARAMETER_ERROR,
-                            String.format("Number of receivers cannot exceed %d", MAX_BATCH_SIZE));
+                    String.format("Number of receivers cannot exceed %d", MAX_BATCH_SIZE));
         }
 
         return sendNotificationToUsers(request, type, request.getReceiverUids());
@@ -207,7 +207,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationDataService.batchCreateUserNotifications(userNotifications);
 
         log.info("{} notification sent successfully, notificationId: {}, receiverCount: {}",
-                        type.getDescription(), notification.getId(), receiverUids.size());
+                type.getDescription(), notification.getId(), receiverUids.size());
 
         return notification.getId();
     }
@@ -249,17 +249,17 @@ public class NotificationServiceImpl implements NotificationService {
         if (Boolean.TRUE.equals(queryRequest.getUnreadOnly())) {
             // Query unread messages only
             notifications = notificationDataService.getUserUnreadNotifications(
-                            receiverUid, queryRequest);
+                    receiverUid, queryRequest);
             totalCount = unreadCount; // Total unread messages is the unread count
         } else {
             // Query all messages
             notifications = notificationDataService.getUserNotifications(
-                            receiverUid, queryRequest);
+                    receiverUid, queryRequest);
             totalCount = notificationDataService.countUserAllNotifications(receiverUid); // Use dedicated count method
         }
 
         return new NotificationPageResponse(notifications, queryRequest.getPageIndex(),
-                        queryRequest.getPageSize(), totalCount, unreadCount);
+                queryRequest.getPageSize(), totalCount, unreadCount);
     }
 
     /**
@@ -288,7 +288,7 @@ public class NotificationServiceImpl implements NotificationService {
         // Validate notification ID quantity limit
         if (notificationIds.size() > MAX_NOTIFICATION_IDS) {
             throw new BusinessException(ResponseEnum.PARAMETER_ERROR,
-                            String.format("Number of notifications marked at once cannot exceed %d", MAX_NOTIFICATION_IDS));
+                    String.format("Number of notifications marked at once cannot exceed %d", MAX_NOTIFICATION_IDS));
         }
 
         // Mark personal messages as read
@@ -314,8 +314,8 @@ public class NotificationServiceImpl implements NotificationService {
 
             if (!broadcastNotifications.isEmpty()) {
                 List<Long> broadcastIds = broadcastNotifications.stream()
-                                .map(Notification::getId)
-                                .toList();
+                        .map(Notification::getId)
+                        .toList();
 
                 markBroadcastMessagesAsRead(receiverUid, broadcastIds);
                 offset += batchSize;
@@ -327,27 +327,27 @@ public class NotificationServiceImpl implements NotificationService {
      * Mark specified broadcast messages as read
      */
     @DistributedLock(
-                    key = "notification:broadcast_read:#{#receiverUid}:#{T(Math).abs(#broadcastIds.hashCode())}",
-                    waitTime = 2L,
-                    leaseTime = 8L,
-                    failStrategy = DistributedLock.FailStrategy.CONTINUE,
-                    description = "Lock for marking broadcast messages as read")
+            key = "notification:broadcast_read:#{#receiverUid}:#{T(Math).abs(#broadcastIds.hashCode())}",
+            waitTime = 2L,
+            leaseTime = 8L,
+            failStrategy = DistributedLock.FailStrategy.CONTINUE,
+            description = "Lock for marking broadcast messages as read")
     private void markBroadcastMessagesAsRead(String receiverUid, List<Long> broadcastIds) {
         // Filter out broadcast messages that the user has not read
         List<Long> readBroadcastIds = notificationDataService.getUserReadBroadcastIds(receiverUid, broadcastIds);
         List<Long> unreadBroadcastIds = broadcastIds.stream()
-                        .filter(id -> !readBroadcastIds.contains(id))
-                        .toList();
+                .filter(id -> !readBroadcastIds.contains(id))
+                .toList();
 
         if (!unreadBroadcastIds.isEmpty()) {
             List<UserBroadcastRead> readRecords = unreadBroadcastIds.stream()
-                            .map(notificationId -> {
-                                UserBroadcastRead readRecord = new UserBroadcastRead();
-                                readRecord.setReceiverUid(receiverUid);
-                                readRecord.setNotificationId(notificationId);
-                                return readRecord;
-                            })
-                            .toList();
+                    .map(notificationId -> {
+                        UserBroadcastRead readRecord = new UserBroadcastRead();
+                        readRecord.setReceiverUid(receiverUid);
+                        readRecord.setNotificationId(notificationId);
+                        return readRecord;
+                    })
+                    .toList();
 
             notificationDataService.batchCreateBroadcastReadRecords(readRecords);
         }

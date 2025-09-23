@@ -10,15 +10,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     protected static final String[] NO_AUTH_REQUIRED_APIS = {
-                    "/health",
-                    "/actuator/**",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/workflow/copyFlow",
-                    "/api/model/checkModelBase",
-                    "/workflow/hasQaNode",
-                    "/workflow/version/update_channel_result",
-                    "/error"
+            "/health",
+            "/actuator/**",
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/workflow/copyFlow",
+            "/api/model/checkModelBase",
+            "/workflow/hasQaNode",
+            "/workflow/version/update_channel_result",
+            "/error"
     };
 
     @Override

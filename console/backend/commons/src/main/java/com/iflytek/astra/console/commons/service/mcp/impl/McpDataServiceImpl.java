@@ -25,8 +25,8 @@ public class McpDataServiceImpl implements McpDataService {
     @Override
     public List<McpData> getMcpByUid(String uid) {
         return mcpDataMapper.selectList(Wrappers.lambdaQuery(McpData.class)
-                        .eq(McpData::getUid, uid)
-                        .orderByDesc(McpData::getCreateTime));
+                .eq(McpData::getUid, uid)
+                .orderByDesc(McpData::getCreateTime));
     }
 
     @Override
@@ -39,8 +39,8 @@ public class McpDataServiceImpl implements McpDataService {
     public McpData getMcp(Long botId) {
         LambdaQueryWrapper<McpData> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(McpData::getBotId, botId)
-                        .orderByDesc(McpData::getCreateTime)
-                        .last("limit 1");
+                .orderByDesc(McpData::getCreateTime)
+                .last("limit 1");
         McpData mcpData = mcpDataMapper.selectOne(queryWrapper);
 
 

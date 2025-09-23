@@ -244,10 +244,10 @@ class DataBaseControllerUnitTest {
     void testImportDbTableField_ServiceCall() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "fields.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "test content".getBytes());
+                "file",
+                "fields.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "test content".getBytes());
 
         List<DbTableFieldDto> mockFields = new ArrayList<>();
         when(databaseService.importDbTableField(any())).thenReturn(mockFields);
@@ -320,10 +320,10 @@ class DataBaseControllerUnitTest {
         Long tableId = 1L;
         Integer execDev = 1;
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "data.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "test data content".getBytes());
+                "file",
+                "data.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "test data content".getBytes());
 
         doNothing().when(databaseService).importTableData(tableId, execDev, file);
 
@@ -377,7 +377,7 @@ class DataBaseControllerUnitTest {
         databaseDto.setName("");
 
         when(databaseService.create(any(DatabaseDto.class)))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_NOT_EMPTY));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_NOT_EMPTY));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -391,7 +391,7 @@ class DataBaseControllerUnitTest {
         // Arrange
         Long dbId = 999L;
         when(databaseService.getDatabaseInfo(dbId))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -405,8 +405,8 @@ class DataBaseControllerUnitTest {
         // Arrange
         Long dbId = 999L;
         doThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST))
-                        .when(databaseService)
-                        .delete(dbId);
+                .when(databaseService)
+                .delete(dbId);
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -419,13 +419,13 @@ class DataBaseControllerUnitTest {
     void testImportDbTableField_ExceptionPropagation() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "invalid.txt",
-                        "text/plain",
-                        "invalid content".getBytes());
+                "file",
+                "invalid.txt",
+                "text/plain",
+                "invalid content".getBytes());
 
         when(databaseService.importDbTableField(any()))
-                        .thenThrow(new CustomException(CustomExceptionCode.REPO_FILE_UPLOAD_FAILED));
+                .thenThrow(new CustomException(CustomExceptionCode.REPO_FILE_UPLOAD_FAILED));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {

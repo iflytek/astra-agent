@@ -36,9 +36,9 @@ public class DBExcelReadListener extends AnalysisEventListener<Map<Integer, Stri
 
     /** 推荐使用：一次性装入 rowsSink */
     public DBExcelReadListener(List<DbTableField> tableFields,
-                    List<Map<String, Object>> rowsSink,
-                    String uid,
-                    int maxRows) {
+            List<Map<String, Object>> rowsSink,
+            String uid,
+            int maxRows) {
         this.tableFields = Objects.requireNonNull(tableFields);
         this.rowsSink = Objects.requireNonNull(rowsSink);
         this.uid = uid;
@@ -50,15 +50,15 @@ public class DBExcelReadListener extends AnalysisEventListener<Map<Integer, Stri
         List<String> actualHeaders = new ArrayList<>(headMap.values());
 
         expectedHeaders = tableFields.stream()
-                        .map(DbTableField::getName)
-                        .filter(n -> !Arrays.asList(SYSTEM_FIELDS).contains(n))
-                        .collect(Collectors.toList());
+                .map(DbTableField::getName)
+                .filter(n -> !Arrays.asList(SYSTEM_FIELDS).contains(n))
+                .collect(Collectors.toList());
 
         notNullFieldsList = tableFields.stream()
-                        .filter(f -> !Arrays.asList(SYSTEM_FIELDS).contains(f.getName()))
-                        .filter(DbTableField::getIsRequired)
-                        .map(DbTableField::getName)
-                        .collect(Collectors.toList());
+                .filter(f -> !Arrays.asList(SYSTEM_FIELDS).contains(f.getName()))
+                .filter(DbTableField::getIsRequired)
+                .map(DbTableField::getName)
+                .collect(Collectors.toList());
 
         // 这里要求顺序一致：和你原逻辑保持一致
         if (!CollectionUtils.isEqualCollection(expectedHeaders, actualHeaders)) {
@@ -85,9 +85,9 @@ public class DBExcelReadListener extends AnalysisEventListener<Map<Integer, Stri
             String header = expectedHeaders.get(i);
             String raw = row.get(i); // 单元格原始值（可能为 null）
             DbTableField meta = tableFields.stream()
-                            .filter(f -> f.getName().equals(header))
-                            .findFirst()
-                            .orElseThrow(() -> new BusinessException(ResponseEnum.RESPONSE_FAILED, "字段 " + header + " 不存在！"));
+                    .filter(f -> f.getName().equals(header))
+                    .findFirst()
+                    .orElseThrow(() -> new BusinessException(ResponseEnum.RESPONSE_FAILED, "字段 " + header + " 不存在！"));
 
             Object v;
             if (StringUtils.isBlank(raw)) {

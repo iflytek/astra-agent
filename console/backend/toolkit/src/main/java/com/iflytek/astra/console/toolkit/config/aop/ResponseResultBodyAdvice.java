@@ -35,7 +35,7 @@ public class ResponseResultBodyAdvice implements ResponseBodyAdvice<Object> {
      */
     @Override
     public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType, @NotNull MediaType selectedContentType, @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NotNull ServerHttpRequest request,
-                    @NotNull ServerHttpResponse response) {
+            @NotNull ServerHttpResponse response) {
         // Prevent duplicate wrapping issues
         if (null == body) {
             return ApiResult.success();

@@ -31,7 +31,7 @@ public class WorkflowBotParamServiceImpl implements WorkflowBotParamService {
 
     @Override
     public void handleSingleParam(String uid, Long chatId, String sseId, Long leftId, String fileUrl,
-                    JSONObject extraInputs, Long reqId, JSONObject inputs, Integer botId) {
+            JSONObject extraInputs, Long reqId, JSONObject inputs, Integer botId) {
         // Set multimodal input parameters
         if (Objects.nonNull(extraInputs) && !extraInputs.isEmpty()) {
             String key = extraInputs.keySet().stream().findFirst().orElse(null);
@@ -57,8 +57,8 @@ public class WorkflowBotParamServiceImpl implements WorkflowBotParamService {
                 // Query file table
                 List<ChatFileReq> chatFileReqList = chatDataService.getFileList(uid, chatId);
                 chatFileReqList = chatFileReqList.stream()
-                                .sorted(Comparator.comparingLong(ChatFileReq::getId))
-                                .toList();
+                        .sorted(Comparator.comparingLong(ChatFileReq::getId))
+                        .toList();
                 // Query multimodal table
                 List<ChatReqModelDto> reqModelDtoList = chatDataService.getReqModelWithImgByChatId(uid, chatId);
 
@@ -93,16 +93,16 @@ public class WorkflowBotParamServiceImpl implements WorkflowBotParamService {
         // Query file table
         List<ChatFileReq> chatFileReqList = chatDataService.getFileList(uid, chatId);
         chatFileReqList = chatFileReqList.stream()
-                        .sorted(Comparator.comparingLong(ChatFileReq::getId))
-                        .collect(Collectors.toList());
+                .sorted(Comparator.comparingLong(ChatFileReq::getId))
+                .collect(Collectors.toList());
         if (CollUtil.isNotEmpty(extraInputsConfig) && CollUtil.isNotEmpty(botChatFileParamList)) {
             botChatFileParamList = botChatFileParamList.stream().filter(a -> ObjectUtil.isNotEmpty(a.getFileUrls())).collect(Collectors.toList());
             for (JSONObject inputObject : extraInputsConfig) {
                 String name = inputObject.getString("name");
                 List<String> fileUrls = botChatFileParamList.stream()
-                                .filter(param -> name.equals(param.getName()))
-                                .flatMap(param -> param.getFileUrls().stream())
-                                .collect(Collectors.toList());
+                        .filter(param -> name.equals(param.getName()))
+                        .flatMap(param -> param.getFileUrls().stream())
+                        .collect(Collectors.toList());
                 if (CollUtil.isEmpty(fileUrls)) {
                     continue;
                 }
@@ -123,9 +123,9 @@ public class WorkflowBotParamServiceImpl implements WorkflowBotParamService {
     private void handleMultiFileReqInput(List<ChatFileReq> chatFileReqList, String uid, Long chatId, Long reqId, Long leftId) {
         if (chatFileReqList != null) {
             List<String> collect = chatFileReqList.stream()
-                            .filter(fileReq -> ObjectUtil.isEmpty(fileReq.getReqId()))
-                            .map(ChatFileReq::getFileId)
-                            .collect(Collectors.toList());
+                    .filter(fileReq -> ObjectUtil.isEmpty(fileReq.getReqId()))
+                    .map(ChatFileReq::getFileId)
+                    .collect(Collectors.toList());
             // Bind request ID
             chatDataService.updateFileReqId(chatId, uid, collect, reqId, false, leftId);
         }

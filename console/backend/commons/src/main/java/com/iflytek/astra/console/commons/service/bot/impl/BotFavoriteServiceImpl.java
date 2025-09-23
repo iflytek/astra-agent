@@ -84,7 +84,7 @@ public class BotFavoriteServiceImpl implements BotFavoriteService {
         LinkedList<ChatBotMarketPage> result = botFavoriteMapper.selectBotPage(queryDto);
         for (ChatBotMarketPage chatBotMarketPage : result) {
             userInfoDataService.findByUid(chatBotMarketPage.getUid())
-                            .ifPresent(userInfo -> chatBotMarketPage.setCreatorName(userInfo.getNickname()));
+                    .ifPresent(userInfo -> chatBotMarketPage.setCreatorName(userInfo.getNickname()));
         }
         return result;
     }
@@ -111,9 +111,9 @@ public class BotFavoriteServiceImpl implements BotFavoriteService {
     }
 
     private List<BotFavoriteItemDto> buildResultList(LinkedList<ChatBotMarketPage> botList,
-                    Map<String, ChatUser> userMap,
-                    String uid,
-                    String langCode) {
+            Map<String, ChatUser> userMap,
+            String uid,
+            String langCode) {
         List<BotFavoriteItemDto> resultList = new ArrayList<>();
         try {
             for (ChatBotMarketPage market : botList) {
@@ -127,9 +127,9 @@ public class BotFavoriteServiceImpl implements BotFavoriteService {
     }
 
     private BotFavoriteItemDto buildBotFavoriteItem(ChatBotMarketPage market,
-                    Map<String, ChatUser> userMap,
-                    String uid,
-                    String langCode) {
+            Map<String, ChatUser> userMap,
+            String uid,
+            String langCode) {
         // Handle popularity value display
         processHotNum(market, langCode);
 
@@ -245,15 +245,15 @@ public class BotFavoriteServiceImpl implements BotFavoriteService {
     @Override
     public int getFavoriteNumByBotId(Integer botId) {
         return botFavoriteMapper.selectCount(Wrappers.lambdaQuery(BotFavorite.class)
-                        .eq(BotFavorite::getBotId, botId)).intValue();
+                .eq(BotFavorite::getBotId, botId)).intValue();
     }
 
     @Override
     public List<Integer> list(String uid) {
         List<BotFavorite> list = botFavoriteMapper.selectList(
-                        Wrappers.lambdaQuery(BotFavorite.class)
-                                        .select(BotFavorite::getBotId)
-                                        .eq(BotFavorite::getUid, uid));
+                Wrappers.lambdaQuery(BotFavorite.class)
+                        .select(BotFavorite::getBotId)
+                        .eq(BotFavorite::getUid, uid));
         if (CollUtil.isEmpty(list)) {
             return new ArrayList<>();
         }

@@ -142,8 +142,8 @@ public class DataPermissionCheckTool {
         Long spaceId = currentSpaceId();
 
         boolean noPermission = spaceId != null
-                        ? !Objects.equals(repo.getSpaceId(), spaceId)
-                        : !Objects.equals(repo.getUserId(), uid.toString());
+                ? !Objects.equals(repo.getSpaceId(), spaceId)
+                : !Objects.equals(repo.getUserId(), uid.toString());
 
         if (noPermission)
             deny("checkRepoBelong", repo);
@@ -164,19 +164,19 @@ public class DataPermissionCheckTool {
         boolean hasGroupVisibility;
         if (spaceId != null) {
             hasGroupVisibility = groupVisibilityMapper.selectOne(
-                            Wrappers.lambdaQuery(GroupVisibility.class)
-                                            .eq(GroupVisibility::getType, 1)
-                                            .eq(GroupVisibility::getSpaceId, spaceId)
-                                            .eq(GroupVisibility::getRelationId, String.valueOf(repo.getId()))) != null;
+                    Wrappers.lambdaQuery(GroupVisibility.class)
+                            .eq(GroupVisibility::getType, 1)
+                            .eq(GroupVisibility::getSpaceId, spaceId)
+                            .eq(GroupVisibility::getRelationId, String.valueOf(repo.getId()))) != null;
             if (!hasGroupVisibility && !Objects.equals(repo.getSpaceId(), spaceId)) {
                 deny("checkRepoVisible(space)", repo);
             }
         } else {
             hasGroupVisibility = groupVisibilityMapper.selectOne(
-                            Wrappers.lambdaQuery(GroupVisibility.class)
-                                            .eq(GroupVisibility::getType, 1)
-                                            .eq(GroupVisibility::getUserId, uid)
-                                            .eq(GroupVisibility::getRelationId, String.valueOf(repo.getId()))) != null;
+                    Wrappers.lambdaQuery(GroupVisibility.class)
+                            .eq(GroupVisibility::getType, 1)
+                            .eq(GroupVisibility::getUserId, uid)
+                            .eq(GroupVisibility::getRelationId, String.valueOf(repo.getId()))) != null;
             if (!hasGroupVisibility && !Objects.equals(repo.getUserId(), uid.toString())) {
                 deny("checkRepoVisible(user)", repo);
             }
@@ -196,8 +196,8 @@ public class DataPermissionCheckTool {
         Long spaceId = currentSpaceId();
 
         boolean noPermission = spaceId != null
-                        ? !(Objects.equals(toolBox.getSpaceId(), spaceId) && SpaceInfoUtil.checkUserBelongSpace())
-                        : !Objects.equals(toolBox.getUserId(), uid.toString());
+                ? !(Objects.equals(toolBox.getSpaceId(), spaceId) && SpaceInfoUtil.checkUserBelongSpace())
+                : !Objects.equals(toolBox.getUserId(), uid.toString());
 
         if (noPermission)
             deny("checkToolBelong", toolBox);
@@ -216,8 +216,8 @@ public class DataPermissionCheckTool {
         Long spaceId = currentSpaceId();
 
         boolean noPermission = spaceId != null
-                        ? !Objects.equals(fileInfoV2.getSpaceId(), spaceId)
-                        : !Objects.equals(fileInfoV2.getUid(), uid.toString());
+                ? !Objects.equals(fileInfoV2.getSpaceId(), spaceId)
+                : !Objects.equals(fileInfoV2.getUid(), uid.toString());
 
         if (noPermission)
             deny("checkFileBelong", fileInfoV2);
@@ -236,12 +236,12 @@ public class DataPermissionCheckTool {
         Long spaceId = currentSpaceId();
 
         boolean noToolPermission = spaceId != null
-                        ? !(Objects.equals(toolBox.getSpaceId(), spaceId) && SpaceInfoUtil.checkUserBelongSpace())
-                        : !Objects.equals(toolBox.getUserId(), uid.toString());
+                ? !(Objects.equals(toolBox.getSpaceId(), spaceId) && SpaceInfoUtil.checkUserBelongSpace())
+                : !Objects.equals(toolBox.getUserId(), uid.toString());
 
         boolean noPermission = !Boolean.TRUE.equals(toolBox.getIsPublic())
-                        && noToolPermission
-                        && !Objects.equals(toolBox.getUserId(), String.valueOf(bizConfig.getAdminUid()));
+                && noToolPermission
+                && !Objects.equals(toolBox.getUserId(), String.valueOf(bizConfig.getAdminUid()));
 
         if (noPermission)
             deny("checkToolVisible", toolBox);
@@ -293,8 +293,8 @@ public class DataPermissionCheckTool {
             throw new BusinessException(ResponseEnum.DATA_NOT_EXIST);
         String uid = getThreadLocalUidNoNull();
         boolean noPermission = (bot.getIsPublic() == 0)
-                        && !Objects.equals(bot.getUserId(), uid)
-                        && !isAdmin(bot.getUserId());
+                && !Objects.equals(bot.getUserId(), uid)
+                && !isAdmin(bot.getUserId());
         if (noPermission)
             deny("checkBotVisible", bot);
     }
@@ -312,11 +312,11 @@ public class DataPermissionCheckTool {
         String uid = getThreadLocalUidNoNull();
 
         boolean noPermission = (spaceId == null)
-                        ? (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getUid(), uid)
-                                        && !isAdmin(workflow.getUid()))
-                        : (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getSpaceId(), spaceId));
+                ? (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getUid(), uid)
+                        && !isAdmin(workflow.getUid()))
+                : (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getSpaceId(), spaceId));
 
         if (noPermission)
             deny("checkWorkflowBelong", workflow);
@@ -335,11 +335,11 @@ public class DataPermissionCheckTool {
         String uid = getThreadLocalUidNoNull();
 
         boolean noPermission = (spaceId == null)
-                        ? (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getUid(), uid)
-                                        && !isAdmin(workflow.getUid()))
-                        : (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getSpaceId(), spaceId));
+                ? (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getUid(), uid)
+                        && !isAdmin(workflow.getUid()))
+                : (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getSpaceId(), spaceId));
 
         if (noPermission)
             deny("checkWorkflowVisible", workflow);
@@ -367,11 +367,11 @@ public class DataPermissionCheckTool {
 
         // Public/owner/admin evaluation first
         boolean baseDenied = (spaceId == null)
-                        ? (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getUid(), uid)
-                                        && !isAdmin(workflow.getUid()))
-                        : (!Boolean.TRUE.equals(workflow.getIsPublic())
-                                        && !Objects.equals(workflow.getSpaceId(), spaceId));
+                ? (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getUid(), uid)
+                        && !isAdmin(workflow.getUid()))
+                : (!Boolean.TRUE.equals(workflow.getIsPublic())
+                        && !Objects.equals(workflow.getSpaceId(), spaceId));
 
         if (!baseDenied)
             return;
@@ -463,8 +463,8 @@ public class DataPermissionCheckTool {
 
         Long spaceId = currentSpaceId();
         boolean noPermission = spaceId == null
-                        ? !Objects.equals(dbInfo.getUid(), getThreadLocalUidNoNull().toString())
-                        : (!Objects.equals(dbInfo.getSpaceId(), spaceId) || !SpaceInfoUtil.checkUserBelongSpace());
+                ? !Objects.equals(dbInfo.getUid(), getThreadLocalUidNoNull().toString())
+                : (!Objects.equals(dbInfo.getSpaceId(), spaceId) || !SpaceInfoUtil.checkUserBelongSpace());
 
         if (noPermission)
             throw new BusinessException(ResponseEnum.EXCEED_AUTHORITY);
@@ -502,8 +502,8 @@ public class DataPermissionCheckTool {
 
         Long spaceId = currentSpaceId();
         boolean noPermission = spaceId == null
-                        ? !Objects.equals(dbInfo.getUid(), getThreadLocalUidNoNull().toString())
-                        : (!Objects.equals(dbInfo.getSpaceId(), spaceId) || !SpaceInfoUtil.checkUserBelongSpace());
+                ? !Objects.equals(dbInfo.getUid(), getThreadLocalUidNoNull().toString())
+                : (!Objects.equals(dbInfo.getSpaceId(), spaceId) || !SpaceInfoUtil.checkUserBelongSpace());
 
         if (noPermission)
             throw new BusinessException(ResponseEnum.EXCEED_AUTHORITY);

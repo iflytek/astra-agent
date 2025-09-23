@@ -100,13 +100,13 @@ public class BotMaasServiceImpl implements BotMaasService {
         ChatBotBase base = botService.copyBot(uid, botId, spaceId);
         Long currentBotId = Long.valueOf(base.getId());
         UserLangChainInfo userLangChainInfoNew = UserLangChainInfo.builder()
-                        .id(currentBotId)
-                        .botId(Math.toIntExact(currentBotId))
-                        .maasId(maasId)
-                        .flowId(flowId)
-                        .uid(uid)
-                        .updateTime(LocalDateTime.now())
-                        .build();
+                .id(currentBotId)
+                .botId(Math.toIntExact(currentBotId))
+                .maasId(maasId)
+                .flowId(flowId)
+                .uid(uid)
+                .updateTime(LocalDateTime.now())
+                .build();
         userLangChainDataService.insertUserLangChainInfo(userLangChainInfo);
         log.info("----- Astra workflow synchronization successful, original massId: {}, flowId: {}, new assistant: {}", originId, flowId, currentBotId);
         return base.getId();

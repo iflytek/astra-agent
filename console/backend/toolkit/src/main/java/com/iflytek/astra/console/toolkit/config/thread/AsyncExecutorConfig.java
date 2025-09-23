@@ -46,8 +46,8 @@ public class AsyncExecutorConfig implements AsyncConfigurer {
         exec.initialize();
 
         log.info("[async-executor] init: core={}, max={}, queue={}, keepAlive={}s, prefix={}, reject={}",
-                        props.getCorePoolSize(), props.getMaxPoolSize(), props.getQueueCapacity(),
-                        props.getKeepAliveSeconds(), props.getThreadNamePrefix(), props.getRejectionPolicy());
+                props.getCorePoolSize(), props.getMaxPoolSize(), props.getQueueCapacity(),
+                props.getKeepAliveSeconds(), props.getThreadNamePrefix(), props.getRejectionPolicy());
         return exec;
     }
 

@@ -29,8 +29,8 @@ public class SseEmitterUtil {
     private static final String END_DATA = "{\"end\":true,\"timestamp\":" + System.currentTimeMillis() + "}";
 
     private static final Cache<String, Boolean> streamStopSignalSet = CacheBuilder.newBuilder()
-                    .expireAfterWrite(16, TimeUnit.SECONDS)
-                    .build();
+            .expireAfterWrite(16, TimeUnit.SECONDS)
+            .build();
 
     /**
      * Use Map object for easy access to SseEmitter by userId, or store in Redis
@@ -58,7 +58,7 @@ public class SseEmitterUtil {
                 SseEmitterUtil.sendMessage(sseId, Base64Util.encode(String.valueOf(content.charAt(j))));
                 char codePoint = content.charAt(j);
                 if ((codePoint >= 65 && codePoint <= 90)
-                                || (codePoint >= 97 && codePoint <= 122)) {
+                        || (codePoint >= 97 && codePoint <= 122)) {
                     ThreadUtil.sleep(1);
                 } else {
                     if (interval > 0) {
@@ -230,11 +230,11 @@ public class SseEmitterUtil {
     }
 
     public static <T> void asyncSendStreamAndClose(
-                    SseEmitter emitter,
-                    Stream<T> dataStream,
-                    String streamId,
-                    Function<T, Object> dataMapper,
-                    Consumer<Exception> errorHandler) {
+            SseEmitter emitter,
+            Stream<T> dataStream,
+            String streamId,
+            Function<T, Object> dataMapper,
+            Consumer<Exception> errorHandler) {
         Thread.startVirtualThread(() -> {
             try {
                 sendStream(emitter, dataStream, streamId, dataMapper, errorHandler);
@@ -250,11 +250,11 @@ public class SseEmitterUtil {
     }
 
     public static <T> void sendStream(
-                    SseEmitter emitter,
-                    Stream<T> dataStream,
-                    String streamId,
-                    Function<T, Object> dataMapper,
-                    Consumer<Exception> errorHandler) {
+            SseEmitter emitter,
+            Stream<T> dataStream,
+            String streamId,
+            Function<T, Object> dataMapper,
+            Consumer<Exception> errorHandler) {
         if (dataStream == null) {
             log.warn("Data stream is null for streamId: {}", streamId);
             return;
@@ -293,11 +293,11 @@ public class SseEmitterUtil {
     }
 
     public static void sendBufferedStream(
-                    SseEmitter emitter,
-                    Stream<String> dataStream,
-                    String streamId,
-                    int bufferSize,
-                    Consumer<String> onBufferReady) {
+            SseEmitter emitter,
+            Stream<String> dataStream,
+            String streamId,
+            int bufferSize,
+            Consumer<String> onBufferReady) {
         if (dataStream == null) {
             log.warn("Data stream is null for streamId: {}", streamId);
             return;
@@ -334,11 +334,11 @@ public class SseEmitterUtil {
     }
 
     public static void sendWithCallback(
-                    SseEmitter emitter,
-                    Supplier<Object> dataSupplier,
-                    Consumer<Object> beforeSend,
-                    Consumer<Object> afterSend,
-                    Consumer<Exception> errorHandler) {
+            SseEmitter emitter,
+            Supplier<Object> dataSupplier,
+            Consumer<Object> beforeSend,
+            Consumer<Object> afterSend,
+            Consumer<Exception> errorHandler) {
         try {
             Object data = dataSupplier.get();
 
@@ -393,9 +393,9 @@ public class SseEmitterUtil {
 
         try {
             Map<String, Object> errorData = Map.of(
-                            "error", true,
-                            "message", errorMessage != null ? errorMessage : "Unknown error",
-                            "timestamp", System.currentTimeMillis());
+                    "error", true,
+                    "message", errorMessage != null ? errorMessage : "Unknown error",
+                    "timestamp", System.currentTimeMillis());
 
             emitter.send(SseEmitter.event().name("error").data(JSON.toJSONString(errorData)));
 
@@ -415,9 +415,9 @@ public class SseEmitterUtil {
 
         try {
             Map<String, Object> completeData = Map.of(
-                            "complete", true,
-                            "timestamp", System.currentTimeMillis(),
-                            "data", completionData != null ? completionData : Map.of());
+                    "complete", true,
+                    "timestamp", System.currentTimeMillis(),
+                    "data", completionData != null ? completionData : Map.of());
 
             emitter.send(SseEmitter.event().name("complete").data(JSON.toJSONString(completeData)));
 
@@ -561,7 +561,7 @@ public class SseEmitterUtil {
         }
 
         private void asyncSendStreamAndCloseWithBuffer(SseEmitter emitter, Stream<T> dataStream, String streamId,
-                        Function<T, Object> processor, Consumer<Exception> errorHandler) {
+                Function<T, Object> processor, Consumer<Exception> errorHandler) {
             Thread.startVirtualThread(() -> {
                 try {
                     List<Object> processedDataList = new ArrayList<>();

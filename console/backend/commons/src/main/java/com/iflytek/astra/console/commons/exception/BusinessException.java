@@ -43,7 +43,7 @@ public class BusinessException extends RuntimeException {
             return String.format(template, args);
         } catch (Exception e) {
             return template + " " + String.join(", ",
-                            java.util.Arrays.stream(args).map(String::valueOf).toList());
+                    java.util.Arrays.stream(args).map(String::valueOf).toList());
         }
     }
 }

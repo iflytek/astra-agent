@@ -20,9 +20,9 @@ public interface NotificationMapper extends BaseMapper<Notification> {
      * Query broadcast messages within specified time range
      */
     List<Notification> selectBroadcastMessages(@Param("startTime") LocalDateTime startTime,
-                    @Param("endTime") LocalDateTime endTime,
-                    @Param("offset") int offset,
-                    @Param("limit") int limit);
+            @Param("endTime") LocalDateTime endTime,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
 
     /**
      * Count broadcast messages created after specified time

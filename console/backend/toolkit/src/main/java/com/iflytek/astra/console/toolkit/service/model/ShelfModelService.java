@@ -54,7 +54,7 @@ public class ShelfModelService {
 
         // 1) Calculate operable workflow set (query only necessary columns to reduce IO)
         LambdaQueryWrapper<Workflow> lqw = new LambdaQueryWrapper<Workflow>()
-                        .select(Workflow::getId, Workflow::getFlowId, Workflow::getData, Workflow::getUpdateTime, Workflow::getDeleted);
+                .select(Workflow::getId, Workflow::getFlowId, Workflow::getData, Workflow::getUpdateTime, Workflow::getDeleted);
         if (StringUtils.isNotBlank(flowId)) {
             lqw.eq(Workflow::getFlowId, flowId);
         } else {
@@ -137,7 +137,7 @@ public class ShelfModelService {
         // 4) Batch update (only update workflows that have changes)
         // workflowService.updateBatchById(toUpdate);
         log.info("offModel: Batch replacement completed, flowsUpdated={}, nodesTouched={}, details={}",
-                        toUpdate.size(), nodeTouched, wfChangedCount);
+                toUpdate.size(), nodeTouched, wfChangedCount);
 
         Map<String, Object> ret = new HashMap<>();
         ret.put("flowsUpdated", toUpdate.size());

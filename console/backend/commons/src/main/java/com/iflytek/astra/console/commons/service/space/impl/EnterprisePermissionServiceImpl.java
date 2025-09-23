@@ -19,14 +19,14 @@ public class EnterprisePermissionServiceImpl extends ServiceImpl<EnterprisePermi
     @Override
     public EnterprisePermission getEnterprisePermissionByKey(String key) {
         return this.getOne(Wrappers.<EnterprisePermission>lambdaQuery()
-                        .eq(EnterprisePermission::getPermissionKey, key));
+                .eq(EnterprisePermission::getPermissionKey, key));
     }
 
     @Override
     public List<String> listByKeys(Collection<String> keys) {
         return this.listObjs(Wrappers.<EnterprisePermission>lambdaQuery()
-                        .select(EnterprisePermission::getPermissionKey)
-                        .in(EnterprisePermission::getPermissionKey, keys));
+                .select(EnterprisePermission::getPermissionKey)
+                .in(EnterprisePermission::getPermissionKey, keys));
     }
 
     @Override

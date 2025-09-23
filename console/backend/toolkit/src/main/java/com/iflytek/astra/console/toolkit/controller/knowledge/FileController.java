@@ -58,12 +58,12 @@ public class FileController {
      */
     @PostMapping("/upload")
     @SpacePreAuth(key = "FileController_upload_POST",
-                    module = "File", point = "File Upload", description = "File Upload")
+            module = "File", point = "File Upload", description = "File Upload")
     public ApiResult<FileInfoV2> uploadFile(@RequestParam("file") MultipartFile file,
-                    @RequestParam("parentId") Long parentId,
-                    @RequestParam("repoId") Long repoId,
-                    @RequestParam("tag") String tag,
-                    HttpServletRequest request) {
+            @RequestParam("parentId") Long parentId,
+            @RequestParam("repoId") Long repoId,
+            @RequestParam("tag") String tag,
+            HttpServletRequest request) {
         return ApiResult.success(fileInfoV2Service.uploadFile(file, parentId, repoId, tag, request));
     }
 
@@ -76,7 +76,7 @@ public class FileController {
      */
     @PostMapping("/create-html-file")
     @SpacePreAuth(key = "FileController_createHtmlFile_POST",
-                    module = "File", point = "Create HTML File", description = "Create HTML File")
+            module = "File", point = "Create HTML File", description = "Create HTML File")
     public ApiResult<List<FileInfoV2>> createHtmlFile(@RequestBody HtmlFileVO htmlFileVO) {
         return ApiResult.success(fileInfoV2Service.createHtmlFile(htmlFileVO));
     }
@@ -164,7 +164,7 @@ public class FileController {
      */
     @PostMapping("/file-indexing-status")
     @SpacePreAuth(key = "FileController_fileIndexingStatus_POST",
-                    module = "File", point = "File Indexing Status", description = "File Indexing Status")
+            module = "File", point = "File Indexing Status", description = "File Indexing Status")
     public ApiResult<List<FileInfoV2Dto>> getIndexingStatus(@RequestBody DealFileVO dealFileVO) {
         return ApiResult.success(fileInfoV2Service.getIndexingStatus(dealFileVO));
     }
@@ -245,12 +245,12 @@ public class FileController {
      */
     @GetMapping("/query-file-list")
     public Object queryFileList(@RequestParam(value = "repoId") Long repoId,
-                    @RequestParam(value = "parentId", defaultValue = "-1") Long parentId,
-                    @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-                    @RequestParam(value = "tag", defaultValue = "") String tag,
-                    @RequestParam(value = "isRepoPage", defaultValue = "1") Integer isRepoPage,
-                    HttpServletRequest request) {
+            @RequestParam(value = "parentId", defaultValue = "-1") Long parentId,
+            @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "tag", defaultValue = "") String tag,
+            @RequestParam(value = "isRepoPage", defaultValue = "1") Integer isRepoPage,
+            HttpServletRequest request) {
         return fileInfoV2Service.queryFileList(repoId, parentId, pageNo, pageSize, tag, request, isRepoPage);
     }
 
@@ -347,7 +347,7 @@ public class FileController {
      */
     @GetMapping("/search-file")
     public SseEmitter searchFile(@RequestParam Long repoId, String fileName, Integer isFile, Long pid, String tag,
-                    @RequestParam(value = "isRepoPage", defaultValue = "1") Integer isRepoPage, HttpServletResponse response, HttpServletRequest request) {
+            @RequestParam(value = "isRepoPage", defaultValue = "1") Integer isRepoPage, HttpServletResponse response, HttpServletRequest request) {
         // Disable caching for real-time streaming
         response.addHeader("X-Accel-Buffering", "no");
         return fileInfoV2Service.searchFile(repoId, fileName, isFile, pid, tag, isRepoPage, request);

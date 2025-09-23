@@ -36,9 +36,9 @@ public class AgentSquareController {
     @GetMapping("/get-bot-page-by-type")
     @Operation(summary = "Get agent paginated list by category")
     public ApiResult<BotListPageDto> getBotPageByType(@RequestParam(value = "type") Integer type,
-                    @RequestParam(value = "search", required = false) String search,
-                    @RequestParam(defaultValue = "20") Integer pageSize,
-                    @RequestParam(defaultValue = "1") Integer page) {
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestParam(defaultValue = "1") Integer page) {
         return ApiResult.success(agentSquareService.getBotPageByType(type, search, pageSize, page));
     }
 }

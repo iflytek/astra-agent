@@ -29,12 +29,12 @@ public class WorkflowClient {
     private EventSource eventSource;
 
     private static final OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                    .connectTimeout(180, TimeUnit.SECONDS)
-                    .readTimeout(180, TimeUnit.SECONDS)
-                    .writeTimeout(180, TimeUnit.SECONDS)
-                    .callTimeout(420, TimeUnit.SECONDS)
-                    .connectionPool(new ConnectionPool(1000, 10, TimeUnit.MINUTES))
-                    .build();
+            .connectTimeout(180, TimeUnit.SECONDS)
+            .readTimeout(180, TimeUnit.SECONDS)
+            .writeTimeout(180, TimeUnit.SECONDS)
+            .callTimeout(420, TimeUnit.SECONDS)
+            .connectionPool(new ConnectionPool(1000, 10, TimeUnit.MINUTES))
+            .build();
 
     public WorkflowClient(String chatUrl, String appId, String appKey, String appSecret, RequestBody requestBody) {
         this.chatUrl = chatUrl;
@@ -48,11 +48,11 @@ public class WorkflowClient {
         // Platform chain large model interface wsURL
         String wsURL = chatUrl;
         this.request = new Request.Builder()
-                        .header("X-Consumer-Username", appId)
-                        .header("Authorization", genAuthorization())
-                        .url(wsURL)
-                        .post(requestBody)
-                        .build();
+                .header("X-Consumer-Username", appId)
+                .header("Authorization", genAuthorization())
+                .url(wsURL)
+                .post(requestBody)
+                .build();
         this.newSSE(sseListener);
     }
 

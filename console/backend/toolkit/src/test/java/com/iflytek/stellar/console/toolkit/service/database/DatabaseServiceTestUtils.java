@@ -107,7 +107,7 @@ public class DatabaseServiceTestUtils {
      * 创建字段DTO
      */
     public static DbTableFieldDto createFieldDto(String name, String type, String description,
-                    boolean required, String defaultValue) {
+            boolean required, String defaultValue) {
         DbTableFieldDto field = new DbTableFieldDto();
         field.setName(name);
         field.setType(type);
@@ -121,8 +121,8 @@ public class DatabaseServiceTestUtils {
      * 创建用于更新操作的字段DTO
      */
     public static DbTableFieldDto createUpdateFieldDto(Long fieldId, String name, String type,
-                    String description, boolean required,
-                    String defaultValue, Integer operateType) {
+            String description, boolean required,
+            String defaultValue, Integer operateType) {
         DbTableFieldDto field = createFieldDto(name, type, description, required, defaultValue);
         field.setId(fieldId);
         field.setOperateType(operateType);
@@ -140,11 +140,11 @@ public class DatabaseServiceTestUtils {
         }
 
         return Objects.equals(actual.getName(), expected.getName()) &&
-                        Objects.equals(actual.getDescription(), expected.getDescription()) &&
-                        Objects.equals(actual.getUid(), userId) &&
-                        Objects.equals(actual.getSpaceId(), spaceId) &&
-                        actual.getCreateTime() != null &&
-                        actual.getUpdateTime() != null;
+                Objects.equals(actual.getDescription(), expected.getDescription()) &&
+                Objects.equals(actual.getUid(), userId) &&
+                Objects.equals(actual.getSpaceId(), spaceId) &&
+                actual.getCreateTime() != null &&
+                actual.getUpdateTime() != null;
     }
 
     /**
@@ -156,11 +156,11 @@ public class DatabaseServiceTestUtils {
         }
 
         return Objects.equals(actual.getName(), expected.getName()) &&
-                        Objects.equals(actual.getDescription(), expected.getDescription()) &&
-                        Objects.equals(actual.getDbId(), expected.getDbId()) &&
-                        actual.getCreateTime() != null &&
-                        actual.getUpdateTime() != null &&
-                        !actual.getDeleted();
+                Objects.equals(actual.getDescription(), expected.getDescription()) &&
+                Objects.equals(actual.getDbId(), expected.getDbId()) &&
+                actual.getCreateTime() != null &&
+                actual.getUpdateTime() != null &&
+                !actual.getDeleted();
     }
 
     // ==================== Mock数据生成 ====================

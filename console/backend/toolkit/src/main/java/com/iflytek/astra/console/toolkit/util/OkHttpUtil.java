@@ -78,13 +78,13 @@ public class OkHttpUtil {
         dispatcher.setMaxRequestsPerHost(50); // Per-host concurrency cap
 
         return new OkHttpClient.Builder()
-                        .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                        .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
-                        .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
-                        .callTimeout(CALL_TIMEOUT, TimeUnit.SECONDS)
-                        .dispatcher(dispatcher)
-                        .connectionPool(CONNECTION_POOL)
-                        .build();
+                .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+                .writeTimeout(WRITE_TIMEOUT, TimeUnit.SECONDS)
+                .callTimeout(CALL_TIMEOUT, TimeUnit.SECONDS)
+                .dispatcher(dispatcher)
+                .connectionPool(CONNECTION_POOL)
+                .build();
     }
 
     /**
@@ -107,9 +107,9 @@ public class OkHttpUtil {
      */
     public static byte[] headForBytes(String url) {
         Request request = new Request.Builder()
-                        .url(url)
-                        .head()
-                        .build();
+                .url(url)
+                .head()
+                .build();
         try {
             try (Response response = HTTP_CLIENT.newCall(request).execute()) {
                 return Objects.requireNonNull(response.body()).bytes();
@@ -142,9 +142,9 @@ public class OkHttpUtil {
      */
     public static byte[] getForBytes(String url) {
         Request request = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .build();
+                .url(url)
+                .get()
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -166,9 +166,9 @@ public class OkHttpUtil {
      */
     public static InputStream getForInputStream(String url) {
         Request request = new Request.Builder()
-                        .url(url)
-                        .get()
-                        .build();
+                .url(url)
+                .get()
+                .build();
         try {
             try (Response response = HTTP_CLIENT.newCall(request).execute()) {
                 return Objects.requireNonNull(response.body()).byteStream();
@@ -190,10 +190,10 @@ public class OkHttpUtil {
     public static byte[] getForBytes(String url, Map<String, String> headerMap) {
         Headers headers = buildHeaders(headerMap);
         Request request = new Request.Builder()
-                        .headers(headers)
-                        .url(url)
-                        .get()
-                        .build();
+                .headers(headers)
+                .url(url)
+                .get()
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -215,10 +215,10 @@ public class OkHttpUtil {
         url = buildUrlParameter(url, urlParams);
         Headers headers = buildHeaders(headerMap);
         Request request = new Request.Builder()
-                        .headers(headers)
-                        .url(url)
-                        .get()
-                        .build();
+                .headers(headers)
+                .url(url)
+                .get()
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -281,9 +281,9 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .post(requestBody)
-                        .url(url)
-                        .build();
+                .post(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -310,10 +310,10 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .headers(headers)
-                        .post(requestBody)
-                        .url(url)
-                        .build();
+                .headers(headers)
+                .post(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -346,15 +346,15 @@ public class OkHttpUtil {
         RequestBody requestBody = buildFormDataPart(bodyParams, fileBytes);
         if (headers != null) {
             request = new Request.Builder()
-                            .headers(headers)
-                            .post(requestBody)
-                            .url(url)
-                            .build();
+                    .headers(headers)
+                    .post(requestBody)
+                    .url(url)
+                    .build();
         } else {
             request = new Request.Builder()
-                            .post(requestBody)
-                            .url(url)
-                            .build();
+                    .post(requestBody)
+                    .url(url)
+                    .build();
         }
 
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
@@ -488,9 +488,9 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .put(requestBody)
-                        .url(url)
-                        .build();
+                .put(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -515,10 +515,10 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .headers(headers)
-                        .put(requestBody)
-                        .url(url)
-                        .build();
+                .headers(headers)
+                .put(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -568,9 +568,9 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .patch(requestBody)
-                        .url(url)
-                        .build();
+                .patch(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -595,10 +595,10 @@ public class OkHttpUtil {
             requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
         }
         Request request = new Request.Builder()
-                        .headers(headers)
-                        .patch(requestBody)
-                        .url(url)
-                        .build();
+                .headers(headers)
+                .patch(requestBody)
+                .url(url)
+                .build();
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
         } catch (IOException e) {
@@ -646,15 +646,15 @@ public class OkHttpUtil {
         Request request;
         if (body == null) {
             request = new Request.Builder()
-                            .delete()
-                            .url(url)
-                            .build();
+                    .delete()
+                    .url(url)
+                    .build();
         } else {
             RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
             request = new Request.Builder()
-                            .delete(requestBody)
-                            .url(url)
-                            .build();
+                    .delete(requestBody)
+                    .url(url)
+                    .build();
         }
 
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
@@ -679,17 +679,17 @@ public class OkHttpUtil {
         Request request;
         if (body == null) {
             request = new Request.Builder()
-                            .headers(headers)
-                            .delete()
-                            .url(url)
-                            .build();
+                    .headers(headers)
+                    .delete()
+                    .url(url)
+                    .build();
         } else {
             RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
             request = new Request.Builder()
-                            .headers(headers)
-                            .delete(requestBody)
-                            .url(url)
-                            .build();
+                    .headers(headers)
+                    .delete(requestBody)
+                    .url(url)
+                    .build();
         }
         try (Response response = HTTP_CLIENT.newCall(request).execute()) {
             return Objects.requireNonNull(response.body()).bytes();
@@ -804,13 +804,13 @@ public class OkHttpUtil {
                 if (object instanceof MultipartFile) {
                     MultipartFile multipartFile = (MultipartFile) object;
                     builder.addFormDataPart(key, multipartFile.getOriginalFilename(),
-                                    RequestBody.create(multipartFile.getBytes(), MediaType.parse("multipart/form-data")));
+                            RequestBody.create(multipartFile.getBytes(), MediaType.parse("multipart/form-data")));
                 } else if (object instanceof MultipartFile[]) {
                     // Handle MultipartFile[] type
                     MultipartFile[] multipartFiles = (MultipartFile[]) object;
                     for (MultipartFile multipartFile : multipartFiles) {
                         builder.addFormDataPart(key, multipartFile.getOriginalFilename(),
-                                        RequestBody.create(multipartFile.getBytes(), MediaType.parse("multipart/form-data")));
+                                RequestBody.create(multipartFile.getBytes(), MediaType.parse("multipart/form-data")));
                     }
                 } else {
                     builder.addFormDataPart(key, object.toString());
@@ -860,16 +860,16 @@ public class OkHttpUtil {
         if (body != null) {
             RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json;charset=utf-8"));
             request = new Request.Builder()
-                            .url(url)
-                            .headers(headers)
-                            .post(requestBody)
-                            .build();
+                    .url(url)
+                    .headers(headers)
+                    .post(requestBody)
+                    .build();
         } else {
             request = new Request.Builder()
-                            .url(url)
-                            .headers(headers)
-                            .post(okhttp3.internal.Util.EMPTY_REQUEST)
-                            .build();
+                    .url(url)
+                    .headers(headers)
+                    .post(okhttp3.internal.Util.EMPTY_REQUEST)
+                    .build();
         }
 
         // Instantiate EventSource and register the listener
@@ -891,16 +891,16 @@ public class OkHttpUtil {
         Headers headers = buildHeaders(headerMap);
         if (body != null) {
             request = new Request.Builder()
-                            .url(url)
-                            .headers(headers)
-                            .post(body)
-                            .build();
+                    .url(url)
+                    .headers(headers)
+                    .post(body)
+                    .build();
         } else {
             request = new Request.Builder()
-                            .url(url)
-                            .headers(headers)
-                            .post(okhttp3.internal.Util.EMPTY_REQUEST)
-                            .build();
+                    .url(url)
+                    .headers(headers)
+                    .post(okhttp3.internal.Util.EMPTY_REQUEST)
+                    .build();
         }
 
         // Instantiate EventSource and register the listener

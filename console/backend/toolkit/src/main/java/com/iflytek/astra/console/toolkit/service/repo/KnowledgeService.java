@@ -111,8 +111,8 @@ public class KnowledgeService {
         try {
             // 1. Add tags
             FileInfoV2 fileInfoV2 = fileInfoV2Mapper.selectOne(Wrappers.lambdaQuery(FileInfoV2.class)
-                            .eq(FileInfoV2::getUuid, knowledge.getFileId())
-                            .eq(FileInfoV2::getRepoId, repo.getId()));
+                    .eq(FileInfoV2::getUuid, knowledge.getFileId())
+                    .eq(FileInfoV2::getRepoId, repo.getId()));
             // 2. Submit to knowledge base
             JSONArray jsonArray = new JSONArray();
             if (!repo.getEnableAudit() || StringUtils.isEmpty(auditSuggest) || "pass".equals(auditSuggest)) {
@@ -532,7 +532,7 @@ public class KnowledgeService {
      */
     @Async
     public void knowledgeEmbeddingExtractAsync(String contentType, String url, SliceConfig sliceConfig, FileInfoV2 fileInfoV2,
-                    ExtractKnowledgeTask extractKnowledgeTask, FileInfoV2Service fileInfoV2Service) {
+            ExtractKnowledgeTask extractKnowledgeTask, FileInfoV2Service fileInfoV2Service) {
         // 1/2: Parse the user-provided text and perform chunking (completed in one interface)
         SplitRequest request = new SplitRequest();
         request.setFile(url.replaceAll("\\+", "%20"));
@@ -717,12 +717,12 @@ public class KnowledgeService {
             }
 
             PreviewKnowledge previewKnowledge = PreviewKnowledge.builder()
-                            .fileId(fileId)
-                            .content(JSON.parseObject(JSON.toJSONString(previewKnowledgeObject)))
-                            .charCount((long) charCount)
-                            .createdAt(LocalDateTime.now())
-                            .updatedAt(LocalDateTime.now())
-                            .build();
+                    .fileId(fileId)
+                    .content(JSON.parseObject(JSON.toJSONString(previewKnowledgeObject)))
+                    .charCount((long) charCount)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
             previewKnowledgeList.add(previewKnowledge);
         }
 
@@ -913,9 +913,9 @@ public class KnowledgeService {
         if (ProjectContent.isCbgRagCompatible(r.source)) {
             // Concurrent batch push
             ExecutorService pool = new ThreadPoolExecutor(
-                            maxThreadCount, maxThreadCount, 0L, TimeUnit.MILLISECONDS,
-                            new LinkedBlockingQueue<>(),
-                            ThreadFactoryBuilder.create().setNamePrefix("addKnowledge4CBG-").build());
+                    maxThreadCount, maxThreadCount, 0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(),
+                    ThreadFactoryBuilder.create().setNamePrefix("addKnowledge4CBG-").build());
             List<Future<Map<String, String>>> futures = new ArrayList<>();
             try {
                 for (int i = 0; i < jsonArray.size(); i += maxSaveCount) {
@@ -1046,9 +1046,9 @@ public class KnowledgeService {
                 String docId = fileInfoV2.getUuid();
                 // For each docId, find all matching Knowledge entries
                 List<String> knowledgeIds = knowledges.stream()
-                                .filter(knowledge -> knowledge.getFileId().equals(docId))
-                                .map(Knowledge::getId)
-                                .collect(Collectors.toList());
+                        .filter(knowledge -> knowledge.getFileId().equals(docId))
+                        .map(Knowledge::getId)
+                        .collect(Collectors.toList());
 
                 // Store results in map
                 if (!CollectionUtils.isEmpty(knowledgeIds)) {

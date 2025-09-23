@@ -39,18 +39,18 @@ public class AuthStringUtil {
 
         StringBuilder builder = new StringBuilder();
         builder.append("host: ")
-                        .append(host)
-                        .append("\n")
-                        .append("date: ")
-                        .append(date)
-                        .append("\n")
-                        .append(method)
-                        .append(" ")
-                        .append(url.getPath())
-                        .append(" HTTP/1.1")
-                        .append("\n")
-                        .append("digest: ")
-                        .append(digest);
+                .append(host)
+                .append("\n")
+                .append("date: ")
+                .append(date)
+                .append("\n")
+                .append(method)
+                .append(" ")
+                .append(url.getPath())
+                .append(" HTTP/1.1")
+                .append("\n")
+                .append("digest: ")
+                .append(digest);
 
         // Use hmac-sha256 to calculate signature
         Charset charset = StandardCharsets.UTF_8;
@@ -60,7 +60,7 @@ public class AuthStringUtil {
         byte[] hexDigits = mac.doFinal(builder.toString().getBytes(charset));
         String sha = Base64.getEncoder().encodeToString(hexDigits);
         String authParam = String.format("hmac-auth api_key=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"",
-                        apiKey, "hmac-sha256", "host date request-line digest", sha);
+                apiKey, "hmac-sha256", "host date request-line digest", sha);
         String authorization = Base64.getEncoder().encodeToString(authParam.getBytes());
 
         Map<String, String> header = new HashMap<>();
@@ -71,16 +71,16 @@ public class AuthStringUtil {
 
         // Get authentication parameters
         return uri + "?" + header.entrySet()
-                        .stream()
-                        .map(entry -> {
-                            try {
-                                return URLEncoder.encode(entry.getKey(), String.valueOf(StandardCharsets.UTF_8)) + "=" +
-                                                URLEncoder.encode(entry.getValue(), String.valueOf(StandardCharsets.UTF_8));
-                            } catch (Exception e) {
-                                throw new RuntimeException(e.getMessage());
-                            }
-                        })
-                        .collect(Collectors.joining("&"));
+                .stream()
+                .map(entry -> {
+                    try {
+                        return URLEncoder.encode(entry.getKey(), String.valueOf(StandardCharsets.UTF_8)) + "=" +
+                                URLEncoder.encode(entry.getValue(), String.valueOf(StandardCharsets.UTF_8));
+                    } catch (Exception e) {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                })
+                .collect(Collectors.joining("&"));
     }
 
     /**
@@ -95,9 +95,9 @@ public class AuthStringUtil {
             String date = format.format(new Date());
             String host = url.getHost();
             String builder = "host: " + host + "\n" +
-                            "date: " + date + "\n" +
-                            method + " " +
-                            url.getPath() + " HTTP/1.1";
+                    "date: " + date + "\n" +
+                    method + " " +
+                    url.getPath() + " HTTP/1.1";
             Charset charset = StandardCharsets.UTF_8;
             Mac mac = Mac.getInstance("hmacsha256");
             SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(charset), "hmacsha256");
@@ -107,7 +107,7 @@ public class AuthStringUtil {
             String authorization = String.format("api_key=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"", apiKey, "hmac-sha256", "host date request-line", sha);
             String authBase = Base64.getEncoder().encodeToString(authorization.getBytes(charset));
             return String.format("%s?authorization=%s&host=%s&date=%s", httpRequestUrl, URLEncoder.encode(authBase), URLEncoder.encode(host),
-                            URLEncoder.encode(date));
+                    URLEncoder.encode(date));
         } catch (Exception e) {
             throw new RuntimeException("assemble requestUrl error:" + e.getMessage());
         }
@@ -125,10 +125,10 @@ public class AuthStringUtil {
             String digest = "SHA-256=" + Base64.getEncoder().encodeToString(instance.digest());
             // Concatenate signature string
             String builder = "host: " + url.getHost() + "\n" +
-                            "date: " + date + "\n" +
-                            method + " " +
-                            url.getPath() + " HTTP/1.1" + "\n" +
-                            "digest: " + digest;
+                    "date: " + date + "\n" +
+                    method + " " +
+                    url.getPath() + " HTTP/1.1" + "\n" +
+                    "digest: " + digest;
             // Signature result, first do HmacSHA256 encryption, then do Base64
             Mac mac = Mac.getInstance("hmacsha256");
             SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), "hmacsha256");

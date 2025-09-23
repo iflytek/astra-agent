@@ -107,16 +107,16 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             Long count = 0L;
             if (spaceId == null) {
                 count = dbInfoMapper.selectCount(new QueryWrapper<DbInfo>().lambda()
-                                .eq(DbInfo::getName, databaseDto.getName())
-                                .eq(DbInfo::getSpaceId, null)
-                                .eq(DbInfo::getUid, userId)
-                                .eq(DbInfo::getDeleted, false));
+                        .eq(DbInfo::getName, databaseDto.getName())
+                        .eq(DbInfo::getSpaceId, null)
+                        .eq(DbInfo::getUid, userId)
+                        .eq(DbInfo::getDeleted, false));
             } else {
                 count = dbInfoMapper.selectCount(new QueryWrapper<DbInfo>().lambda()
-                                .eq(DbInfo::getName, databaseDto.getName())
-                                .eq(DbInfo::getUid, userId)
-                                .eq(DbInfo::getSpaceId, spaceId)
-                                .eq(DbInfo::getDeleted, false));
+                        .eq(DbInfo::getName, databaseDto.getName())
+                        .eq(DbInfo::getUid, userId)
+                        .eq(DbInfo::getSpaceId, spaceId)
+                        .eq(DbInfo::getDeleted, false));
             }
             if (count > 0) {
                 throw new BusinessException(ResponseEnum.DATABASE_NAME_EXIST);
@@ -165,7 +165,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             dataPermissionCheckTool.checkDbUpdateBelong(id);
             DbInfo dbInfo = dbInfoMapper.selectById(id);
             Long count = flowDbRelMapper.selectCount(new QueryWrapper<FlowDbRel>().lambda()
-                            .eq(FlowDbRel::getDbId, dbInfo.getDbId()));
+                    .eq(FlowDbRel::getDbId, dbInfo.getDbId()));
             if (count > 0) {
                 throw new BusinessException(ResponseEnum.DATABASE_DELETE_FAILED_CITED);
             }
@@ -193,30 +193,30 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             dbInfoMapper.insert(newDbInfo);
             // 构建ddl
             dbTableMapper.selectList(new QueryWrapper<DbTable>().lambda()
-                            .eq(DbTable::getDbId, dbInfo.getId())
-                            .eq(DbTable::getDeleted, false))
-                            .forEach(dbTable -> {
-                                DbTable newDbTable = new DbTable();
-                                newDbTable.setDbId(newDbInfo.getId());
-                                newDbTable.setName(dbTable.getName());
-                                newDbTable.setDescription(dbTable.getDescription());
-                                newDbTable.setCreateTime(new Date());
-                                newDbTable.setCreateTime(new Date());
-                                dbTableMapper.insert(newDbTable);
-                                // 表字段创建
-                                List<DbTableField> fields = new ArrayList<>();
-                                dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                                                .eq(DbTableField::getTbId, dbTable.getId())).forEach(dbTableField -> {
-                                                    DbTableField newDbTableField = new DbTableField();
-                                                    BeanUtils.copyProperties(dbTableField, newDbTableField);
-                                                    newDbTableField.setTbId(newDbTable.getId());
-                                                    newDbTableField.setId(null);
-                                                    newDbTableField.setCreateTime(new Date());
-                                                    newDbTableField.setUpdateTime(new Date());
-                                                    fields.add(newDbTableField);
-                                                });
-                                dbTableFieldMapper.insertBatch(fields);
-                            });
+                    .eq(DbTable::getDbId, dbInfo.getId())
+                    .eq(DbTable::getDeleted, false))
+                    .forEach(dbTable -> {
+                        DbTable newDbTable = new DbTable();
+                        newDbTable.setDbId(newDbInfo.getId());
+                        newDbTable.setName(dbTable.getName());
+                        newDbTable.setDescription(dbTable.getDescription());
+                        newDbTable.setCreateTime(new Date());
+                        newDbTable.setCreateTime(new Date());
+                        dbTableMapper.insert(newDbTable);
+                        // 表字段创建
+                        List<DbTableField> fields = new ArrayList<>();
+                        dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
+                                .eq(DbTableField::getTbId, dbTable.getId())).forEach(dbTableField -> {
+                                    DbTableField newDbTableField = new DbTableField();
+                                    BeanUtils.copyProperties(dbTableField, newDbTableField);
+                                    newDbTableField.setTbId(newDbTable.getId());
+                                    newDbTableField.setId(null);
+                                    newDbTableField.setCreateTime(new Date());
+                                    newDbTableField.setUpdateTime(new Date());
+                                    fields.add(newDbTableField);
+                                });
+                        dbTableFieldMapper.insertBatch(fields);
+                    });
             // 调用核心系统创建数据库
             Long dbId = coreSystemService.cloneDataBase(dbInfo.getDbId(), newDbInfo.getName(), UserInfoManagerHandler.getUserId());
             newDbInfo.setDbId(dbId);
@@ -244,11 +244,11 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             Long spaceId = SpaceInfoUtil.getSpaceId();
             Page<DbInfo> page = new Page<>(databaseDto.getPageNum(), databaseDto.getPageSize());
             LambdaQueryWrapper<DbInfo> lqw = new QueryWrapper<DbInfo>().lambda()
-                            .eq(DbInfo::getDeleted, false)
-                            .and(StringUtils.isNotBlank(databaseDto.getSearch()),
-                                            wrapper -> wrapper.like(DbInfo::getName, databaseDto.getSearch())
-                                                            .or()
-                                                            .like(DbInfo::getDescription, databaseDto.getSearch()));
+                    .eq(DbInfo::getDeleted, false)
+                    .and(StringUtils.isNotBlank(databaseDto.getSearch()),
+                            wrapper -> wrapper.like(DbInfo::getName, databaseDto.getSearch())
+                                    .or()
+                                    .like(DbInfo::getDescription, databaseDto.getSearch()));
             if (spaceId != null) {
                 lqw.eq(DbInfo::getSpaceId, spaceId);
             } else {
@@ -274,16 +274,16 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             }
             // 表数量限制
             Long tableCount = dbTableMapper.selectCount(new QueryWrapper<DbTable>().lambda()
-                            .eq(DbTable::getDbId, dbInfo.getDbId())
-                            .eq(DbTable::getDeleted, false));
+                    .eq(DbTable::getDbId, dbInfo.getDbId())
+                    .eq(DbTable::getDeleted, false));
             if (tableCount > 20) {
                 throw new BusinessException(ResponseEnum.DATABASE_COUNT_LIMITED);
             }
             // 表名重复校验
             Long count = dbTableMapper.selectCount(new QueryWrapper<DbTable>().lambda()
-                            .eq(DbTable::getName, dbTableDto.getName())
-                            .eq(DbTable::getDbId, dbInfo.getDbId())
-                            .eq(DbTable::getDeleted, false));
+                    .eq(DbTable::getName, dbTableDto.getName())
+                    .eq(DbTable::getDbId, dbInfo.getDbId())
+                    .eq(DbTable::getDeleted, false));
             if (count > 0) {
                 throw new BusinessException(ResponseEnum.DATABASE_TABLE_NAME_EXIST);
             }
@@ -343,9 +343,9 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             }
             dataPermissionCheckTool.checkDbBelong(dbId);
             List<DbTable> dbTables = dbTableMapper.selectList(new QueryWrapper<DbTable>().lambda()
-                            .eq(DbTable::getDbId, dbId)
-                            .orderByDesc(DbTable::getCreateTime)
-                            .eq(DbTable::getDeleted, false));
+                    .eq(DbTable::getDbId, dbId)
+                    .orderByDesc(DbTable::getCreateTime)
+                    .eq(DbTable::getDeleted, false));
             List<DbTableVo> dbTableVos = new ArrayList<>();
             dbTables.forEach(dbTable -> {
                 DbTableVo dbTableVo = new DbTableVo();
@@ -364,7 +364,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         try {
             Page<DbTableField> page = new Page<>(dataBaseSearchVo.getPageNum(), dataBaseSearchVo.getPageSize());
             page = dbTableFieldMapper.selectPage(page, new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, dataBaseSearchVo.getTbId()));
+                    .eq(DbTableField::getTbId, dataBaseSearchVo.getTbId()));
             return page;
         } catch (Exception ex) {
             log.error("获取表字段列表失败,params={}", JSONObject.toJSONString(dataBaseSearchVo), ex);
@@ -385,41 +385,41 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             if (dbTableDto.getFields() != null && !dbTableDto.getFields().isEmpty()) {
                 // 过滤掉系统字段
                 dbTableDto.setFields(dbTableDto.getFields()
-                                .stream()
-                                .filter(field -> !allowedNames.contains(field.getName()))
-                                .peek(field -> {
-                                    // 设置默认值
-                                    if (StringUtils.isBlank(field.getDefaultValue())) {
-                                        field.setDefaultValue(transFormDefaultValue(field.getType()).toString());
-                                    }
-                                })
-                                .collect(Collectors.toList()));
+                        .stream()
+                        .filter(field -> !allowedNames.contains(field.getName()))
+                        .peek(field -> {
+                            // 设置默认值
+                            if (StringUtils.isBlank(field.getDefaultValue())) {
+                                field.setDefaultValue(transFormDefaultValue(field.getType()).toString());
+                            }
+                        })
+                        .collect(Collectors.toList()));
             }
             // 更新核心系统侧
             String ddl = buildDDL(dbTableDto, DBOperateEnum.UPDATE.getCode(), originName);
             if (!dbTable.getName().equals(dbTableDto.getName())) {
                 // 判断表名是否已存在
                 Long count = dbTableMapper.selectCount(new QueryWrapper<DbTable>().lambda()
-                                .eq(DbTable::getName, dbTableDto.getName())
-                                .eq(DbTable::getDbId, dbTable.getDbId())
-                                .ne(DbTable::getId, dbTableDto.getId())
-                                .eq(DbTable::getDeleted, false));
+                        .eq(DbTable::getName, dbTableDto.getName())
+                        .eq(DbTable::getDbId, dbTable.getDbId())
+                        .ne(DbTable::getId, dbTableDto.getId())
+                        .eq(DbTable::getDeleted, false));
                 if (count > 0) {
                     throw new BusinessException(ResponseEnum.DATABASE_TABLE_NAME_EXIST);
                 }
             }
             // 查询表字段数量
             Long fieldCount = dbTableFieldMapper.selectCount(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, dbTable.getId()));
+                    .eq(DbTableField::getTbId, dbTable.getId()));
             // 统计新增字段数量，删除数量
             long insertCount = dbTableDto.getFields()
-                            .stream()
-                            .filter(field -> DBOperateEnum.INSERT.getCode().equals(field.getOperateType()))
-                            .count();
+                    .stream()
+                    .filter(field -> DBOperateEnum.INSERT.getCode().equals(field.getOperateType()))
+                    .count();
             long deleteCount = dbTableDto.getFields()
-                            .stream()
-                            .filter(field -> DBOperateEnum.DELETE.getCode().equals(field.getOperateType()))
-                            .count();
+                    .stream()
+                    .filter(field -> DBOperateEnum.DELETE.getCode().equals(field.getOperateType()))
+                    .count();
             if (fieldCount + insertCount - deleteCount > 20) {
                 throw new BusinessException(ResponseEnum.DATABASE_FIELD_CANNOT_BEYOND_20);
             }
@@ -468,28 +468,28 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         if (DBOperateEnum.INSERT.getCode().equals(type)) {
             String table = SqlRenderer.quoteIdent(dbTableDto.getName());
             ddl.append("CREATE TABLE ")
-                            .append(table)
-                            .append(" (\n")
-                            .append("  ")
-                            .append(SqlRenderer.quoteIdent("id"))
-                            .append(" BIGSERIAL PRIMARY KEY,\n")
-                            .append("  ")
-                            .append(SqlRenderer.quoteIdent("uid"))
-                            .append(" VARCHAR(64) NOT NULL,\n")
-                            .append("  ")
-                            .append(SqlRenderer.quoteIdent("create_time"))
-                            .append(" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
+                    .append(table)
+                    .append(" (\n")
+                    .append("  ")
+                    .append(SqlRenderer.quoteIdent("id"))
+                    .append(" BIGSERIAL PRIMARY KEY,\n")
+                    .append("  ")
+                    .append(SqlRenderer.quoteIdent("uid"))
+                    .append(" VARCHAR(64) NOT NULL,\n")
+                    .append("  ")
+                    .append(SqlRenderer.quoteIdent("create_time"))
+                    .append(" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP");
 
             List<DbTableFieldDto> fields = dbTableDto.getFields()
-                            .stream()
-                            .filter(f -> !Arrays.asList(SYSTEM_FIELDS).contains(f.getName()))
-                            .collect(Collectors.toList());
+                    .stream()
+                    .filter(f -> !Arrays.asList(SYSTEM_FIELDS).contains(f.getName()))
+                    .collect(Collectors.toList());
 
             for (DbTableFieldDto field : fields) {
                 ddl.append(",\n  ")
-                                .append(SqlRenderer.quoteIdent(field.getName()))
-                                .append(" ")
-                                .append(transFormType(field.getType()));
+                        .append(SqlRenderer.quoteIdent(field.getName()))
+                        .append(" ")
+                        .append(transFormType(field.getType()));
                 if (Boolean.TRUE.equals(field.getIsRequired())) {
                     ddl.append(" NOT NULL");
                 }
@@ -503,10 +503,10 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             // 表/列注释
             if (StringUtils.isNotBlank(dbTableDto.getDescription())) {
                 ddl.append("\nCOMMENT ON TABLE ")
-                                .append(table)
-                                .append(" IS ")
-                                .append(SqlRenderer.quoteLiteral(dbTableDto.getDescription()))
-                                .append(";");
+                        .append(table)
+                        .append(" IS ")
+                        .append(SqlRenderer.quoteLiteral(dbTableDto.getDescription()))
+                        .append(";");
             }
             ddl.append("\nCOMMENT ON COLUMN ").append(table).append(".").append(SqlRenderer.quoteIdent("id")).append(" IS '主键id';");
             ddl.append("\nCOMMENT ON COLUMN ").append(table).append(".").append(SqlRenderer.quoteIdent("uid")).append(" IS 'uid';");
@@ -515,12 +515,12 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             for (DbTableFieldDto field : fields) {
                 if (StringUtils.isNotBlank(field.getDescription())) {
                     ddl.append("\nCOMMENT ON COLUMN ")
-                                    .append(table)
-                                    .append(".")
-                                    .append(SqlRenderer.quoteIdent(field.getName()))
-                                    .append(" IS ")
-                                    .append(SqlRenderer.quoteLiteral(field.getDescription()))
-                                    .append(";");
+                            .append(table)
+                            .append(".")
+                            .append(SqlRenderer.quoteIdent(field.getName()))
+                            .append(" IS ")
+                            .append(SqlRenderer.quoteLiteral(field.getDescription()))
+                            .append(";");
                 }
             }
 
@@ -532,10 +532,10 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             }
             if (StringUtils.isNotBlank(dbTableDto.getDescription())) {
                 ddl.append("COMMENT ON TABLE ")
-                                .append(tableNow)
-                                .append(" IS ")
-                                .append(SqlRenderer.quoteLiteral(dbTableDto.getDescription()))
-                                .append("; ");
+                        .append(tableNow)
+                        .append(" IS ")
+                        .append(SqlRenderer.quoteLiteral(dbTableDto.getDescription()))
+                        .append("; ");
             }
 
             // 操作按类型排序（DELETE -> UPDATE -> INSERT），避免依赖问题
@@ -602,11 +602,11 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         String col = SqlRenderer.quoteIdent(field.getName());
 
         sql.append("ALTER TABLE ")
-                        .append(table)
-                        .append(" ADD COLUMN IF NOT EXISTS ")
-                        .append(col)
-                        .append(" ")
-                        .append(transFormType(field.getType()));
+                .append(table)
+                .append(" ADD COLUMN IF NOT EXISTS ")
+                .append(col)
+                .append(" ")
+                .append(transFormType(field.getType()));
 
         if (Boolean.TRUE.equals(field.getIsRequired())) {
             sql.append(" NOT NULL");
@@ -618,12 +618,12 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
 
         if (StringUtils.isNotBlank(field.getDescription())) {
             sql.append("COMMENT ON COLUMN ")
-                            .append(table)
-                            .append(".")
-                            .append(col)
-                            .append(" IS ")
-                            .append(SqlRenderer.quoteLiteral(field.getDescription()))
-                            .append("; ");
+                    .append(table)
+                    .append(".")
+                    .append(col)
+                    .append(" IS ")
+                    .append(SqlRenderer.quoteLiteral(field.getDescription()))
+                    .append("; ");
         }
         return sql.toString();
     }
@@ -675,18 +675,18 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         if (!StringUtils.equals(field.getDescription(), dbTableField.getDescription())) {
             if (StringUtils.isNotBlank(field.getDescription())) {
                 commentSql.append(" COMMENT ON COLUMN ")
-                                .append(table)
-                                .append(".")
-                                .append(toCol)
-                                .append(" IS ")
-                                .append(SqlRenderer.quoteLiteral(field.getDescription()))
-                                .append("; ");
+                        .append(table)
+                        .append(".")
+                        .append(toCol)
+                        .append(" IS ")
+                        .append(SqlRenderer.quoteLiteral(field.getDescription()))
+                        .append("; ");
             } else {
                 commentSql.append(" COMMENT ON COLUMN ")
-                                .append(table)
-                                .append(".")
-                                .append(toCol)
-                                .append(" IS NULL; ");
+                        .append(table)
+                        .append(".")
+                        .append(toCol)
+                        .append(" IS NULL; ");
             }
         }
 
@@ -786,7 +786,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             DbTable dbTable = dbTableMapper.selectById(tbId);
             dataPermissionCheckTool.checkDbBelong(dbTable.getDbId());
             Long count = flowDbRelMapper.selectCount(new QueryWrapper<FlowDbRel>().lambda()
-                            .eq(FlowDbRel::getTbId, tbId));
+                    .eq(FlowDbRel::getTbId, tbId));
             if (count > 0) {
                 throw new BusinessException(ResponseEnum.DATABASE_TABLE_DELETE_FAILED_CITED);
             }
@@ -800,11 +800,11 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 coreSystemService.execDDL(stmt, UserInfoManagerHandler.getUserId(), SpaceInfoUtil.getSpaceId(), dbInfo.getDbId());
             }
             dbTableMapper.update(new UpdateWrapper<DbTable>().lambda()
-                            .eq(DbTable::getId, tbId)
-                            .set(DbTable::getDeleted, true));
+                    .eq(DbTable::getId, tbId)
+                    .set(DbTable::getDeleted, true));
             // 删除表字段
             dbTableFieldMapper.delete(new UpdateWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, tbId));
+                    .eq(DbTableField::getTbId, tbId));
         } catch (Exception ex) {
             log.error("删除表失败,tbId={}", tbId, ex);
             throw new BusinessException(ResponseEnum.DATABASE_TABLE_DELETE_FAILED);
@@ -816,7 +816,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         try {
             DbTable dbTable = dbTableMapper.selectById(dbTableOperateDto.getTbId());
             List<DbTableField> fields = dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, dbTable.getId()));
+                    .eq(DbTableField::getTbId, dbTable.getId()));
             DbInfo dbInfo = dbInfoMapper.selectById(dbTable.getDbId());
 
             // 逐条校验 + 逐条执行（可分批，以提高可用性）
@@ -830,12 +830,12 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 SqlRenderer.denyMultiStmtOrComment(single);
 
                 coreSystemService.execDML(
-                                single,
-                                UserInfoManagerHandler.getUserId(),
-                                SpaceInfoUtil.getSpaceId(),
-                                dbInfo.getDbId(),
-                                DBOperateEnum.UPDATE.getCode(),
-                                dbTableOperateDto.getExecDev());
+                        single,
+                        UserInfoManagerHandler.getUserId(),
+                        SpaceInfoUtil.getSpaceId(),
+                        dbInfo.getDbId(),
+                        DBOperateEnum.UPDATE.getCode(),
+                        dbTableOperateDto.getExecDev());
 
                 // 可在这里做简单的批次让步（如每 BATCH 条 sleep 1ms），防止压垮核心系统
                 if ((i + 1) % BATCH == 0) {
@@ -887,9 +887,9 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
         if (DBOperateEnum.INSERT.getCode().equals(operateType)) {
             // 过滤 null
             Map<String, Object> nonNull = params.entrySet()
-                            .stream()
-                            .filter(e -> e.getValue() != null)
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .stream()
+                    .filter(e -> e.getValue() != null)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             List<String> cols = new ArrayList<>();
             List<String> vals = new ArrayList<>();
@@ -901,13 +901,13 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 vals.add(SqlRenderer.renderValue(e.getValue()));
             }
             sql.append("INSERT INTO ")
-                            .append(table)
-                            .append(" (")
-                            .append(String.join(", ", cols))
-                            .append(")")
-                            .append(" VALUES (")
-                            .append(String.join(", ", vals))
-                            .append(");");
+                    .append(table)
+                    .append(" (")
+                    .append(String.join(", ", cols))
+                    .append(")")
+                    .append(" VALUES (")
+                    .append(String.join(", ", vals))
+                    .append(");");
 
         } else if (DBOperateEnum.UPDATE.getCode().equals(operateType)) {
             // where id = ?
@@ -915,21 +915,21 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             String where = SqlRenderer.quoteIdent("id") + " = " + id;
 
             String sets = params.entrySet()
-                            .stream()
-                            .filter(e -> !"id".equals(e.getKey()))
-                            .map(e -> SqlRenderer.quoteIdent(e.getKey()) + " = " + SqlRenderer.renderValue(e.getValue()))
-                            .collect(Collectors.joining(", "));
+                    .stream()
+                    .filter(e -> !"id".equals(e.getKey()))
+                    .map(e -> SqlRenderer.quoteIdent(e.getKey()) + " = " + SqlRenderer.renderValue(e.getValue()))
+                    .collect(Collectors.joining(", "));
 
             if (StringUtils.isBlank(sets)) {
                 throw new IllegalArgumentException("No update columns");
             }
             sql.append("UPDATE ")
-                            .append(table)
-                            .append(" SET ")
-                            .append(sets)
-                            .append(" WHERE ")
-                            .append(where)
-                            .append(";");
+                    .append(table)
+                    .append(" SET ")
+                    .append(sets)
+                    .append(" WHERE ")
+                    .append(where)
+                    .append(";");
 
         } else if (DBOperateEnum.DELETE.getCode().equals(operateType)) {
             long id = SqlRenderer.requireLong(params.get("id"), "id");
@@ -947,28 +947,28 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             // 系统字段uuid填充
             // 过滤为空的值
             params = params.entrySet()
-                            .stream()
-                            .filter(entry -> entry.getValue() != null)
-                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .stream()
+                    .filter(entry -> entry.getValue() != null)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
             String columns = " uid ";
             String values = "'" + UserInfoManagerHandler.getUserId() + "'";
             if (!params.isEmpty()) {
                 columns = columns.concat(",").concat(String.join(", ", params.keySet()));
                 values = values + "," + params.values()
-                                .stream()
-                                .map(value -> value instanceof String ? "'" + value + "'" : value.toString())
-                                .collect(Collectors.joining(", "));
+                        .stream()
+                        .map(value -> value instanceof String ? "'" + value + "'" : value.toString())
+                        .collect(Collectors.joining(", "));
             }
             sql.append("INSERT INTO ").append(tableName).append(" (").append(columns).append(") VALUES (").append(values).append("); ");
         } else if (DBOperateEnum.UPDATE.getCode().equals(operateType)) {
             // 构建update语句
             String condition = "id = " + params.get("id");
             String updates = params.entrySet()
-                            .stream()
-                            .filter(entry -> !"id".equals(entry.getKey())) // 过滤掉 key 为 "id" 的 entry
-                            .map(entry -> entry.getKey() + " = " +
-                                            (entry.getValue() instanceof String ? "'" + entry.getValue() + "'" : entry.getValue()))
-                            .collect(Collectors.joining(", "));
+                    .stream()
+                    .filter(entry -> !"id".equals(entry.getKey())) // 过滤掉 key 为 "id" 的 entry
+                    .map(entry -> entry.getKey() + " = " +
+                            (entry.getValue() instanceof String ? "'" + entry.getValue() + "'" : entry.getValue()))
+                    .collect(Collectors.joining(", "));
             sql.append("UPDATE ").append(tableName).append(" SET ").append(updates).append(" WHERE ").append(condition).append("; ");
         } else if (DBOperateEnum.DELETE.getCode().equals(operateType)) {
             // 构建delete语句
@@ -984,8 +984,8 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             // 构建模版excel文件
             DbTable dbTable = dbTableMapper.selectById(tbId);
             List<DbTableField> fields = dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, tbId)
-                            .orderByAsc(DbTableField::getCreateTime));
+                    .eq(DbTableField::getTbId, tbId)
+                    .orderByAsc(DbTableField::getCreateTime));
             // 设置响应头，支持文件下载
             response.setContentType("application/vnd.ms-excel");
             response.setCharacterEncoding("utf-8");
@@ -1004,9 +1004,9 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
 
             // 使用 EasyExcel 生成文件流，仅写入表头
             EasyExcel.write(response.getOutputStream())
-                            .head(head)
-                            .sheet("模版")
-                            .doWrite(new ArrayList<>()); // 空数据
+                    .head(head)
+                    .sheet("模版")
+                    .doWrite(new ArrayList<>()); // 空数据
 
         } catch (Exception ex) {
             log.error("模版生成失败, tbId={}", tbId, ex);
@@ -1031,26 +1031,26 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 throw new IllegalArgumentException("Bad paging");
 
             String dml = "SELECT * FROM " + table + " ORDER BY " +
-                            SqlRenderer.quoteIdent("create_time") + " DESC, " + SqlRenderer.quoteIdent("id") + " DESC" +
-                            " LIMIT " + limit + " OFFSET " + offset;
+                    SqlRenderer.quoteIdent("create_time") + " DESC, " + SqlRenderer.quoteIdent("id") + " DESC" +
+                    " LIMIT " + limit + " OFFSET " + offset;
             SqlRenderer.denyMultiStmtOrComment(dml);
 
             List<JSONObject> maps = (List<JSONObject>) coreSystemService.execDML(
-                            dml,
-                            UserInfoManagerHandler.getUserId(),
-                            SpaceInfoUtil.getSpaceId(),
-                            dbInfo.getDbId(),
-                            DBOperateEnum.SELECT.getCode(),
-                            dto.getExecDev());
+                    dml,
+                    UserInfoManagerHandler.getUserId(),
+                    SpaceInfoUtil.getSpaceId(),
+                    dbInfo.getDbId(),
+                    DBOperateEnum.SELECT.getCode(),
+                    dto.getExecDev());
 
             String countDml = "SELECT COUNT(*) FROM " + table;
             Long total = (Long) coreSystemService.execDML(
-                            countDml,
-                            UserInfoManagerHandler.getUserId(),
-                            SpaceInfoUtil.getSpaceId(),
-                            dbInfo.getDbId(),
-                            DBOperateEnum.SELECT_TOTAL_COUNT.getCode(),
-                            dto.getExecDev());
+                    countDml,
+                    UserInfoManagerHandler.getUserId(),
+                    SpaceInfoUtil.getSpaceId(),
+                    dbInfo.getDbId(),
+                    DBOperateEnum.SELECT_TOTAL_COUNT.getCode(),
+                    dto.getExecDev());
 
             page.setTotal(total == null ? 0 : total);
             page.setRecords(maps);
@@ -1069,58 +1069,58 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             DbInfo dbInfo = dbInfoMapper.selectById(dbTable.getDbId());
 
             List<DbTableField> dbTableFields = dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, tbId)
-                            .orderByDesc(DbTableField::getCreateTime));
+                    .eq(DbTableField::getTbId, tbId)
+                    .orderByDesc(DbTableField::getCreateTime));
 
             // 1) 读 Excel -> rows
             List<Map<String, Object>> rows = new ArrayList<>();
             DBExcelReadListener listener = new DBExcelReadListener(
-                            dbTableFields,
-                            rows,
-                            UserInfoManagerHandler.getUserId(),
-                            10_000);
+                    dbTableFields,
+                    rows,
+                    UserInfoManagerHandler.getUserId(),
+                    10_000);
             EasyExcel.read(file.getInputStream(), listener).sheet().doRead();
 
             // 2) 构建 INSERT（绑定参数），分片执行 + 重试 + 错误收集
             final int CHUNK = 200, MAX_RETRIES = 3;
             JooqBatchExecutor.ResultSummary summary = JooqBatchExecutor.executeInChunks(
-                            dslCon,
-                            dbTable.getName(),
-                            rows,
-                            CHUNK,
-                            MAX_RETRIES,
-                            row -> {
-                                Table<?> t = table(name(dbTable.getName()));
-                                InsertSetMoreStep<?> step = dslCon.insertInto(t).set(field(name("uid")), row.get("uid"));
-                                for (Map.Entry<String, Object> e : row.entrySet()) {
-                                    if ("uid".equals(e.getKey()))
-                                        continue;
-                                    step = ((InsertSetStep<?>) step).set(field(name(e.getKey())), e.getValue());
-                                }
-                                return (Query) step;
-                            },
-                            // ★ 这里收到的 sql 已经是 INLINED 的完整语句
-                            (sql, paramsIgnored) -> {
-                                // 单条语句安全检查（允许末尾 ;，但拒绝内部多条）
-                                SqlRenderer.denyMultiStmtOrComment(sql);
-                                coreSystemService.execDML(
-                                                sql,
-                                                UserInfoManagerHandler.getUserId(),
-                                                SpaceInfoUtil.getSpaceId(),
-                                                dbInfo.getDbId(),
-                                                DBOperateEnum.INSERT.getCode(),
-                                                execDev);
-                            });
+                    dslCon,
+                    dbTable.getName(),
+                    rows,
+                    CHUNK,
+                    MAX_RETRIES,
+                    row -> {
+                        Table<?> t = table(name(dbTable.getName()));
+                        InsertSetMoreStep<?> step = dslCon.insertInto(t).set(field(name("uid")), row.get("uid"));
+                        for (Map.Entry<String, Object> e : row.entrySet()) {
+                            if ("uid".equals(e.getKey()))
+                                continue;
+                            step = ((InsertSetStep<?>) step).set(field(name(e.getKey())), e.getValue());
+                        }
+                        return (Query) step;
+                    },
+                    // ★ 这里收到的 sql 已经是 INLINED 的完整语句
+                    (sql, paramsIgnored) -> {
+                        // 单条语句安全检查（允许末尾 ;，但拒绝内部多条）
+                        SqlRenderer.denyMultiStmtOrComment(sql);
+                        coreSystemService.execDML(
+                                sql,
+                                UserInfoManagerHandler.getUserId(),
+                                SpaceInfoUtil.getSpaceId(),
+                                dbInfo.getDbId(),
+                                DBOperateEnum.INSERT.getCode(),
+                                execDev);
+                    });
 
             // 3) 汇总
             if (!summary.errors.isEmpty()) {
                 // 记录前 10 条失败样例
                 StringBuilder sb = new StringBuilder();
                 sb.append("导入部分失败：success=")
-                                .append(summary.success)
-                                .append(", failed=")
-                                .append(summary.failed)
-                                .append(". 失败样例：");
+                        .append(summary.success)
+                        .append(", failed=")
+                        .append(summary.failed)
+                        .append(". 失败样例：");
                 summary.errors.stream().limit(10).forEach(err -> sb.append("\n#").append(err.index).append(" : ").append(err.message));
                 log.warn("importTableData partial failures: {}", sb);
                 // 业务策略：若允许“部分成功”，这里可不抛；若要求“全成功”，这里抛出
@@ -1149,9 +1149,9 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             for (String stmt : safeSplitStatements(ddl)) {
                 SqlRenderer.denyMultiStmtOrComment(stmt); // 这时每一条都不包含分号
                 coreSystemService.execDDL(stmt,
-                                UserInfoManagerHandler.getUserId(),
-                                SpaceInfoUtil.getSpaceId(),
-                                dbInfo.getDbId());
+                        UserInfoManagerHandler.getUserId(),
+                        SpaceInfoUtil.getSpaceId(),
+                        dbInfo.getDbId());
             }
             // 本地元数据保存
             DbTable copyTable = new DbTable();
@@ -1164,7 +1164,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
 
             // 复制表字段
             List<DbTableField> dbTableFields = dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, tbId));
+                    .eq(DbTableField::getTbId, tbId));
             List<DbTableField> copyTableFields = new ArrayList<>();
             for (DbTableField dbTableField : dbTableFields) {
                 DbTableField copyTableField = new DbTableField();
@@ -1196,27 +1196,27 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 }
                 // 全部做数字白名单校验
                 List<Long> ids = dto.getDataIds()
-                                .stream()
-                                .map(x -> SqlRenderer.requireLong(x, "id"))
-                                .collect(Collectors.toList());
+                        .stream()
+                        .map(x -> SqlRenderer.requireLong(x, "id"))
+                        .collect(Collectors.toList());
                 String in = ids.stream().map(String::valueOf).collect(Collectors.joining(","));
                 dml = "SELECT * FROM " + table + " WHERE " + SqlRenderer.quoteIdent("id") + " IN (" + in + ")";
             }
             SqlRenderer.denyMultiStmtOrComment(dml);
 
             List<JSONObject> data = (List<JSONObject>) coreSystemService.execDML(
-                            dml,
-                            UserInfoManagerHandler.getUserId(),
-                            SpaceInfoUtil.getSpaceId(),
-                            dbInfo.getDbId(),
-                            DBOperateEnum.SELECT.getCode(),
-                            dto.getExecDev());
+                    dml,
+                    UserInfoManagerHandler.getUserId(),
+                    SpaceInfoUtil.getSpaceId(),
+                    dbInfo.getDbId(),
+                    DBOperateEnum.SELECT.getCode(),
+                    dto.getExecDev());
 
             // 组装表头与数据（与原逻辑一致）
             List<List<String>> headList = new ArrayList<>();
             dbTableFieldMapper.selectList(new QueryWrapper<DbTableField>().lambda()
-                            .eq(DbTableField::getTbId, dto.getTbId()))
-                            .forEach(field -> headList.add(Collections.singletonList(field.getName())));
+                    .eq(DbTableField::getTbId, dto.getTbId()))
+                    .forEach(field -> headList.add(Collections.singletonList(field.getName())));
 
             List<List<Object>> dataList = new ArrayList<>();
             for (JSONObject row : data) {
@@ -1234,9 +1234,9 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");
 
             EasyExcel.write(response.getOutputStream())
-                            .head(headList)
-                            .sheet("data")
-                            .doWrite(dataList);
+                    .head(headList)
+                    .sheet("data")
+                    .doWrite(dataList);
         } catch (Exception ex) {
             log.error("导出表数据失败, params:{}", dto, ex);
             throw new BusinessException(ResponseEnum.DATABASE_TABLE_EXPORT_FAILED);
@@ -1246,28 +1246,28 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
     public List<DbTableInfoVo> getDbTableInfoList() {
         List<DbTableInfoVo> result = new ArrayList<>();
         dbInfoMapper.selectList(new QueryWrapper<DbInfo>().lambda()
-                        .and(SpaceInfoUtil.getSpaceId() == null,
-                                        wrapper -> wrapper.eq(DbInfo::getUid, UserInfoManagerHandler.getUserId())
-                                                        .isNull(DbInfo::getSpaceId))
-                        .eq(SpaceInfoUtil.getSpaceId() != null, DbInfo::getSpaceId, SpaceInfoUtil.getSpaceId())
-                        .eq(DbInfo::getDeleted, false))
-                        .forEach(dbInfo -> {
-                            DbTableInfoVo dbTableInfoVo = new DbTableInfoVo();
-                            dbTableInfoVo.setLabel(dbInfo.getName());
-                            dbTableInfoVo.setValue(dbInfo.getDbId().toString());
-                            List<DbTable> dbTables = dbTableMapper.selectList(new QueryWrapper<DbTable>().lambda()
-                                            .eq(DbTable::getDbId, dbInfo.getId())
-                                            .eq(DbTable::getDeleted, false));
-                            List<DbTableInfoVo> children = new ArrayList<>();
-                            dbTables.forEach(dbTable -> {
-                                DbTableInfoVo child = new DbTableInfoVo();
-                                child.setLabel(dbTable.getName());
-                                child.setValue(dbTable.getId().toString());
-                                children.add(child);
-                            });
-                            dbTableInfoVo.setChildren(children);
-                            result.add(dbTableInfoVo);
-                        });
+                .and(SpaceInfoUtil.getSpaceId() == null,
+                        wrapper -> wrapper.eq(DbInfo::getUid, UserInfoManagerHandler.getUserId())
+                                .isNull(DbInfo::getSpaceId))
+                .eq(SpaceInfoUtil.getSpaceId() != null, DbInfo::getSpaceId, SpaceInfoUtil.getSpaceId())
+                .eq(DbInfo::getDeleted, false))
+                .forEach(dbInfo -> {
+                    DbTableInfoVo dbTableInfoVo = new DbTableInfoVo();
+                    dbTableInfoVo.setLabel(dbInfo.getName());
+                    dbTableInfoVo.setValue(dbInfo.getDbId().toString());
+                    List<DbTable> dbTables = dbTableMapper.selectList(new QueryWrapper<DbTable>().lambda()
+                            .eq(DbTable::getDbId, dbInfo.getId())
+                            .eq(DbTable::getDeleted, false));
+                    List<DbTableInfoVo> children = new ArrayList<>();
+                    dbTables.forEach(dbTable -> {
+                        DbTableInfoVo child = new DbTableInfoVo();
+                        child.setLabel(dbTable.getName());
+                        child.setValue(dbTable.getId().toString());
+                        children.add(child);
+                    });
+                    dbTableInfoVo.setChildren(children);
+                    result.add(dbTableInfoVo);
+                });
         return result;
     }
 
@@ -1284,8 +1284,8 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
 
             // 读取 Excel
             EasyExcel.read(file.getInputStream(), listener)
-                            .sheet()
-                            .doRead();
+                    .sheet()
+                    .doRead();
             // 调用核心系统接口
             return fields;
         } catch (Exception ex) {

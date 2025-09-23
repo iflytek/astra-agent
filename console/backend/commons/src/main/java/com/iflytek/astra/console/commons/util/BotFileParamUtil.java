@@ -58,8 +58,8 @@ public class BotFileParamUtil {
      * @return Merged list
      */
     public static List<JSONObject> mergeSupportUploadFields(
-                    List<JSONObject> supportUpload,
-                    List<JSONObject> supportUploadConfig) {
+            List<JSONObject> supportUpload,
+            List<JSONObject> supportUploadConfig) {
         HashMap<String, JSONObject> mergedMap = new HashMap<>();
 
         // Put supportUpload values into Map

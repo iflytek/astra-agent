@@ -79,19 +79,19 @@ public class DatabaseServiceSimpleTest {
     @DisplayName("复杂SQL语句测试")
     void testSafeSplitStatements_ComplexSQL() {
         String complexSql = """
-                        CREATE TABLE users (
-                            id BIGSERIAL PRIMARY KEY,
-                            name VARCHAR(100) NOT NULL,
-                            email VARCHAR(255) UNIQUE,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                        );
+                CREATE TABLE users (
+                    id BIGSERIAL PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    email VARCHAR(255) UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
 
-                        INSERT INTO users (name, email) VALUES
-                            ('John Doe', 'john@example.com'),
-                            ('Jane Smith', 'jane@example.com');
+                INSERT INTO users (name, email) VALUES
+                    ('John Doe', 'john@example.com'),
+                    ('Jane Smith', 'jane@example.com');
 
-                        UPDATE users SET name = 'John Updated' WHERE id = 1;
-                        """;
+                UPDATE users SET name = 'John Updated' WHERE id = 1;
+                """;
 
         List<String> results = DatabaseService.safeSplitStatements(complexSql);
 
@@ -144,10 +144,10 @@ public class DatabaseServiceSimpleTest {
         // 生成大量SQL语句
         for (int i = 0; i < statementCount; i++) {
             largeSql.append("INSERT INTO test_table (id, name) VALUES (")
-                            .append(i)
-                            .append(", 'name_")
-                            .append(i)
-                            .append("'); ");
+                    .append(i)
+                    .append(", 'name_")
+                    .append(i)
+                    .append("'); ");
         }
 
         long startTime = System.currentTimeMillis();
@@ -167,8 +167,8 @@ public class DatabaseServiceSimpleTest {
     @DisplayName("字符编码测试：中文和特殊字符")
     void testSafeSplitStatements_Encoding() {
         String chineseSql = "INSERT INTO users (name, description) VALUES " +
-                        "('张三', '这是一个中文描述；包含分号'); " +
-                        "UPDATE users SET name = '李四' WHERE id = 1;";
+                "('张三', '这是一个中文描述；包含分号'); " +
+                "UPDATE users SET name = '李四' WHERE id = 1;";
 
         List<String> results = DatabaseService.safeSplitStatements(chineseSql);
 

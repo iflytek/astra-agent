@@ -277,12 +277,12 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
      * @return Paginated workflow list
      */
     public PageData<WorkflowVo> listPage(Long apiSpaceId,
-                    Integer current,
-                    Integer pageSize,
-                    String search,
-                    Integer status,
-                    Integer order,
-                    String flowId) {
+            Integer current,
+            Integer pageSize,
+            String search,
+            Integer status,
+            Integer order,
+            String flowId) {
         // 1) Parse spaceId priority: Header > parameter
         final Long headSpaceId = SpaceInfoUtil.getSpaceId();
         final Long spaceId = headSpaceId != null ? (apiSpaceId == null ? headSpaceId : apiSpaceId) : apiSpaceId;
@@ -300,16 +300,16 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         final LambdaQueryWrapper<Workflow> wrapper;
         if (spaceId == null) {
             wrapper = Wrappers.lambdaQuery(Workflow.class)
-                            .eq(Workflow::getDeleted, false)
-                            .isNull(Workflow::getSpaceId)
-                            .orderByDesc(Workflow::getOrder)
-                            .orderByDesc(Workflow::getUpdateTime);
+                    .eq(Workflow::getDeleted, false)
+                    .isNull(Workflow::getSpaceId)
+                    .orderByDesc(Workflow::getOrder)
+                    .orderByDesc(Workflow::getUpdateTime);
         } else {
             wrapper = Wrappers.lambdaQuery(Workflow.class)
-                            .eq(Workflow::getDeleted, false)
-                            .eq(Workflow::getSpaceId, spaceId)
-                            .orderByDesc(Workflow::getOrder)
-                            .orderByDesc(Workflow::getUpdateTime);
+                    .eq(Workflow::getDeleted, false)
+                    .eq(Workflow::getSpaceId, spaceId)
+                    .orderByDesc(Workflow::getOrder)
+                    .orderByDesc(Workflow::getUpdateTime);
         }
         if (!specFlag && spaceId == null) {
             wrapper.eq(Workflow::getUid, uid);
@@ -352,9 +352,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         try {
             final String decode = URLDecoder.decode(search, StandardCharsets.UTF_8.name());
             final String escaped = decode
-                            .replace("\\", "\\\\")
-                            .replace("_", "\\_")
-                            .replace("%", "\\%");
+                    .replace("\\", "\\\\")
+                    .replace("_", "\\_")
+                    .replace("%", "\\%");
             wrapper.and(w -> w.like(Workflow::getName, escaped).or().like(Workflow::getFlowId, escaped));
         } catch (Exception e) {
             // Invalid search, return empty results
@@ -367,10 +367,10 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
      * Filter status and map to VO.
      */
     private void delwithResultList(Integer status,
-                    List<Workflow> list,
-                    List<WorkflowVo> workflowVos,
-                    String flowId,
-                    Map<String, String> workflowVersionMap) {
+            List<Workflow> list,
+            List<WorkflowVo> workflowVos,
+            String flowId,
+            Map<String, String> workflowVersionMap) {
         for (Workflow w : list) {
             WorkflowVo vo = new WorkflowVo();
             org.springframework.beans.BeanUtils.copyProperties(w, vo, "data", "publishedData");
@@ -416,9 +416,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             if (botId != -1) {
                 // Get publish records from publish management (success means published)
                 Long count = workflowVersionMapper.selectCount(
-                                Wrappers.lambdaQuery(WorkflowVersion.class)
-                                                .eq(WorkflowVersion::getFlowId, workflow.getFlowId())
-                                                .eq(WorkflowVersion::getPublishResult, PUBLISH_SUCCESS));
+                        Wrappers.lambdaQuery(WorkflowVersion.class)
+                                .eq(WorkflowVersion::getFlowId, workflow.getFlowId())
+                                .eq(WorkflowVersion::getPublishResult, PUBLISH_SUCCESS));
                 if (count > 0) {
                     statusFlag = 1;
                     final WorkflowVo maxVersionByFlowId = getMaxVersionByFlowId(workflow.getFlowId());
@@ -499,9 +499,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
         // Whether bound to AIUI agent
         FlowReleaseChannel releaseChannel = flowReleaseChannelMapper.selectOne(
-                        Wrappers.lambdaQuery(FlowReleaseChannel.class)
-                                        .eq(FlowReleaseChannel::getFlowId, vo.getFlowId())
-                                        .eq(FlowReleaseChannel::getChannel, WorkflowConst.ReleaseChannel.AIUI));
+                Wrappers.lambdaQuery(FlowReleaseChannel.class)
+                        .eq(FlowReleaseChannel::getFlowId, vo.getFlowId())
+                        .eq(FlowReleaseChannel::getChannel, WorkflowConst.ReleaseChannel.AIUI));
         if (releaseChannel != null) {
             FlowReleaseAiuiInfo aiuiInfo = flowReleaseAiuiInfoMapper.selectById(releaseChannel.getInfoId());
             String data = aiuiInfo.getData();
@@ -577,8 +577,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     }
 
     private static boolean computeLatestFlag(String pluginId,
-                    String version,
-                    Map<String, String> toolLastVersionMap) {
+            String version,
+            Map<String, String> toolLastVersionMap) {
         final String last = toolLastVersionMap.get(pluginId);
         if (StringUtils.isBlank(version)) {
             // No version info, and no online version => consider as latest
@@ -591,10 +591,10 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     }
 
     private static void markLatestFlagForPluginNode(BizWorkflowNode n,
-                    String pluginId,
-                    String version,
-                    Map<String, String> toolLastVersionMap,
-                    Map<String, String> toolLastPluginMap) {
+            String pluginId,
+            String version,
+            Map<String, String> toolLastVersionMap,
+            Map<String, String> toolLastPluginMap) {
         boolean isLatest = computeLatestFlag(pluginId, version, toolLastVersionMap);
         n.getData().setIsLatest(isLatest);
         if (!isLatest) {
@@ -648,11 +648,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         log.info("Query workflow maximum version number, flowId: {}", flowId);
         try {
             Workflow workflow = workflowMapper.selectOne(
-                            Wrappers.lambdaQuery(Workflow.class)
-                                            .eq(Workflow::getFlowId, flowId)
-                                            .eq(Workflow::getDeleted, false)
-                                            .orderByDesc(Workflow::getUpdateTime)
-                                            .last("LIMIT 1"));
+                    Wrappers.lambdaQuery(Workflow.class)
+                            .eq(Workflow::getFlowId, flowId)
+                            .eq(Workflow::getDeleted, false)
+                            .orderByDesc(Workflow::getUpdateTime)
+                            .last("LIMIT 1"));
             if (workflow == null) {
                 return null;
             }
@@ -660,11 +660,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             dataPermissionCheckTool.checkWorkflowBelong(workflow, SpaceInfoUtil.getSpaceId());
 
             WorkflowVersion workflowVersion = workflowVersionMapper.selectOne(
-                            Wrappers.lambdaQuery(WorkflowVersion.class)
-                                            .eq(WorkflowVersion::getFlowId, flowId)
-                                            .eq(WorkflowVersion::getPublishResult, PUBLISH_SUCCESS)
-                                            .orderByDesc(WorkflowVersion::getCreatedTime)
-                                            .last("LIMIT 1"));
+                    Wrappers.lambdaQuery(WorkflowVersion.class)
+                            .eq(WorkflowVersion::getFlowId, flowId)
+                            .eq(WorkflowVersion::getPublishResult, PUBLISH_SUCCESS)
+                            .orderByDesc(WorkflowVersion::getCreatedTime)
+                            .last("LIMIT 1"));
 
             if (workflowVersion == null)
                 return null;
@@ -740,12 +740,12 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         // Name duplication check (isolated by space)
         final Long spaceId = createReq.getSpaceId();
         Workflow one = getOne(
-                        Wrappers.lambdaQuery(Workflow.class)
-                                        .eq(Workflow::getName, createReq.getName())
-                                        .eq(spaceId == null, Workflow::getUid, UserInfoManagerHandler.getUserId())
-                                        .eq(spaceId != null, Workflow::getSpaceId, spaceId)
-                                        .eq(Workflow::getDeleted, false)
-                                        .last("limit 1"));
+                Wrappers.lambdaQuery(Workflow.class)
+                        .eq(Workflow::getName, createReq.getName())
+                        .eq(spaceId == null, Workflow::getUid, UserInfoManagerHandler.getUserId())
+                        .eq(spaceId != null, Workflow::getSpaceId, spaceId)
+                        .eq(Workflow::getDeleted, false)
+                        .last("limit 1"));
         if (one != null) {
             throw new BusinessException(ResponseEnum.WORKFLOW_NAME_EXISTED);
         }
@@ -934,9 +934,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     private String nextCloneName(String origin) {
         String name = origin;
         while (getOne(Wrappers.lambdaQuery(Workflow.class)
-                        .eq(Workflow::getUid, UserInfoManagerHandler.getUserId())
-                        .eq(Workflow::getName, name)
-                        .last("limit 1")) != null) {
+                .eq(Workflow::getUid, UserInfoManagerHandler.getUserId())
+                .eq(Workflow::getName, name)
+                .last("limit 1")) != null) {
             if (ReUtil.contains(CLONED_SUFFIX_PATTERN, name)) {
                 int idx = name.lastIndexOf("(");
                 String prefix = name.substring(0, idx);
@@ -1059,7 +1059,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             bizNodeData.getNodeParam().put("apiSecret", aksk.getApiSecret());
 
             if (!node.getId().startsWith(WorkflowConst.NodeType.FLOW)
-                            && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
+                    && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
                 buidKeyInfo(bizNodeData);
             }
             String source = bizNodeData.getNodeParam().getString("source");
@@ -1078,7 +1078,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             fixOnRepoNode(type, bizNodeData, prefix);
         } catch (Exception ignored) {
             if (!node.getId().startsWith(WorkflowConst.NodeType.FLOW)
-                            && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
+                    && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
                 buidKeyInfo(bizNodeData);
                 checkAndEditData(bizNodeData, prefix);
                 fixOnRepoNode(type, bizNodeData, prefix);
@@ -1133,9 +1133,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         if (flowId != null) {
             String url = apiUrl.getWorkflow().concat(PROTOCOL_DELETE_PATH);
             String body = new JSONObject()
-                            .fluentPut("app_id", workflow.getAppId())
-                            .fluentPut("flow_id", flowId)
-                            .toString();
+                    .fluentPut("app_id", workflow.getAppId())
+                    .fluentPut("flow_id", flowId)
+                    .toString();
             log.info("call workflow delete request url = {}, body = {}", url, body);
             String response = OkHttpUtil.post(url, body);
             log.info("call workflow delete response = {}", response);
@@ -1156,7 +1156,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             e.setTargetNodeId(item.getTarget());
             String sourceHandle = item.getSourceHandle();
             if (StringUtils.isNotBlank(sourceHandle) &&
-                            StringUtils.containsAny(sourceHandle, "intent-one-of", "branch_one_of", "fail_one_of")) {
+                    StringUtils.containsAny(sourceHandle, "intent-one-of", "branch_one_of", "fail_one_of")) {
                 sourceHandle = "intent_chain|".concat(sourceHandle);
             }
             e.setSourceHandle(sourceHandle);
@@ -1323,13 +1323,13 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public List<WorkflowDialog> listDialog(Long workflowId, Integer type) {
         return workflowDialogMapper.selectList(
-                        Wrappers.lambdaQuery(WorkflowDialog.class)
-                                        .eq(WorkflowDialog::getUid, UserInfoManagerHandler.getUserId())
-                                        .eq(WorkflowDialog::getWorkflowId, workflowId)
-                                        .eq(WorkflowDialog::getType, type)
-                                        .eq(WorkflowDialog::getDeleted, false)
-                                        .orderByDesc(WorkflowDialog::getCreateTime)
-                                        .last("limit 10"));
+                Wrappers.lambdaQuery(WorkflowDialog.class)
+                        .eq(WorkflowDialog::getUid, UserInfoManagerHandler.getUserId())
+                        .eq(WorkflowDialog::getWorkflowId, workflowId)
+                        .eq(WorkflowDialog::getType, type)
+                        .eq(WorkflowDialog::getDeleted, false)
+                        .orderByDesc(WorkflowDialog::getCreateTime)
+                        .last("limit 10"));
     }
 
     /**
@@ -1344,11 +1344,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     public ApiResult<String> callProtocolAdd(WorkflowReq workflowReq) {
         String url = apiUrl.getWorkflow().concat(PROTOCOL_ADD_PATH);
         String body = new JSONObject()
-                        .fluentPut("app_id", workflowReq.getAppId())
-                        .fluentPut("name", workflowReq.getName())
-                        .fluentPut("description", workflowReq.getDescription())
-                        .fluentPut("data", null)
-                        .toString();
+                .fluentPut("app_id", workflowReq.getAppId())
+                .fluentPut("name", workflowReq.getName())
+                .fluentPut("description", workflowReq.getDescription())
+                .fluentPut("data", null)
+                .toString();
         log.info("workflow protocol add, url = {}, body = {}", url, body);
 
         String response = OkHttpUtil.post(url, body);
@@ -1443,15 +1443,15 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         try {
             ObjectMapper mapper = new ObjectMapper();
             ObjectNode original = workflow.getAdvancedConfig() == null
-                            ? mapper.createObjectNode()
-                            : (ObjectNode) mapper.readTree(workflow.getAdvancedConfig());
+                    ? mapper.createObjectNode()
+                    : (ObjectNode) mapper.readTree(workflow.getAdvancedConfig());
             ObjectNode updateNode = (ObjectNode) mapper.readTree(new JSONObject(saveReq.getAdvancedConfig()).toJSONString());
             mergeJsonNodes(original, updateNode);
             workflow.setAdvancedConfig(mapper.writeValueAsString(original));
         } catch (Exception ex) {
             log.error("update advancedConfig error, original:{}, update:{}, error:{}",
-                            workflow.getAdvancedConfig(),
-                            new JSONObject(saveReq.getAdvancedConfig()).toJSONString(), ex);
+                    workflow.getAdvancedConfig(),
+                    new JSONObject(saveReq.getAdvancedConfig()).toJSONString(), ex);
             throw new BusinessException(ResponseEnum.WORKFLOW_HIGH_PARAM_FAILED);
         }
     }
@@ -1493,8 +1493,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             }
             final boolean isAgent = node.getId().startsWith(WorkflowConst.NodeType.AGENT);
             final String url = isAgent
-                            ? Optional.ofNullable(nodeParam.getJSONObject("modelConfig")).map(o -> o.getString("api")).orElse(null)
-                            : nodeParam.getString("url");
+                    ? Optional.ofNullable(nodeParam.getJSONObject("modelConfig")).map(o -> o.getString("api")).orElse(null)
+                    : nodeParam.getString("url");
             if (StringUtils.isBlank(url)) {
                 continue;
             }
@@ -1520,16 +1520,16 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             return Collections.emptyList();
         }
         return Arrays.stream(cfgList.get(0).getValue().split(","))
-                        .map(String::trim)
-                        .filter(StringUtils::isNotBlank)
-                        .distinct()
-                        .toList();
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .toList();
     }
 
     private void ensureHttpLikeScheme(String url) {
         String lower = StringUtils.left(url.trim(), 6).toLowerCase(Locale.ROOT);
         if (!(lower.startsWith("http:") || lower.startsWith("https:")
-                        || lower.startsWith("ws:") || lower.startsWith("wss:"))) {
+                || lower.startsWith("ws:") || lower.startsWith("wss:"))) {
             throw new BusinessException(ResponseEnum.MODEL_URL_CHECK_FAILED);
         }
     }
@@ -1545,7 +1545,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     // ========== 7. Conditional sync prologue ==========
     private void syncPrologueIfNeeded(Workflow workflow, WorkflowReq saveReq) {
         if (!Objects.equals(workflow.getSource(), CommonConst.PlatformCode.XFYUN)
-                        || saveReq.getAdvancedConfig() == null) {
+                || saveReq.getAdvancedConfig() == null) {
             return;
         }
         JSONObject advancedConfig = JSONObject.parseObject(workflow.getAdvancedConfig());
@@ -1553,7 +1553,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             JSONObject prologue = JSONObject.parseObject(advancedConfig.get("prologue").toString());
             String prologueText = Optional.ofNullable(prologue.get("prologueText")).map(Object::toString).orElse("");
             List<String> inputExample = Optional.ofNullable(prologue.getList("inputExample", String.class))
-                            .orElseGet(ArrayList::new);
+                    .orElseGet(ArrayList::new);
             openPlatformService.syncWorkflowUpdate(workflow.getId(), workflow.getDescription(), prologueText, inputExample);
         }
     }
@@ -1611,7 +1611,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     private void refreshRepoRelations(String flowId, BizWorkflowData bizWorkflowData) {
         List<FlowRepoRel> had = flowRepoRelMapper.selectList(Wrappers.lambdaQuery(FlowRepoRel.class)
-                        .eq(FlowRepoRel::getFlowId, flowId));
+                .eq(FlowRepoRel::getFlowId, flowId));
         List<String> hadRepos = had.stream().map(FlowRepoRel::getRepoId).toList();
 
         List<String> nowRepos = new ArrayList<>();
@@ -1632,8 +1632,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
                     if (array != null && !array.isEmpty()) {
                         for (int i = 0; i < array.size(); i++) {
                             JSONObject item = (array.get(i) instanceof JSONObject)
-                                            ? (JSONObject) array.get(i)
-                                            : new JSONObject((Map<?, ?>) array.get(i));
+                                    ? (JSONObject) array.get(i)
+                                    : new JSONObject((Map<?, ?>) array.get(i));
                             JSONArray jsonArray = item.getJSONObject("match").getJSONArray("repoIds");
                             nowRepos.addAll(jsonArray.toJavaList(String.class));
                         }
@@ -1644,8 +1644,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             List<String> delRepos = CollectionUtil.subtractToList(hadRepos, nowRepos);
             addRepos.forEach(r -> flowRepoRelMapper.insert(new FlowRepoRel(flowId, r)));
             delRepos.forEach(r -> flowRepoRelMapper.delete(Wrappers.lambdaQuery(FlowRepoRel.class)
-                            .eq(FlowRepoRel::getFlowId, flowId)
-                            .eq(FlowRepoRel::getRepoId, r)));
+                    .eq(FlowRepoRel::getFlowId, flowId)
+                    .eq(FlowRepoRel::getRepoId, r)));
         }
     }
 
@@ -1739,10 +1739,10 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
         if (sysProtocol == null) {
             FlowProtocolTemp last = flowProtocolTempMapper.selectOne(
-                            Wrappers.lambdaQuery(FlowProtocolTemp.class)
-                                            .eq(FlowProtocolTemp::getFlowId, flowId)
-                                            .orderByDesc(FlowProtocolTemp::getCreatedTime)
-                                            .last("limit 1"));
+                    Wrappers.lambdaQuery(FlowProtocolTemp.class)
+                            .eq(FlowProtocolTemp::getFlowId, flowId)
+                            .orderByDesc(FlowProtocolTemp::getCreatedTime)
+                            .last("limit 1"));
             if (last == null || DateUtil.between(new Date(), last.getCreatedTime(), DateUnit.MINUTE, true) > 10) {
                 FlowProtocolTemp t = new FlowProtocolTemp();
                 t.setFlowId(flowId);
@@ -1752,11 +1752,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             }
         } else {
             FlowProtocolTemp last = flowProtocolTempMapper.selectOne(
-                            Wrappers.lambdaQuery(FlowProtocolTemp.class)
-                                            .eq(FlowProtocolTemp::getFlowId, flowId)
-                                            .orderByDesc(FlowProtocolTemp::getCreatedTime)
-                                            .isNotNull(FlowProtocolTemp::getSysProtocol)
-                                            .last("limit 1"));
+                    Wrappers.lambdaQuery(FlowProtocolTemp.class)
+                            .eq(FlowProtocolTemp::getFlowId, flowId)
+                            .orderByDesc(FlowProtocolTemp::getCreatedTime)
+                            .isNotNull(FlowProtocolTemp::getSysProtocol)
+                            .last("limit 1"));
             if (last == null || DateUtil.between(new Date(), last.getCreatedTime(), DateUnit.MINUTE, true) > 10) {
                 FlowProtocolTemp t = new FlowProtocolTemp();
                 t.setFlowId(flowId);
@@ -1903,8 +1903,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             // Change model address
             String serviceId = bizNodeData.getNodeParam().getString("serviceId");
             List<ConfigInfo> configInfos = configInfoMapper.selectList(new LambdaQueryWrapper<ConfigInfo>()
-                            .eq(ConfigInfo::getCategory, "MCP_MODEL_API_REFLECT")
-                            .eq(ConfigInfo::getCode, "mcp"));
+                    .eq(ConfigInfo::getCategory, "MCP_MODEL_API_REFLECT")
+                    .eq(ConfigInfo::getCode, "mcp"));
             Optional<ConfigInfo> first = configInfos.stream().filter(s -> Objects.equals(serviceId, s.getName())).findFirst();
             if (first.isPresent()) {
                 String apiUrl = first.get().getValue();
@@ -1999,8 +1999,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     private void dealWithUrl(JSONObject modelConfig, String serviceId) {
         if (modelConfig != null) {
             List<ConfigInfo> configInfos = configInfoMapper.selectList(new LambdaQueryWrapper<ConfigInfo>()
-                            .eq(ConfigInfo::getCategory, "MCP_MODEL_API_REFLECT")
-                            .eq(ConfigInfo::getCode, "mcp"));
+                    .eq(ConfigInfo::getCategory, "MCP_MODEL_API_REFLECT")
+                    .eq(ConfigInfo::getCode, "mcp"));
             String api = modelConfig.getString("api");
             Optional<ConfigInfo> first = configInfos.stream().filter(s -> Objects.equals(serviceId, s.getName())).findFirst();
             if (first.isPresent()) {
@@ -2018,11 +2018,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         FlowProtocol protocol = buildWorkflowData(saveDto, flowId);
         String url = apiUrl.getWorkflow().concat(PROTOCOL_UPDATE_PATH).concat(flowId);
         JSONObject jsonObject = new JSONObject()
-                        .fluentPut("id", flowId)
-                        .fluentPut("app_id", saveDto.getAppId())
-                        .fluentPut("name", saveDto.getName())
-                        .fluentPut("description", saveDto.getDescription())
-                        .fluentPut("status", saveDto.getStatus());
+                .fluentPut("id", flowId)
+                .fluentPut("app_id", saveDto.getAppId())
+                .fluentPut("name", saveDto.getName())
+                .fluentPut("description", saveDto.getDescription())
+                .fluentPut("status", saveDto.getStatus());
         if (protocol != null) {
             jsonObject.fluentPut("data", protocol);
         }
@@ -2040,8 +2040,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
         // Flow protocol temporary storage
         saveFlowProtocolTemp(flowId,
-                        saveDto.getData() == null ? null : JSON.toJSONString(saveDto.getData()),
-                        saveDto.getData() == null ? null : JSON.toJSONString(protocol.getData()));
+                saveDto.getData() == null ? null : JSON.toJSONString(saveDto.getData()),
+                saveDto.getData() == null ? null : JSON.toJSONString(protocol.getData()));
     }
 
     private Property bizPropertyToProperty(BizProperty bizProperty) {
@@ -2314,8 +2314,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     }
 
     private static final List<String> DEFAULT_KEYS = Arrays.asList(
-                    "text", "content", "value", "title", "name", "message", "prompt",
-                    "url", "fileUrl", "path");
+            "text", "content", "value", "title", "name", "message", "prompt",
+            "url", "fileUrl", "path");
 
     public static boolean isInputContentEmpty(Object content) {
         return isInputContentEmpty(content, DEFAULT_KEYS);
@@ -2433,8 +2433,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public Object getAutoAddEvalSetData(Long id) {
         List<EvalSet> setList = evalSetMapper.selectList(Wrappers.lambdaQuery(EvalSet.class)
-                        .eq(EvalSet::getApplicationId, id)
-                        .eq(EvalSet::getApplicationType, CommonConst.ApplicationType.WORKFLOW));
+                .eq(EvalSet::getApplicationId, id)
+                .eq(EvalSet::getApplicationType, CommonConst.ApplicationType.WORKFLOW));
 
         if (CollectionUtils.isEmpty(setList)) {
             return ApiResult.success();
@@ -2443,18 +2443,18 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         List<EvalSetVerDataVo> voList = new ArrayList<>();
         setList.forEach(evalSet -> {
             List<EvalSetVer> evalSetVers = evalSetVerMapper.selectList(Wrappers.lambdaQuery(EvalSetVer.class)
-                            .eq(EvalSetVer::getEvalSetId, evalSet.getId())
-                            .eq(EvalSetVer::getDeleted, false)
-                            .orderByDesc(EvalSetVer::getUpdateTime));
+                    .eq(EvalSetVer::getEvalSetId, evalSet.getId())
+                    .eq(EvalSetVer::getDeleted, false)
+                    .orderByDesc(EvalSetVer::getUpdateTime));
             if (CollectionUtils.isEmpty(evalSetVers)) {
                 return;
             }
             List<Long> verIds = evalSetVers.stream().map(EvalSetVer::getId).collect(Collectors.toList());
             List<EvalSetVerData> evalSetVerDataList = evalSetVerDataMapper.selectList(Wrappers.lambdaQuery(EvalSetVerData.class)
-                            .in(EvalSetVerData::getEvalSetVerId, verIds)
-                            .eq(EvalSetVerData::getDeleted, false)
-                            .eq(EvalSetVerData::getAutoAdd, true)
-                            .orderByDesc(EvalSetVerData::getCreateTime));
+                    .in(EvalSetVerData::getEvalSetVerId, verIds)
+                    .eq(EvalSetVerData::getDeleted, false)
+                    .eq(EvalSetVerData::getAutoAdd, true)
+                    .orderByDesc(EvalSetVerData::getCreateTime));
 
             evalSetVerDataList.forEach(d -> {
                 EvalSetVerDataVo vo = new EvalSetVerDataVo();
@@ -2471,24 +2471,24 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         int code = CommonConst.PlatformCode.COMMON;
 
         List<ConfigInfo> workflowNodeTemplate = configInfoMapper.selectList(Wrappers.lambdaQuery(ConfigInfo.class)
-                        .eq(ConfigInfo::getCategory, "WORKFLOW_NODE_TEMPLATE")
-                        .eq(ConfigInfo::getIsValid, 1)
-                        .like(ConfigInfo::getCode, Integer.toString(code)));
+                .eq(ConfigInfo::getCategory, "WORKFLOW_NODE_TEMPLATE")
+                .eq(ConfigInfo::getIsValid, 1)
+                .like(ConfigInfo::getCode, Integer.toString(code)));
 
         if ("pre".equals(env)) {
             workflowNodeTemplate = configInfoMapper.selectList(Wrappers.lambdaQuery(ConfigInfo.class)
-                            .eq(ConfigInfo::getCategory, "WORKFLOW_NODE_TEMPLATE_PRE")
-                            .eq(ConfigInfo::getIsValid, 1)
-                            .like(ConfigInfo::getCode, Integer.toString(code)));
+                    .eq(ConfigInfo::getCategory, "WORKFLOW_NODE_TEMPLATE_PRE")
+                    .eq(ConfigInfo::getIsValid, 1)
+                    .like(ConfigInfo::getCode, Integer.toString(code)));
         }
         ConfigInfo spaceSwitchNode = configInfoMapper.selectOne(new LambdaQueryWrapper<ConfigInfo>().eq(ConfigInfo::getCategory, "SPACE_SWITCH_NODE"));
         if (spaceSwitchNode != null
-                        && StringUtils.isNotBlank(spaceSwitchNode.getValue())
-                        && SpaceInfoUtil.getSpaceId() != null) {
+                && StringUtils.isNotBlank(spaceSwitchNode.getValue())
+                && SpaceInfoUtil.getSpaceId() != null) {
             Set<String> filter = Arrays.stream(spaceSwitchNode.getValue().split(","))
-                            .map(String::trim)
-                            .filter(StringUtils::isNotBlank)
-                            .collect(Collectors.toSet());
+                    .map(String::trim)
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.toSet());
             if (!filter.isEmpty() && CollUtil.isNotEmpty(workflowNodeTemplate)) {
                 workflowNodeTemplate.removeIf(configInfo -> {
                     try {
@@ -2519,9 +2519,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public Object clearDialog(Long workflowId, Integer type) {
         return workflowDialogMapper.update(Wrappers.lambdaUpdate(WorkflowDialog.class)
-                        .eq(WorkflowDialog::getWorkflowId, workflowId)
-                        .eq(WorkflowDialog::getType, type)
-                        .set(WorkflowDialog::getDeleted, true));
+                .eq(WorkflowDialog::getWorkflowId, workflowId)
+                .eq(WorkflowDialog::getType, type)
+                .set(WorkflowDialog::getDeleted, true));
     }
 
     public Object canPublishSetNot(Long id) {
@@ -2533,8 +2533,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         // saveRemote(req, workflow.getFlowId());
 
         return update(Wrappers.lambdaUpdate(Workflow.class)
-                        .eq(Workflow::getId, id)
-                        .set(Workflow::getCanPublish, false)
+                .eq(Workflow::getId, id)
+                .set(Workflow::getCanPublish, false)
         // .set(Workflow::getStatus, WorkflowConst.Status.UNPUBLISHED)
         );
     }
@@ -2729,9 +2729,9 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
      */
     private void buildParams(ChatBizReq bizReq, int maxRounds, ChatSysReq sysReq) {
         List<WorkflowDialog> metaData = workflowDialogMapper.selectList(new LambdaQueryWrapper<WorkflowDialog>()
-                        .eq(WorkflowDialog::getChatId, bizReq.getChatId())
-                        .orderByDesc(WorkflowDialog::getCreateTime)
-                        .last("limit " + maxRounds));
+                .eq(WorkflowDialog::getChatId, bizReq.getChatId())
+                .orderByDesc(WorkflowDialog::getCreateTime)
+                .last("limit " + maxRounds));
         List<WorkflowDialog> workflowDialogs = CollUtil.reverse(metaData);
         if (!workflowDialogs.isEmpty()) {
             List<JSONObject> historyList = new ArrayList<>(workflowDialogs.size() * 2);
@@ -2780,8 +2780,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         BizNodeData data = node.getData();
         String prefix = node.getId().split("::")[0];
         ConfigInfo configInfo = configInfoMapper.selectOne(new LambdaQueryWrapper<ConfigInfo>()
-                        .eq(ConfigInfo::getCategory, "MULTI_ROUNDS_ALIAS_NAME")
-                        .eq(ConfigInfo::getIsValid, 1));
+                .eq(ConfigInfo::getCategory, "MULTI_ROUNDS_ALIAS_NAME")
+                .eq(ConfigInfo::getIsValid, 1));
         List<String> list = Arrays.asList(configInfo.getValue().split(","));
         // Currently only decision nodes and large model nodes support enabling multi-round conversation
         if (!CollUtil.contains(list, prefix)) {
@@ -2857,8 +2857,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public Object evalPageFirstTime(Long id) {
         return update(Wrappers.lambdaUpdate(Workflow.class)
-                        .eq(Workflow::getId, id)
-                        .set(Workflow::getEvalPageFirstTime, false));
+                .eq(Workflow::getId, id)
+                .set(Workflow::getEvalPageFirstTime, false));
     }
 
     public Object getInputsType(String flowId) {
@@ -2995,8 +2995,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public Object getAgentStrategy() {
         List<ConfigInfo> configInfos = configInfoMapper.selectList(new LambdaQueryWrapper<ConfigInfo>()
-                        .eq(ConfigInfo::getCategory, "WORKFLOW_AGENT_STRATEGY")
-                        .eq(ConfigInfo::getCode, "agentStrategy"));
+                .eq(ConfigInfo::getCategory, "WORKFLOW_AGENT_STRATEGY")
+                .eq(ConfigInfo::getCode, "agentStrategy"));
         List<AgentStrategy> result = new ArrayList<>();
         for (ConfigInfo configInfo : configInfos) {
             AgentStrategy agentStrategy = new AgentStrategy();
@@ -3010,8 +3010,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public Object getKnowledgeProStrategy() {
         List<ConfigInfo> configInfos = configInfoMapper.selectList(new LambdaQueryWrapper<ConfigInfo>()
-                        .eq(ConfigInfo::getCategory, "WORKFLOW_KNOWLEDGE_PRO_STRATEGY")
-                        .eq(ConfigInfo::getCode, "knowledgeProStrategy"));
+                .eq(ConfigInfo::getCategory, "WORKFLOW_KNOWLEDGE_PRO_STRATEGY")
+                .eq(ConfigInfo::getCode, "knowledgeProStrategy"));
         List<AgentStrategy> result = new ArrayList<>();
         for (ConfigInfo configInfo : configInfos) {
             AgentStrategy agentStrategy = new AgentStrategy();
@@ -3079,8 +3079,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     public Object andEnvKey(String serverId, HttpServletRequest request) {
         String uid = UserInfoManagerHandler.getUserId();
         McpToolConfig mcpToolConfig = mcpToolConfigMapper.selectOne(new LambdaQueryWrapper<McpToolConfig>()
-                        .eq(McpToolConfig::getUid, uid)
-                        .eq(McpToolConfig::getMcpId, serverId));
+                .eq(McpToolConfig::getUid, uid)
+                .eq(McpToolConfig::getMcpId, serverId));
         // 1. Check if it's an update or new AK
         JSONObject ret = mcpServerHandler.checkMcpToolsIsNeedEnvKeys(serverId);
         JSONArray parameters = ret.getJSONArray("parameters");
@@ -3175,8 +3175,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     private void saveLocalConfig(McpPushDto req, String uid, String url, String mcpServerId, Map<String, String> env, Boolean customize) {
         McpToolConfig config = mcpToolConfigMapper.selectOne(new LambdaQueryWrapper<McpToolConfig>()
-                        .eq(McpToolConfig::getUid, uid)
-                        .eq(McpToolConfig::getMcpId, req.getMcpId()));
+                .eq(McpToolConfig::getUid, uid)
+                .eq(McpToolConfig::getMcpId, req.getMcpId()));
         if (config == null) {
             McpToolConfig mcpToolConfig = new McpToolConfig();
             mcpToolConfig.setMcpId(req.getMcpId());
@@ -3294,7 +3294,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         botMarketForm.setPageIndex(1);
         botMarketForm.setPageSize(10000);
         Map<String, Object> pageMap = chatBotMarketService.getBotListCheckNextPage(request,
-                        botMarketForm, UserInfoManagerHandler.getUserId(), SpaceInfoUtil.getSpaceId());
+                botMarketForm, UserInfoManagerHandler.getUserId(), SpaceInfoUtil.getSpaceId());
         LinkedList<Map<String, Object>> botList = (LinkedList<Map<String, Object>>) pageMap.get("pageList");
         List<WorkflowListVo> result = new ArrayList<>();
         if (CollUtil.isEmpty(botList)) {
@@ -3333,18 +3333,18 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         result.put("isLLm", false);
         result.put("isMultiParams", false);
         bizWorkflowData.getNodes()
-                        .stream()
-                        .filter(n -> n.getId().startsWith(WorkflowConst.NodeType.SPARK_LLM))
-                        .findFirst()
-                        .ifPresent(n -> {
-                            result.put("isLLm", true);
-                        });
+                .stream()
+                .filter(n -> n.getId().startsWith(WorkflowConst.NodeType.SPARK_LLM))
+                .findFirst()
+                .ifPresent(n -> {
+                    result.put("isLLm", true);
+                });
 
         BizWorkflowNode startNode = bizWorkflowData.getNodes()
-                        .stream()
-                        .filter(n -> n.getId().startsWith(WorkflowConst.NodeType.START))
-                        .findFirst()
-                        .get();
+                .stream()
+                .filter(n -> n.getId().startsWith(WorkflowConst.NodeType.START))
+                .findFirst()
+                .get();
 
         if (startNode.getData().getOutputs().size() > 2) {
             result.put("isMultiParams", true);
@@ -3401,11 +3401,11 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
                 throw new BusinessException(ResponseEnum.PROMPT_GROUP_PROMPT_CANNOT_EMPTY);
             }
             Workflow workflow = workflowMapper.selectOne(Wrappers.lambdaQuery(Workflow.class)
-                            .eq(Workflow::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
+                    .eq(Workflow::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
             dataPermissionCheckTool.checkWorkflowBelong(workflow, SpaceInfoUtil.getSpaceId());
             // Delete old comparison group protocol
             workflowComparisonMapper.delete(Wrappers.lambdaQuery(WorkflowComparison.class)
-                            .eq(WorkflowComparison::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
+                    .eq(WorkflowComparison::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
             // Save new comparison group protocol
             Date date = new Date();
             workflowComparisonReqList.forEach(data -> {
@@ -3431,7 +3431,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public List<WorkflowComparison> listComparisons(String promptId) {
         return workflowComparisonMapper.selectList(Wrappers.lambdaQuery(WorkflowComparison.class)
-                        .eq(WorkflowComparison::getPromptId, promptId));
+                .eq(WorkflowComparison::getPromptId, promptId));
 
     }
 
@@ -3454,23 +3454,23 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
     public List<WorkflowFeedback> getFeedbackList(String flowId) {
         return workflowFeedbackMapper.selectList(Wrappers.lambdaQuery(WorkflowFeedback.class)
-                        .eq(WorkflowFeedback::getFlowId, flowId)
-                        .eq(WorkflowFeedback::getUid, UserInfoManagerHandler.getUserId())
-                        .orderByDesc(WorkflowFeedback::getCreateTime));
+                .eq(WorkflowFeedback::getFlowId, flowId)
+                .eq(WorkflowFeedback::getUid, UserInfoManagerHandler.getUserId())
+                .orderByDesc(WorkflowFeedback::getCreateTime));
     }
 
     private static void dealWithSearchPromptTemplate(String search, LambdaQueryWrapper<PromptTemplate> wrapper) {
         try {
             String decode = URLDecoder.decode(search, StandardCharsets.UTF_8.name());
             String escaped = decode
-                            .replace("\\", "\\\\")
-                            .replace("_", "\\_")
-                            .replace("%", "\\%");
+                    .replace("\\", "\\\\")
+                    .replace("_", "\\_")
+                    .replace("%", "\\%");
             wrapper.and(w -> w.like(PromptTemplate::getName, escaped)
-                            .or()
-                            .like(PromptTemplate::getDescription, escaped)
-                            .or()
-                            .like(PromptTemplate::getPrompt, escaped));
+                    .or()
+                    .like(PromptTemplate::getDescription, escaped)
+                    .or()
+                    .like(PromptTemplate::getPrompt, escaped));
         } catch (Exception e) {
             log.warn("Invalid search parameter: {}", search, e);
             // Query a non-existent ID to return an empty list
@@ -3577,8 +3577,8 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     public PageData<PromptTemplate> listPagePromptTemplate(Integer current, Integer pageSize, String search) {
         // 1. Build query conditions
         LambdaQueryWrapper<PromptTemplate> wrapper = Wrappers.lambdaQuery(PromptTemplate.class)
-                        .eq(PromptTemplate::getDeleted, false)
-                        .orderByDesc(PromptTemplate::getCreatedTime);
+                .eq(PromptTemplate::getDeleted, false)
+                .orderByDesc(PromptTemplate::getCreatedTime);
 
         // 2. Handle search
         if (search != null) {
@@ -3610,29 +3610,29 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     }
 
     public List<McpServerTool> getMcpServerListLocally(String categoryId, Integer pageNo, Integer pageSize, Boolean authorized,
-                    HttpServletRequest request) {
+            HttpServletRequest request) {
         // Check if cache has expired, reload if expired
         checkAndRefreshCache();
 
         List<McpServerTool> filteredList = MCP_SERVER_CACHE.values()
-                        .stream()
-                        .filter(jsonObject -> {
-                            if (StringUtils.isNotBlank(categoryId)) {
-                                String objCategoryId = jsonObject.getString("categoryId");
-                                if (!categoryId.equals(objCategoryId)) {
-                                    return false;
-                                }
-                            }
+                .stream()
+                .filter(jsonObject -> {
+                    if (StringUtils.isNotBlank(categoryId)) {
+                        String objCategoryId = jsonObject.getString("categoryId");
+                        if (!categoryId.equals(objCategoryId)) {
+                            return false;
+                        }
+                    }
 
-                            if (authorized != null) {
-                                Boolean objAuthorized = jsonObject.getBoolean("authorized");
-                                return objAuthorized != null && objAuthorized == authorized;
-                            }
+                    if (authorized != null) {
+                        Boolean objAuthorized = jsonObject.getBoolean("authorized");
+                        return objAuthorized != null && objAuthorized == authorized;
+                    }
 
-                            return true;
-                        })
-                        .map(this::convertJson2McpServerTool)
-                        .collect(Collectors.toList());
+                    return true;
+                })
+                .map(this::convertJson2McpServerTool)
+                .collect(Collectors.toList());
 
         int total = filteredList.size();
         int startIndex = (pageNo - 1) * pageSize;

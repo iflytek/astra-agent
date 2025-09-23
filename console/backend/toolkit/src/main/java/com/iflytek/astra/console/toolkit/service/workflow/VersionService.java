@@ -72,12 +72,12 @@ public class VersionService {
         Page<WorkflowVersion> newPage = new Page<>(page.getCurrent(), page.getSize());
 
         LambdaQueryWrapper<WorkflowVersion> wrapper = new QueryWrapper<WorkflowVersion>()
-                        .lambda()
-                        .eq(WorkflowVersion::getBotId, botId)
-                        .eq(WorkflowVersion::getDeleted, 1)
-                        .eq(WorkflowVersion::getPublishResult, "Success")
-                        .groupBy(WorkflowVersion::getName)
-                        .orderByDesc(WorkflowVersion::getCreatedTime);
+                .lambda()
+                .eq(WorkflowVersion::getBotId, botId)
+                .eq(WorkflowVersion::getDeleted, 1)
+                .eq(WorkflowVersion::getPublishResult, "Success")
+                .groupBy(WorkflowVersion::getName)
+                .orderByDesc(WorkflowVersion::getCreatedTime);
 
         return workflowVersionMapper.selectPage(newPage, wrapper);
     }
@@ -130,8 +130,8 @@ public class VersionService {
             workflowVersionMapper.insert(workflowVersion);
 
             return ApiResult.success(new JSONObject()
-                            .fluentPut("workflowVersionId", workflowVersion.getId())
-                            .fluentPut("workflowVersionName", createDto.getName()));
+                    .fluentPut("workflowVersionId", workflowVersion.getId())
+                    .fluentPut("workflowVersionName", createDto.getName()));
         } catch (Exception e) {
             throw new BusinessException(ResponseEnum.WORKFLOW_VERSION_ADD_FAILED);
         }
@@ -148,8 +148,8 @@ public class VersionService {
         // Build update conditions
         LambdaUpdateWrapper<WorkflowVersion> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(WorkflowVersion::getFlowId, flowId)
-                        .eq(WorkflowVersion::getIsVersion, 1)
-                        .set(WorkflowVersion::getIsVersion, 2);
+                .eq(WorkflowVersion::getIsVersion, 1)
+                .set(WorkflowVersion::getIsVersion, 2);
         // Execute update
         workflowVersionMapper.update(null, updateWrapper);
     }
@@ -187,13 +187,13 @@ public class VersionService {
         try {
             // Get the maximum version integer
             WorkflowVersion workflowVersion = workflowVersionMapper.selectOne(Wrappers.lambdaQuery(WorkflowVersion.class)
-                            .eq(WorkflowVersion::getFlowId, createDto.getFlowId())
-                            .orderByDesc(WorkflowVersion::getCreatedTime)
-                            .isNotNull(WorkflowVersion::getSysData)
-                            .last("limit 1"));
+                    .eq(WorkflowVersion::getFlowId, createDto.getFlowId())
+                    .orderByDesc(WorkflowVersion::getCreatedTime)
+                    .isNotNull(WorkflowVersion::getSysData)
+                    .last("limit 1"));
             if (workflowVersion == null) {
                 return ApiResult.success(new JSONObject()
-                                .fluentPut("workflowVersionName", "v1.0"));
+                        .fluentPut("workflowVersionName", "v1.0"));
             }
             String data = workflowVersion.getData();
             String maxName = workflowVersion.getName();
@@ -206,7 +206,7 @@ public class VersionService {
                 name = incrementVersion(maxName, true);
             }
             return ApiResult.success(new JSONObject()
-                            .fluentPut("workflowVersionName", name));
+                    .fluentPut("workflowVersionName", name));
         } catch (Exception e) {
             throw new BusinessException(ResponseEnum.WORKFLOW_VERSION_GET_NAME_FAILED);
         }
@@ -221,15 +221,15 @@ public class VersionService {
      */
     public ApiResult<JSONObject> getVersionSysData(WorkflowVersion createDto) {
         WorkflowVersion workflowVersion = workflowVersionMapper.selectOne(Wrappers.lambdaQuery(WorkflowVersion.class)
-                        .eq(WorkflowVersion::getBotId, createDto.getBotId())
-                        .eq(WorkflowVersion::getName, createDto.getName())
-                        .last("limit 1"));
+                .eq(WorkflowVersion::getBotId, createDto.getBotId())
+                .eq(WorkflowVersion::getName, createDto.getName())
+                .last("limit 1"));
         if (workflowVersion == null) {
             throw new BusinessException(ResponseEnum.WORKFLOW_VERSION_NOT_FOUND);
         }
         String sysData = workflowVersion.getSysData();
         return ApiResult.success(new JSONObject()
-                        .fluentPut("sysData", sysData));
+                .fluentPut("sysData", sysData));
     }
 
     /**
@@ -240,14 +240,14 @@ public class VersionService {
      */
     public ApiResult<JSONObject> haveVersionSysData(WorkflowVersion createDto) {
         List<WorkflowVersion> workflowVersions = workflowVersionMapper.selectList(Wrappers.lambdaQuery(WorkflowVersion.class)
-                        .eq(WorkflowVersion::getFlowId, createDto.getFlowId())
-                        .eq(WorkflowVersion::getName, createDto.getName()));
+                .eq(WorkflowVersion::getFlowId, createDto.getFlowId())
+                .eq(WorkflowVersion::getName, createDto.getName()));
         if (workflowVersions.isEmpty()) {
             throw new BusinessException(ResponseEnum.WORKFLOW_VERSION_NOT_FOUND);
         }
         boolean haveSysData = workflowVersions.stream().noneMatch(wv -> "Success".equals(wv.getPublishResult()));
         return ApiResult.success(new JSONObject()
-                        .fluentPut("haveSysData", haveSysData));
+                .fluentPut("haveSysData", haveSysData));
     }
 
     /**
@@ -322,7 +322,7 @@ public class VersionService {
             LambdaUpdateWrapper<WorkflowVersion> updateWrapper1 = new LambdaUpdateWrapper<>();
             // Update flowId corresponding records, set isVersion to 2
             updateWrapper1.eq(WorkflowVersion::getFlowId, createDto.getFlowId())
-                            .set(WorkflowVersion::getIsVersion, 2);
+                    .set(WorkflowVersion::getIsVersion, 2);
             // Execute update
             workflowVersionMapper.update(null, updateWrapper1);
 
@@ -330,8 +330,8 @@ public class VersionService {
             LambdaUpdateWrapper<WorkflowVersion> updateWrapper2 = new LambdaUpdateWrapper<>();
             // Update id corresponding records, set isVersion to 1
             updateWrapper2
-                            .eq(WorkflowVersion::getId, createDto.getId())
-                            .set(WorkflowVersion::getIsVersion, 1);
+                    .eq(WorkflowVersion::getId, createDto.getId())
+                    .set(WorkflowVersion::getIsVersion, 1);
             // Execute update
             workflowVersionMapper.update(null, updateWrapper2);
 
@@ -351,8 +351,8 @@ public class VersionService {
         // Build update conditions
         LambdaUpdateWrapper<Workflow> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(Workflow::getFlowId, flowId)
-                        .set(Workflow::getData, data)
-                        .set(Workflow::getCanPublish, false);
+                .set(Workflow::getData, data)
+                .set(Workflow::getCanPublish, false);
         // Execute update
         workflowMapper.update(null, updateWrapper);
     }
@@ -376,8 +376,8 @@ public class VersionService {
         LambdaUpdateWrapper<WorkflowVersion> updateWrapper = new LambdaUpdateWrapper<>();
         // Update id corresponding records, set getDeleted to 2 for deletion
         updateWrapper
-                        .eq(WorkflowVersion::getId, id)
-                        .set(WorkflowVersion::getDeleted, 2);
+                .eq(WorkflowVersion::getId, id)
+                .set(WorkflowVersion::getDeleted, 2);
         // Execute update
         workflowVersionMapper.update(null, updateWrapper);
 
@@ -440,8 +440,8 @@ public class VersionService {
             LambdaUpdateWrapper<WorkflowVersion> updateWrapper = new LambdaUpdateWrapper<>();
             // Update flowId corresponding records, set isVersion to 2
             updateWrapper.eq(WorkflowVersion::getId, createDto.getId())
-                            .set(WorkflowVersion::getPublishResult, createDto.getPublishResult())
-                            .set(WorkflowVersion::getUpdatedTime, new Date());
+                    .set(WorkflowVersion::getPublishResult, createDto.getPublishResult())
+                    .set(WorkflowVersion::getUpdatedTime, new Date());
             // Execute update
             workflowVersionMapper.update(null, updateWrapper);
             log.info("Workflow version publish result successful, version ID: {}, publish result: {}", createDto.getId(), createDto.getPublishResult());
@@ -465,11 +465,11 @@ public class VersionService {
         try {
             // Query latest version (ordered by creation time descending)
             WorkflowVersion latestVersion = workflowVersionMapper.selectOne(
-                            Wrappers.lambdaQuery(WorkflowVersion.class)
-                                            .eq(WorkflowVersion::getBotId, botId)
-                                            .eq(WorkflowVersion::getPublishResult, "Success")
-                                            .orderByDesc(WorkflowVersion::getCreatedTime)
-                                            .last("LIMIT 1"));
+                    Wrappers.lambdaQuery(WorkflowVersion.class)
+                            .eq(WorkflowVersion::getBotId, botId)
+                            .eq(WorkflowVersion::getPublishResult, "Success")
+                            .orderByDesc(WorkflowVersion::getCreatedTime)
+                            .last("LIMIT 1"));
 
             // Return result: if version exists return version name, if no version return "Draft Version"
             String versionDisplay = (latestVersion != null) ? latestVersion.getName() : "Draft Version";

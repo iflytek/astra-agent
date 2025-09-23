@@ -67,7 +67,7 @@ public class WorkflowChatService {
      * @param edit Whether in edit mode
      */
     public void workflowChatStream(WorkflowChatRequest request, SseEmitter emitter, String streamId,
-                    ChatReqRecords chatReqRecords, boolean edit) {
+            ChatReqRecords chatReqRecords, boolean edit) {
         // if (chatReqRecords == null || chatReqRecords.getUid() == null || chatReqRecords.getChatId() ==
         // null) {
         // SseEmitterUtil.completeWithError(emitter, "Chat records are empty");
@@ -133,14 +133,14 @@ public class WorkflowChatService {
         }).collect(Collectors.toList());
 
         return AgentChatParam.builder()
-                        .flowId(request.getFlowId())
-                        .uid(request.getUserId())
-                        .chatId(request.getChatId())
-                        .stream(request.getStream())
-                        .history(history)
-                        .parameters(request.getParameters())
-                        .ext(request.getExt())
-                        .build();
+                .flowId(request.getFlowId())
+                .uid(request.getUserId())
+                .chatId(request.getChatId())
+                .stream(request.getStream())
+                .history(history)
+                .parameters(request.getParameters())
+                .ext(request.getExt())
+                .build();
     }
 
     /**
@@ -148,10 +148,10 @@ public class WorkflowChatService {
      */
     private AgentResumeParam buildAgentResumeParam(WorkflowResumeReq request) {
         return AgentResumeParam.builder()
-                        .eventId(request.getEventId())
-                        .eventType(request.getEventType())
-                        .content(request.getContent())
-                        .build();
+                .eventId(request.getEventId())
+                .eventType(request.getEventType())
+                .content(request.getContent())
+                .build();
     }
 
     /**
@@ -197,7 +197,7 @@ public class WorkflowChatService {
      * Process workflow SSE stream
      */
     private void processWorkflowSSEStream(ResponseBody body, SseEmitter emitter, String streamId,
-                    ChatReqRecords chatReqRecords, boolean edit) {
+            ChatReqRecords chatReqRecords, boolean edit) {
         BufferedSource source = body.source();
         StringBuilder finalResult = new StringBuilder();
         StringBuilder thinkingResult = new StringBuilder();
@@ -211,7 +211,7 @@ public class WorkflowChatService {
                     if (SseEmitterUtil.isStreamStopped(streamId)) {
                         log.info("Stop signal detected, saving collected data, streamId: {}", streamId);
                         handleWorkflowStreamInterrupted(emitter, streamId, finalResult, thinkingResult,
-                                        chatReqRecords, sid, traceResult, edit);
+                                chatReqRecords, sid, traceResult, edit);
                         break;
                     }
 
@@ -223,7 +223,7 @@ public class WorkflowChatService {
                     if (line.startsWith("data:")) {
                         if (line.contains("[DONE]")) {
                             handleWorkflowStreamComplete(emitter, streamId, finalResult, thinkingResult,
-                                            chatReqRecords, sid, traceResult, edit);
+                                    chatReqRecords, sid, traceResult, edit);
                             break;
                         }
 
@@ -234,7 +234,7 @@ public class WorkflowChatService {
                         if (SseEmitterUtil.isStreamStopped(streamId)) {
                             log.info("Stop signal detected after processing data, saving collected data, streamId: {}", streamId);
                             handleWorkflowStreamInterrupted(emitter, streamId, finalResult, thinkingResult,
-                                            chatReqRecords, sid, traceResult, edit);
+                                    chatReqRecords, sid, traceResult, edit);
                             break;
                         }
                     }
@@ -242,13 +242,13 @@ public class WorkflowChatService {
             } catch (IOException e) {
                 log.error("Exception reading workflow SSE stream data, saving collected data, streamId: {}", streamId, e);
                 handleWorkflowStreamInterrupted(emitter, streamId, finalResult, thinkingResult,
-                                chatReqRecords, sid, traceResult, edit);
+                        chatReqRecords, sid, traceResult, edit);
                 SseEmitterUtil.completeWithError(emitter, "Data reading exception: " + e.getMessage());
             }
         } catch (Exception e) {
             log.warn("Exception closing workflow response body, streamId: {}", streamId, e);
             handleWorkflowStreamInterrupted(emitter, streamId, finalResult, thinkingResult,
-                            chatReqRecords, sid, traceResult, edit);
+                    chatReqRecords, sid, traceResult, edit);
         }
     }
 
@@ -256,8 +256,8 @@ public class WorkflowChatService {
      * Parse workflow SSE content
      */
     private void parseWorkflowSSEContent(String data, SseEmitter emitter, String streamId,
-                    StringBuilder finalResult, StringBuilder thinkingResult,
-                    StringBuilder sid, StringBuilder traceResult) {
+            StringBuilder finalResult, StringBuilder thinkingResult,
+            StringBuilder sid, StringBuilder traceResult) {
         log.debug("Workflow SSE data streamId: {} ==> {}", streamId, data);
 
         try {
@@ -317,11 +317,11 @@ public class WorkflowChatService {
     private void processWorkflowInterrupt(JSONObject event, SseEmitter emitter, String streamId) {
         try {
             WorkflowEventData eventData = WorkflowEventData.builder()
-                            .eventId(event.getString("event_id"))
-                            .eventType(event.getString("type"))
-                            .needReply(event.getBooleanValue("need_reply"))
-                            .value(parseEventValue(event.getJSONObject("value")))
-                            .build();
+                    .eventId(event.getString("event_id"))
+                    .eventType(event.getString("type"))
+                    .needReply(event.getBooleanValue("need_reply"))
+                    .value(parseEventValue(event.getJSONObject("value")))
+                    .build();
 
             // Send workflow interrupt event to frontend
             JSONObject interruptResponse = new JSONObject();
@@ -344,10 +344,10 @@ public class WorkflowChatService {
         }
 
         return WorkflowEventData.EventValue.builder()
-                        .type(valueObj.getString("type"))
-                        .message(valueObj.getString("message"))
-                        .content(valueObj.getString("content"))
-                        .build();
+                .type(valueObj.getString("type"))
+                .message(valueObj.getString("message"))
+                .content(valueObj.getString("content"))
+                .build();
     }
 
     /**
@@ -395,7 +395,7 @@ public class WorkflowChatService {
      * Process workflow choices data
      */
     private void processWorkflowChoicesData(JSONObject dataObj, StringBuilder finalResult,
-                    StringBuilder thinkingResult, StringBuilder traceResult, String streamId) {
+            StringBuilder thinkingResult, StringBuilder traceResult, String streamId) {
         if (!dataObj.containsKey("choices")) {
             return;
         }
@@ -424,8 +424,8 @@ public class WorkflowChatService {
      * Handle workflow stream completion
      */
     private void handleWorkflowStreamComplete(SseEmitter emitter, String streamId, StringBuilder finalResult,
-                    StringBuilder thinkingResult, ChatReqRecords chatReqRecords,
-                    StringBuilder sid, StringBuilder traceResult, boolean edit) {
+            StringBuilder thinkingResult, ChatReqRecords chatReqRecords,
+            StringBuilder sid, StringBuilder traceResult, boolean edit) {
         log.info("Workflow conversation completed, streamId: {}", streamId);
 
         // If chatReqRecords exists, save data to database
@@ -447,8 +447,8 @@ public class WorkflowChatService {
      * Handle workflow stream interruption
      */
     private void handleWorkflowStreamInterrupted(SseEmitter emitter, String streamId, StringBuilder finalResult,
-                    StringBuilder thinkingResult, ChatReqRecords chatReqRecords,
-                    StringBuilder sid, StringBuilder traceResult, boolean edit) {
+            StringBuilder thinkingResult, ChatReqRecords chatReqRecords,
+            StringBuilder sid, StringBuilder traceResult, boolean edit) {
         log.info("Workflow conversation interrupted, streamId: {}", streamId);
 
         // If chatReqRecords exists, save data to database
@@ -471,7 +471,7 @@ public class WorkflowChatService {
      * Close workflow SSE stream - called when event_data key is detected
      */
     private void closeWorkflowStream(SseEmitter emitter, String streamId, StringBuilder finalResult,
-                    StringBuilder thinkingResult, StringBuilder sid, StringBuilder traceResult) {
+            StringBuilder thinkingResult, StringBuilder sid, StringBuilder traceResult) {
         log.info("Actively closing workflow SSE stream due to event_data key detection, streamId: {}", streamId);
 
         try {
@@ -490,7 +490,7 @@ public class WorkflowChatService {
             SseEmitterUtil.sendEndAndComplete(emitter);
 
             log.info("Workflow SSE stream successfully closed, streamId: {}, data length - finalResult: {}, thinkingResult: {}, traceResult: {}",
-                            streamId, finalResult.length(), thinkingResult.length(), traceResult.length());
+                    streamId, finalResult.length(), thinkingResult.length(), traceResult.length());
         } catch (Exception e) {
             log.error("Exception occurred while closing workflow SSE stream, streamId: {}", streamId, e);
             try {

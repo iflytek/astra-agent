@@ -65,7 +65,7 @@ public class ExecuteShutdown {
             }
             if (!released) {
                 log.warn("ExecuteShutdown unlock not released (maybe expired or token mismatch). key={}, tokenTail=***{}",
-                                LOCK_KEY, tail4(token));
+                        LOCK_KEY, tail4(token));
             } else {
                 log.debug("ExecuteShutdown lock released. key={}", LOCK_KEY);
             }

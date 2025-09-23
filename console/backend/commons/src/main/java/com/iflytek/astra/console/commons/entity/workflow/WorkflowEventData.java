@@ -67,11 +67,11 @@ public class WorkflowEventData {
                 return this;
             }
             return EventValue.builder()
-                            .type(type)
-                            .message(this.message)
-                            .option(this.option)
-                            .content(this.content)
-                            .build();
+                    .type(type)
+                    .message(this.message)
+                    .option(this.option)
+                    .content(this.content)
+                    .build();
         }
 
         public EventValue withMessage(String message) {
@@ -79,11 +79,11 @@ public class WorkflowEventData {
                 return this;
             }
             return EventValue.builder()
-                            .type(this.type)
-                            .message(message)
-                            .option(this.option)
-                            .content(this.content)
-                            .build();
+                    .type(this.type)
+                    .message(message)
+                    .option(this.option)
+                    .content(this.content)
+                    .build();
         }
 
         public EventValue withContent(String content) {
@@ -91,11 +91,11 @@ public class WorkflowEventData {
                 return this;
             }
             return EventValue.builder()
-                            .type(this.type)
-                            .message(this.message)
-                            .option(this.option)
-                            .content(content)
-                            .build();
+                    .type(this.type)
+                    .message(this.message)
+                    .option(this.option)
+                    .content(content)
+                    .build();
         }
 
         @Data

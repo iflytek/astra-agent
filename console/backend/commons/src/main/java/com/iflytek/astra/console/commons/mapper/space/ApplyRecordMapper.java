@@ -10,8 +10,8 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ApplyRecordMapper extends BaseMapper<ApplyRecord> {
     Page<ApplyRecordVO> selectVOPageByParam(Page<ApplyRecord> page,
-                    @Param("spaceId") Long spaceId,
-                    @Param("enterpriseId") Long enterpriseId,
-                    @Param("nickname") String nickname,
-                    @Param("status") Integer status);
+            @Param("spaceId") Long spaceId,
+            @Param("enterpriseId") Long enterpriseId,
+            @Param("nickname") String nickname,
+            @Param("status") Integer status);
 }

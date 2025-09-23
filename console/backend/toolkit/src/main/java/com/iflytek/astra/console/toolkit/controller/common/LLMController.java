@@ -21,10 +21,10 @@ public class LLMController {
 
     @GetMapping("/auth-list")
     public Object getLlmAuthList(
-                    HttpServletRequest request,
-                    @RequestParam String appId,
-                    @RequestParam(required = false) String scene,
-                    @RequestParam(required = false) String nodeType) throws InterruptedException {
+            HttpServletRequest request,
+            @RequestParam String appId,
+            @RequestParam(required = false) String scene,
+            @RequestParam(required = false) String nodeType) throws InterruptedException {
         return llmService.getLlmAuthList(request, appId, scene, nodeType);
     }
 

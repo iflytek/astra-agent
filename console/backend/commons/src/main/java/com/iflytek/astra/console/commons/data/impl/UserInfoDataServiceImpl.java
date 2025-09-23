@@ -28,23 +28,23 @@ import java.util.concurrent.TimeUnit;
 public class UserInfoDataServiceImpl implements UserInfoDataService {
 
     private static final String[] CHINESE_ADJECTIVES = {
-                    "快乐的", "聪明的", "勇敢的", "温柔的", "活泼的", "阳光的", "可爱的", "优雅的",
-                    "神秘的", "幸运的", "开朗的", "善良的", "机智的", "热情的", "淡定的", "灵动的"
+            "快乐的", "聪明的", "勇敢的", "温柔的", "活泼的", "阳光的", "可爱的", "优雅的",
+            "神秘的", "幸运的", "开朗的", "善良的", "机智的", "热情的", "淡定的", "灵动的"
     };
 
     private static final String[] CHINESE_NOUNS = {
-                    "小猫", "小狗", "小鸟", "小鱼", "熊猫", "兔子", "狐狸", "松鼠",
-                    "星星", "月亮", "云朵", "花朵", "树叶", "彩虹", "蝴蝶", "小熊"
+            "小猫", "小狗", "小鸟", "小鱼", "熊猫", "兔子", "狐狸", "松鼠",
+            "星星", "月亮", "云朵", "花朵", "树叶", "彩虹", "蝴蝶", "小熊"
     };
 
     private static final String[] ENGLISH_ADJECTIVES = {
-                    "Happy", "Smart", "Brave", "Gentle", "Lively", "Sunny", "Cute", "Elegant",
-                    "Mysterious", "Lucky", "Cheerful", "Kind", "Clever", "Warm", "Cool", "Swift"
+            "Happy", "Smart", "Brave", "Gentle", "Lively", "Sunny", "Cute", "Elegant",
+            "Mysterious", "Lucky", "Cheerful", "Kind", "Clever", "Warm", "Cool", "Swift"
     };
 
     private static final String[] ENGLISH_NOUNS = {
-                    "Cat", "Dog", "Bird", "Fish", "Panda", "Rabbit", "Fox", "Squirrel",
-                    "Star", "Moon", "Cloud", "Flower", "Leaf", "Rainbow", "Butterfly", "Bear"
+            "Cat", "Dog", "Bird", "Fish", "Panda", "Rabbit", "Fox", "Squirrel",
+            "Star", "Moon", "Cloud", "Flower", "Leaf", "Rainbow", "Butterfly", "Bear"
     };
 
     @Autowired
@@ -59,7 +59,7 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
         }
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserInfo::getUid, uid)
-                        .last("LIMIT 1");
+                .last("LIMIT 1");
         UserInfo userInfo = userInfoMapper.selectOne(wrapper);
         return Optional.ofNullable(userInfo);
     }
@@ -71,7 +71,7 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
         }
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserInfo::getUsername, username)
-                        .last("LIMIT 1");
+                .last("LIMIT 1");
         UserInfo userInfo = userInfoMapper.selectOne(wrapper);
         return Optional.ofNullable(userInfo);
     }
@@ -235,7 +235,7 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
         }
         LambdaUpdateWrapper<UserInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(UserInfo::getUid, uid)
-                        .set(UserInfo::getAccountStatus, accountStatus);
+                .set(UserInfo::getAccountStatus, accountStatus);
         return userInfoMapper.update(null, wrapper) > 0;
     }
 
@@ -246,7 +246,7 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
         }
         LambdaUpdateWrapper<UserInfo> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(UserInfo::getUid, uid)
-                        .set(UserInfo::getUserAgreement, userAgreement);
+                .set(UserInfo::getUserAgreement, userAgreement);
         return userInfoMapper.update(null, wrapper) > 0;
     }
 
@@ -312,9 +312,9 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
         }
         Page<UserInfo> pageParam = new Page<>(page, size);
         Page<UserInfo> result = userInfoMapper.selectPage(
-                        pageParam,
-                        Wrappers.lambdaQuery(UserInfo.class)
-                                        .orderByDesc(UserInfo::getCreateTime));
+                pageParam,
+                Wrappers.lambdaQuery(UserInfo.class)
+                        .orderByDesc(UserInfo::getCreateTime));
         return result.getRecords();
     }
 
@@ -427,7 +427,7 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
 
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.between(UserInfo::getCreateTime, startTime, endTime)
-                        .orderByDesc(UserInfo::getCreateTime);
+                .orderByDesc(UserInfo::getCreateTime);
         return userInfoMapper.selectList(wrapper);
     }
 
@@ -439,18 +439,18 @@ public class UserInfoDataServiceImpl implements UserInfoDataService {
 
         LambdaQueryWrapper<UserInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.orderByDesc(UserInfo::getCreateTime)
-                        .last("LIMIT " + limit);
+                .last("LIMIT " + limit);
         return userInfoMapper.selectList(wrapper);
     }
 
     @Override
     public Optional<String> findNickNameByUid(String uid) {
         return Optional.ofNullable(uid)
-                        .map(u -> userInfoMapper.selectOne(
-                                        new LambdaQueryWrapper<UserInfo>()
-                                                        .eq(UserInfo::getUid, u)
-                                                        .last("LIMIT 1")))
-                        .map(UserInfo::getNickname);
+                .map(u -> userInfoMapper.selectOne(
+                        new LambdaQueryWrapper<UserInfo>()
+                                .eq(UserInfo::getUid, u)
+                                .last("LIMIT 1")))
+                .map(UserInfo::getNickname);
     }
 
 }

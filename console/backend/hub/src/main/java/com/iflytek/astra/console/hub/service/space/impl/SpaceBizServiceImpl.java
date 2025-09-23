@@ -81,8 +81,8 @@ public class SpaceBizServiceImpl implements SpaceBizService {
             Enterprise enterprise = enterpriseService.getEnterpriseById(enterpriseId);
             space.setEnterpriseId(enterpriseId);
             space.setType(Objects.equals(enterprise.getServiceType(), EnterpriseServiceTypeEnum.ENTERPRISE.getCode())
-                            ? SpaceTypeEnum.ENTERPRISE.getCode()
-                            : SpaceTypeEnum.TEAM.getCode());
+                    ? SpaceTypeEnum.ENTERPRISE.getCode()
+                    : SpaceTypeEnum.TEAM.getCode());
             Long count = spaceService.countByEnterpriseId(enterpriseId);
             Integer spaceCount = 0;
             if (Objects.equals(enterprise.getServiceType(), EnterpriseServiceTypeEnum.ENTERPRISE.getCode())) {
@@ -135,7 +135,7 @@ public class SpaceBizServiceImpl implements SpaceBizService {
         // Send verification code
         if (messageCodeService != null && StringUtils.isNotBlank(mobile)) {
             messageCodeService.checkVerifyCodeCommon(mobile, verifyCode,
-                            MessageCodeService.DEL_SPACE_VERIFY_CODE_PREFIX);
+                    MessageCodeService.DEL_SPACE_VERIFY_CODE_PREFIX);
         } else {
             log.warn("messageCodeService not configured, or mobile number not provided, skipping verification code check");
         }
@@ -244,7 +244,7 @@ public class SpaceBizServiceImpl implements SpaceBizService {
                 return ApiResult.error(ResponseEnum.SPACE_USER_NOT_ENTERPRISE_USER);
             }
             if (!(Objects.equals(enterpriseUser.getRole(), EnterpriseRoleEnum.OFFICER.getCode()) ||
-                            Objects.equals(enterpriseUser.getRole(), EnterpriseRoleEnum.GOVERNOR.getCode()))) {
+                    Objects.equals(enterpriseUser.getRole(), EnterpriseRoleEnum.GOVERNOR.getCode()))) {
                 return ApiResult.error(ResponseEnum.SPACE_USER_NOT_ENTERPRISE_ADMIN);
             }
         }
@@ -253,7 +253,7 @@ public class SpaceBizServiceImpl implements SpaceBizService {
             UserInfo userInfo = userInfoDataService.findByUid(uid).orElseThrow();
             if (StringUtils.isNotBlank(userInfo.getMobile())) {
                 messageCodeService.sendVerifyCodeCommon(userInfo.getMobile(),
-                                MessageCodeService.DEL_SPACE_VERIFY_CODE_PREFIX);
+                        MessageCodeService.DEL_SPACE_VERIFY_CODE_PREFIX);
             } else {
                 log.warn("User has not bound mobile number, cannot send verification code, uid: {}", uid);
             }

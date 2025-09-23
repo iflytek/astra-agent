@@ -14,7 +14,7 @@ public interface UserBroadcastReadMapper extends BaseMapper<UserBroadcastRead> {
      * Query user's read broadcast message ID list
      */
     List<Long> selectReadBroadcastIds(@Param("receiverUid") String receiverUid,
-                    @Param("notificationIds") List<Long> notificationIds);
+            @Param("notificationIds") List<Long> notificationIds);
 
     /**
      * Batch insert read records
@@ -25,7 +25,7 @@ public interface UserBroadcastReadMapper extends BaseMapper<UserBroadcastRead> {
      * Check if user has read specified broadcast message
      */
     boolean checkIfRead(@Param("receiverUid") String receiverUid,
-                    @Param("notificationId") Long notificationId);
+            @Param("notificationId") Long notificationId);
 
     /**
      * Count total broadcast messages read by user

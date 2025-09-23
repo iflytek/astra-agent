@@ -56,7 +56,7 @@ public class ModelStatusScheduler {
             }
         };
         ScheduledFuture<?> heartbeatFuture =
-                        taskScheduler.scheduleAtFixedRate(renewTask, Duration.ofSeconds(HEARTBEAT_SEC));
+                taskScheduler.scheduleAtFixedRate(renewTask, Duration.ofSeconds(HEARTBEAT_SEC));
 
         long startTs = System.currentTimeMillis();
         int pageNo = 1, pageSize = 500;
@@ -66,15 +66,15 @@ public class ModelStatusScheduler {
             while (true) {
                 Page<Model> page = new Page<>(pageNo, pageSize);
                 LambdaQueryWrapper<Model> lqw = new LambdaQueryWrapper<Model>()
-                                .select(Model::getId, Model::getUid, Model::getType, Model::getStatus,
-                                                Model::getRemark, Model::getUrl)
-                                .eq(Model::getType, 2)
-                                .eq(Model::getIsDeleted, 0)
-                                // (status IS NULL) OR (status <> RUNNING)
-                                .and(w -> w.isNull(Model::getStatus)
-                                                .or()
-                                                .ne(Model::getStatus, ModelStatusEnum.RUNNING.getCode()))
-                                .orderByAsc(Model::getId);
+                        .select(Model::getId, Model::getUid, Model::getType, Model::getStatus,
+                                Model::getRemark, Model::getUrl)
+                        .eq(Model::getType, 2)
+                        .eq(Model::getIsDeleted, 0)
+                        // (status IS NULL) OR (status <> RUNNING)
+                        .and(w -> w.isNull(Model::getStatus)
+                                .or()
+                                .ne(Model::getStatus, ModelStatusEnum.RUNNING.getCode()))
+                        .orderByAsc(Model::getId);
 
                 Page<Model> ret = modelService.page(page, lqw);
                 List<Model> records = ret.getRecords();
@@ -83,8 +83,8 @@ public class ModelStatusScheduler {
                 }
 
                 Map<String, List<Model>> byUid = records.stream()
-                                .filter(m -> m.getUid() != null)
-                                .collect(Collectors.groupingBy(Model::getUid));
+                        .filter(m -> m.getUid() != null)
+                        .collect(Collectors.groupingBy(Model::getUid));
 
                 for (Map.Entry<String, List<Model>> e : byUid.entrySet()) {
                     String uid = e.getKey();
@@ -119,7 +119,7 @@ public class ModelStatusScheduler {
                 log.warn("[flushStatusCron] unlock failed: {}", unlockEx.getMessage());
             }
             log.info("[flushStatusCron] done, handled={}, updated={}, cost={}ms",
-                            totalHandled, totalUpdated, (System.currentTimeMillis() - startTs));
+                    totalHandled, totalUpdated, (System.currentTimeMillis() - startTs));
         }
     }
 }

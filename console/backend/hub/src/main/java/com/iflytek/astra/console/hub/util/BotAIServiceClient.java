@@ -40,11 +40,11 @@ public class BotAIServiceClient {
     private static final String TEXT_HOST_URL = "https://spark-openapi.cn-huabei-1.xf-yun.com/v4.0/multimodal";
     private static final String imageHost = "http://spark-openapi.cn-huabei-1.xf-yun.com/v2.1/tti";
     private final OkHttpClient httpClient = new OkHttpClient().newBuilder()
-                    .connectionPool(new ConnectionPool(100, 5, TimeUnit.MINUTES))
-                    .connectTimeout(60, TimeUnit.SECONDS)
-                    .readTimeout(60, TimeUnit.SECONDS)
-                    .writeTimeout(60, TimeUnit.SECONDS)
-                    .build();
+            .connectionPool(new ConnectionPool(100, 5, TimeUnit.MINUTES))
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -80,9 +80,9 @@ public class BotAIServiceClient {
             RequestBody requestBody = RequestBody.create(requestData.toString(), jsonMediaType);
 
             Request request = new Request.Builder()
-                            .url(requestUrl)
-                            .post(requestBody)
-                            .build();
+                    .url(requestUrl)
+                    .post(requestBody)
+                    .build();
 
             try (Response response = httpClient.newCall(request).execute()) {
                 ResponseBody responseBody = response.body();
@@ -94,7 +94,7 @@ public class BotAIServiceClient {
                 JSONObject result = JSONObject.parseObject(responseBodyString);
 
                 log.info("Image generation request completed, user [{}], response code: {}", uid,
-                                result.getIntValue("header.code", -1));
+                        result.getIntValue("header.code", -1));
 
                 return result;
             }
@@ -124,7 +124,7 @@ public class BotAIServiceClient {
             StringBuilder totalAnswer = new StringBuilder();
 
             httpClient.newWebSocket(request, new TextGenerationWebSocketListener(
-                            appId, question, domain, latch, totalAnswer));
+                    appId, question, domain, latch, totalAnswer));
 
             if (!latch.await(seconds, TimeUnit.SECONDS)) {
                 log.error("AI text generation request timeout, timeout: {} seconds", seconds);
@@ -172,7 +172,7 @@ public class BotAIServiceClient {
         private final StringBuilder totalAnswer;
 
         public TextGenerationWebSocketListener(String appId, String question, String domain,
-                        CountDownLatch latch, StringBuilder totalAnswer) {
+                CountDownLatch latch, StringBuilder totalAnswer) {
             this.appId = appId;
             this.question = question;
             this.domain = domain;
@@ -205,7 +205,7 @@ public class BotAIServiceClient {
 
                 if (response.getHeader().getCode() != 0) {
                     log.error("AI service returned error, error code: {}, session ID: {}",
-                                    response.getHeader().getCode(), response.getHeader().getSid());
+                            response.getHeader().getCode(), response.getHeader().getSid());
                     webSocket.close(1001, "AI service error");
                     latch.countDown();
                     return;
@@ -339,8 +339,8 @@ public class BotAIServiceClient {
             String host = uri.getHost();
 
             String signatureString = "host: " + host + "\n" +
-                            "date: " + date + "\n" +
-                            method + " " + uri.getPath() + " HTTP/1.1";
+                    "date: " + date + "\n" +
+                    method + " " + uri.getPath() + " HTTP/1.1";
 
             Mac mac = Mac.getInstance("hmacsha256");
             SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), "hmacsha256");
@@ -350,16 +350,16 @@ public class BotAIServiceClient {
             String signature = Base64.getEncoder().encodeToString(hexDigits);
 
             String authorization = String.format(
-                            "hmac username=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"",
-                            apiKey, "hmac-sha256", "host date request-line", signature);
+                    "hmac username=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"",
+                    apiKey, "hmac-sha256", "host date request-line", signature);
 
             String authBase = Base64.getEncoder().encodeToString(authorization.getBytes(StandardCharsets.UTF_8));
 
             return String.format("%s?authorization=%s&host=%s&date=%s",
-                            requestUrl,
-                            URLEncoder.encode(authBase, StandardCharsets.UTF_8),
-                            URLEncoder.encode(host, StandardCharsets.UTF_8),
-                            URLEncoder.encode(date, StandardCharsets.UTF_8));
+                    requestUrl,
+                    URLEncoder.encode(authBase, StandardCharsets.UTF_8),
+                    URLEncoder.encode(host, StandardCharsets.UTF_8),
+                    URLEncoder.encode(date, StandardCharsets.UTF_8));
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to build authentication URL", e);
@@ -370,7 +370,7 @@ public class BotAIServiceClient {
      * Build WebSocket authentication URL (for text generation)
      */
     private String buildWebSocketAuthUrl(String hostUrl, String apiKey, String apiSecret)
-                    throws IllegalArgumentException {
+            throws IllegalArgumentException {
         try {
             URI uri = URI.create(hostUrl);
             SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
@@ -378,8 +378,8 @@ public class BotAIServiceClient {
             String date = format.format(new Date());
 
             String preStr = "host: " + uri.getHost() + "\n" +
-                            "date: " + date + "\n" +
-                            "GET " + uri.getPath() + " HTTP/1.1";
+                    "date: " + date + "\n" +
+                    "GET " + uri.getPath() + " HTTP/1.1";
 
             Mac mac = Mac.getInstance("hmacsha256");
             SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), "hmacsha256");
@@ -389,14 +389,14 @@ public class BotAIServiceClient {
             String sha = Base64.getEncoder().encodeToString(hexDigits);
 
             String authorization = String.format("api_key=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"",
-                            apiKey, "hmac-sha256", "host date request-line", sha);
+                    apiKey, "hmac-sha256", "host date request-line", sha);
 
             HttpUrl httpUrl = Objects.requireNonNull(HttpUrl.parse("https://" + uri.getHost() + uri.getPath()))
-                            .newBuilder()
-                            .addQueryParameter("authorization", Base64.getEncoder().encodeToString(authorization.getBytes(StandardCharsets.UTF_8)))
-                            .addQueryParameter("date", date)
-                            .addQueryParameter("host", uri.getHost())
-                            .build();
+                    .newBuilder()
+                    .addQueryParameter("authorization", Base64.getEncoder().encodeToString(authorization.getBytes(StandardCharsets.UTF_8)))
+                    .addQueryParameter("date", date)
+                    .addQueryParameter("host", uri.getHost())
+                    .build();
 
             return httpUrl.toString();
         } catch (Exception e) {

@@ -38,8 +38,8 @@ public class WorkflowListener extends EventSourceListener {
     private SseEmitter emitter;
 
     public WorkflowListener(WorkflowClient chainClient, ChatReqRecords records, String sseId,
-                    WssListenerService wssListenerService,
-                    boolean isDebug, SseEmitter emitter) {
+            WssListenerService wssListenerService,
+            boolean isDebug, SseEmitter emitter) {
         this.chainClient = chainClient;
         this.chatReqRecords = records;
         this.sseId = sseId;
@@ -234,9 +234,9 @@ public class WorkflowListener extends EventSourceListener {
         // Engineer Zhang Xu
         if (isDebug) {
             JSONObject node = Optional.ofNullable(jsonObject)
-                            .map(obj -> obj.getJSONObject("workflow_step"))
-                            .map(step -> step.getJSONObject("node"))
-                            .orElse(null);
+                    .map(obj -> obj.getJSONObject("workflow_step"))
+                    .map(step -> step.getJSONObject("node"))
+                    .orElse(null);
             if (node == null) {
                 return;
             }

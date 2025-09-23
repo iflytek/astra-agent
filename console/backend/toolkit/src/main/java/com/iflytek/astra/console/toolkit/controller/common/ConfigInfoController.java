@@ -56,8 +56,8 @@ public class ConfigInfoController {
     @GetMapping("/workflow/categories")
     public ApiResult<List<String>> getTags() {
         ConfigInfo config = configInfoService.getOne(new LambdaQueryWrapper<ConfigInfo>()
-                        .eq(ConfigInfo::getCategory, "WORKFLOW_CATEGORY")
-                        .eq(ConfigInfo::getIsValid, 1));
+                .eq(ConfigInfo::getCategory, "WORKFLOW_CATEGORY")
+                .eq(ConfigInfo::getIsValid, 1));
         return ApiResult.success(Arrays.asList(config.getValue().split(",")));
     }
 

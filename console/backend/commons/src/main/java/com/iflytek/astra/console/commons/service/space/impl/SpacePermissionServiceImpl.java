@@ -18,14 +18,14 @@ public class SpacePermissionServiceImpl extends ServiceImpl<SpacePermissionMappe
     @Override
     public SpacePermission getSpacePermissionByKey(String key) {
         return this.getOne(Wrappers.<SpacePermission>lambdaQuery()
-                        .eq(SpacePermission::getPermissionKey, key));
+                .eq(SpacePermission::getPermissionKey, key));
     }
 
     @Override
     public List<String> listByKeys(Collection<String> keys) {
         return this.listObjs(Wrappers.<SpacePermission>lambdaQuery()
-                        .select(SpacePermission::getPermissionKey)
-                        .in(SpacePermission::getPermissionKey, keys));
+                .select(SpacePermission::getPermissionKey)
+                .in(SpacePermission::getPermissionKey, keys));
     }
 
     @Override

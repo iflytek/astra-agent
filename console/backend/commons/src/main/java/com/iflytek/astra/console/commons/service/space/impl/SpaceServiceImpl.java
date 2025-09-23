@@ -52,16 +52,16 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     public List<SpaceVO> recentVisitList() {
         String uid = RequestContextUtil.getUID();
         return this.baseMapper.recentVisitList(
-                        uid,
-                        EnterpriseInfoUtil.getEnterpriseId());
+                uid,
+                EnterpriseInfoUtil.getEnterpriseId());
     }
 
     @Override
     public List<SpaceVO> personalList(String name) {
         String uid = RequestContextUtil.getUID();
         List<SpaceVO> spaceVOS = this.baseMapper.joinList(
-                        uid,
-                        EnterpriseInfoUtil.getEnterpriseId(), name);
+                uid,
+                EnterpriseInfoUtil.getEnterpriseId(), name);
         setSpaceVOExtraInfo(spaceVOS);
         return spaceVOS;
     }
@@ -75,9 +75,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
                 if (spaceUsers != null) {
                     spaceVO.setMemberCount(spaceUsers.size());
                     SpaceUser spaceUser = spaceUsers.stream()
-                                    .filter(user -> Objects.equals(user.getRole(), SpaceRoleEnum.OWNER.getCode()))
-                                    .findFirst()
-                                    .orElse(null);
+                            .filter(user -> Objects.equals(user.getRole(), SpaceRoleEnum.OWNER.getCode()))
+                            .findFirst()
+                            .orElse(null);
                     if (spaceUser != null) {
                         UserInfo userInfo = userInfoDataService.findByUid(spaceUser.getUid()).orElseThrow();
                         spaceVO.setOwnerName(userInfo.getNickname());
@@ -90,9 +90,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public List<SpaceVO> personalSelfList(String name) {
         List<SpaceVO> spaceVOS = this.baseMapper.selfList(
-                        RequestContextUtil.getUID(),
-                        SpaceRoleEnum.OWNER.getCode(),
-                        EnterpriseInfoUtil.getEnterpriseId(), name);
+                RequestContextUtil.getUID(),
+                SpaceRoleEnum.OWNER.getCode(),
+                EnterpriseInfoUtil.getEnterpriseId(), name);
         setSpaceVOExtraInfo(spaceVOS);
         return spaceVOS;
     }
@@ -100,8 +100,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public List<SpaceVO> corporateJoinList(String name) {
         List<SpaceVO> spaceVOS = this.baseMapper.joinList(
-                        RequestContextUtil.getUID(),
-                        EnterpriseInfoUtil.getEnterpriseId(), name);
+                RequestContextUtil.getUID(),
+                EnterpriseInfoUtil.getEnterpriseId(), name);
         setSpaceVOExtraInfo(spaceVOS);
         return spaceVOS;
     }
@@ -110,8 +110,8 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public List<SpaceVO> corporateList(String name) {
         List<SpaceVO> spaceVOS = this.baseMapper.corporateList(
-                        RequestContextUtil.getUID(),
-                        EnterpriseInfoUtil.getEnterpriseId(), name);
+                RequestContextUtil.getUID(),
+                EnterpriseInfoUtil.getEnterpriseId(), name);
         setSpaceVOExtraInfo(spaceVOS);
         return spaceVOS;
     }
@@ -132,9 +132,9 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
         List<SpaceUser> allSpaceUsers = spaceUserService.getAllSpaceUsers(spaceVO.getId());
         spaceVO.setMemberCount(allSpaceUsers.size());
         SpaceUser spaceUser = allSpaceUsers.stream()
-                        .filter(user -> Objects.equals(user.getRole(), SpaceRoleEnum.OWNER.getCode()))
-                        .findFirst()
-                        .orElse(null);
+                .filter(user -> Objects.equals(user.getRole(), SpaceRoleEnum.OWNER.getCode()))
+                .findFirst()
+                .orElse(null);
         if (spaceUser != null) {
             UserInfo userInfo = userInfoDataService.findByUid(spaceUser.getUid()).orElseThrow();
             spaceVO.setOwnerName(userInfo.getNickname());
@@ -145,7 +145,7 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public void setLastVisitPersonalSpaceTime() {
         redissonClient.getBucket(USER_LAST_VISIT_PERSONAL_SPACE_TIME + RequestContextUtil.getUID())
-                        .set(Long.toString(System.currentTimeMillis()));
+                .set(Long.toString(System.currentTimeMillis()));
     }
 
     @Override
@@ -183,14 +183,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public Long countByEnterpriseId(Long enterpriseId) {
         return this.count(Wrappers.<Space>lambdaQuery()
-                        .eq(Space::getEnterpriseId, enterpriseId));
+                .eq(Space::getEnterpriseId, enterpriseId));
     }
 
     @Override
     public Long countByUid(String uid) {
         return this.count(Wrappers.<Space>lambdaQuery()
-                        .eq(Space::getUid, uid)
-                        .isNull(Space::getEnterpriseId));
+                .eq(Space::getUid, uid)
+                .isNull(Space::getEnterpriseId));
     }
 
     @Override
@@ -206,14 +206,14 @@ public class SpaceServiceImpl extends ServiceImpl<SpaceMapper, Space> implements
     @Override
     public boolean checkExistByName(String name, Long id) {
         LambdaQueryWrapper<Space> queryWrapper = Wrappers.<Space>lambdaQuery()
-                        .eq(Space::getName, name);
+                .eq(Space::getName, name);
         Long enterpriseId = EnterpriseInfoUtil.getEnterpriseId();
         if (enterpriseId != null) {
             queryWrapper = queryWrapper.eq(Space::getEnterpriseId, enterpriseId);
         } else {
             String uid = RequestContextUtil.getUID();
             queryWrapper = queryWrapper.eq(Space::getUid, uid)
-                            .isNull(Space::getEnterpriseId);
+                    .isNull(Space::getEnterpriseId);
         }
         if (id != null) {
             queryWrapper = queryWrapper.ne(Space::getId, id);

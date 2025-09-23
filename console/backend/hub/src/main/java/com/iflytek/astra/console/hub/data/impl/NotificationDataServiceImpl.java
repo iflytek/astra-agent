@@ -47,12 +47,12 @@ public class NotificationDataServiceImpl implements NotificationDataService {
     private final NotificationDataService self;
 
     public NotificationDataServiceImpl(
-                    NotificationMapper notificationMapper,
-                    UserNotificationMapper userNotificationMapper,
-                    UserBroadcastReadMapper userBroadcastReadMapper,
-                    @Qualifier("cacheManager5min") CacheManager cacheManager,
-                    UserInfoDataService userInfoDataService,
-                    @Lazy NotificationDataService self) {
+            NotificationMapper notificationMapper,
+            UserNotificationMapper userNotificationMapper,
+            UserBroadcastReadMapper userBroadcastReadMapper,
+            @Qualifier("cacheManager5min") CacheManager cacheManager,
+            UserInfoDataService userInfoDataService,
+            @Lazy NotificationDataService self) {
         this.notificationMapper = notificationMapper;
         this.userNotificationMapper = userNotificationMapper;
         this.userBroadcastReadMapper = userBroadcastReadMapper;
@@ -97,9 +97,9 @@ public class NotificationDataServiceImpl implements NotificationDataService {
 
             // Precisely evict cache for affected users
             userNotifications.stream()
-                            .map(UserNotification::getReceiverUid)
-                            .distinct()
-                            .forEach(this::evictUserCountCaches);
+                    .map(UserNotification::getReceiverUid)
+                    .distinct()
+                    .forEach(this::evictUserCountCaches);
 
             log.debug("Batch created {} user notifications successfully", userNotifications.size());
             return result;
@@ -126,9 +126,9 @@ public class NotificationDataServiceImpl implements NotificationDataService {
 
         // Precisely evict unread count cache for affected users
         readRecords.stream()
-                        .map(UserBroadcastRead::getReceiverUid)
-                        .distinct()
-                        .forEach(this::evictUserUnreadCountCache);
+                .map(UserBroadcastRead::getReceiverUid)
+                .distinct()
+                .forEach(this::evictUserUnreadCountCache);
 
         return batchInsertCount;
     }
@@ -137,7 +137,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
     public List<NotificationDto> getUserNotifications(String receiverUid, NotificationQueryRequest queryRequest) {
         // Use JOIN query for personal messages (solve N+1 problem)
         List<NotificationDto> personalNotifications = userNotificationMapper
-                        .selectUserNotificationsWithDetails(receiverUid, queryRequest.getOffset(), queryRequest.getPageSize());
+                .selectUserNotificationsWithDetails(receiverUid, queryRequest.getOffset(), queryRequest.getPageSize());
 
         return mergeWithBroadcastNotifications(personalNotifications, receiverUid, queryRequest.getPageSize(), false);
     }
@@ -146,16 +146,16 @@ public class NotificationDataServiceImpl implements NotificationDataService {
     public List<NotificationDto> getUserUnreadNotifications(String receiverUid, NotificationQueryRequest queryRequest) {
         // Use JOIN query for unread personal messages (solve N+1 problem)
         List<NotificationDto> unreadPersonalNotifications = userNotificationMapper
-                        .selectUserUnreadNotificationsWithDetails(
-                                        receiverUid,
-                                        queryRequest.getOffset(),
-                                        queryRequest.getPageSize());
+                .selectUserUnreadNotificationsWithDetails(
+                        receiverUid,
+                        queryRequest.getOffset(),
+                        queryRequest.getPageSize());
 
         return mergeWithBroadcastNotifications(
-                        unreadPersonalNotifications,
-                        receiverUid,
-                        queryRequest.getPageSize(),
-                        true);
+                unreadPersonalNotifications,
+                receiverUid,
+                queryRequest.getPageSize(),
+                true);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
     public long countUserAllNotifications(String receiverUid) {
         // Count total personal messages
         long personalCount = userNotificationMapper.selectCount(
-                        new QueryWrapper<UserNotification>().eq("receiver_uid", receiverUid));
+                new QueryWrapper<UserNotification>().eq("receiver_uid", receiverUid));
 
         // Get total visible broadcast messages for user (broadcast messages after registration)
         // Call through self proxy to enable caching
@@ -196,7 +196,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
 
         long totalCount = personalCount + userVisibleBroadcastCount;
         log.debug("Counted all notifications for user {}: personal={}, visible_broadcast={}, total={}",
-                        receiverUid, personalCount, userVisibleBroadcastCount, totalCount);
+                receiverUid, personalCount, userVisibleBroadcastCount, totalCount);
 
         return totalCount;
     }
@@ -209,9 +209,9 @@ public class NotificationDataServiceImpl implements NotificationDataService {
 
         List<Notification> notifications = notificationMapper.selectBatchIds(notificationIds);
         return notifications.stream()
-                        .filter(notification -> NotificationType.BROADCAST.getCode().equals(notification.getType()))
-                        .map(Notification::getId)
-                        .toList();
+                .filter(notification -> NotificationType.BROADCAST.getCode().equals(notification.getType()))
+                .map(Notification::getId)
+                .toList();
     }
 
     @Override
@@ -259,7 +259,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
     public int deleteUserNotification(String receiverUid, Long notificationId) {
         QueryWrapper<UserNotification> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("receiver_uid", receiverUid)
-                        .eq("notification_id", notificationId);
+                .eq("notification_id", notificationId);
         int result = userNotificationMapper.delete(queryWrapper);
         if (result > 0) {
             evictUserCountCaches(receiverUid);
@@ -285,7 +285,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
      * @return Merged message list
      */
     private List<NotificationDto> mergeWithBroadcastNotifications(
-                    List<NotificationDto> personalNotifications, String receiverUid, int limit, boolean unreadOnly) {
+            List<NotificationDto> personalNotifications, String receiverUid, int limit, boolean unreadOnly) {
 
         List<NotificationDto> result = new ArrayList<>(personalNotifications);
 
@@ -308,15 +308,15 @@ public class NotificationDataServiceImpl implements NotificationDataService {
      */
     private List<NotificationDto> getBroadcastNotificationDtos(String receiverUid, int remainingLimit, boolean unreadOnly) {
         List<Notification> broadcastNotifications = notificationMapper.selectByType(
-                        NotificationType.BROADCAST.getCode(), 0, remainingLimit * 2);
+                NotificationType.BROADCAST.getCode(), 0, remainingLimit * 2);
 
         if (broadcastNotifications.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<Long> broadcastIds = broadcastNotifications.stream()
-                        .map(Notification::getId)
-                        .toList();
+                .map(Notification::getId)
+                .toList();
         List<Long> readBroadcastIds = userBroadcastReadMapper.selectReadBroadcastIds(receiverUid, broadcastIds);
 
         List<NotificationDto> result = new ArrayList<>();
@@ -347,8 +347,8 @@ public class NotificationDataServiceImpl implements NotificationDataService {
         // WHERE type = 'broadcast'
         // AND (expire_at IS NULL OR expire_at > NOW())
         return Wrappers.lambdaQuery(Notification.class)
-                        .eq(Notification::getType, NotificationType.BROADCAST.getCode())
-                        .and(wrapper -> wrapper.isNull(Notification::getExpireAt).or().gt(Notification::getExpireAt, LocalDateTime.now()));
+                .eq(Notification::getType, NotificationType.BROADCAST.getCode())
+                .and(wrapper -> wrapper.isNull(Notification::getExpireAt).or().gt(Notification::getExpireAt, LocalDateTime.now()));
     }
 
     // ==================== Cache Eviction Helper Methods ====================
@@ -385,7 +385,7 @@ public class NotificationDataServiceImpl implements NotificationDataService {
             // Count broadcast messages after user registration
             long count = notificationMapper.countBroadcastMessagesAfter(userCreateTime);
             log.debug("User {} can see {} broadcast messages (created after {})",
-                            receiverUid, count, userCreateTime);
+                    receiverUid, count, userCreateTime);
             return count;
         } catch (Exception e) {
             log.error("Failed to get user visible broadcast count for user: {}", receiverUid, e);

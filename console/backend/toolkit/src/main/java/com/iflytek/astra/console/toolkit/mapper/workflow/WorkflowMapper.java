@@ -13,10 +13,10 @@ import java.util.List;
 public interface WorkflowMapper extends BaseMapper<Workflow> {
 
     List<Workflow> selectSuqareFlowList(@Param("page") Page<Workflow> page,
-                    @Param("uid") String uid,
-                    @Param("configId") Integer configId,
-                    @Param("adminUid") String adminUid,
-                    @Param("name") String name);
+            @Param("uid") String uid,
+            @Param("configId") Integer configId,
+            @Param("adminUid") String adminUid,
+            @Param("name") String name);
 
     Integer checkDomainIsUsage(@Param("uid") String uid, @Param("domain") String domain);
 }

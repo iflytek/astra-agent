@@ -21,9 +21,9 @@ public class BotOffiaccountServiceImpl implements BotOffiaccountService {
     @Override
     public List<BotOffiaccount> getAccountList(String uid) {
         return botOffiaccountMapper.selectList(Wrappers.lambdaQuery(BotOffiaccount.class)
-                        .eq(BotOffiaccount::getUid, uid)
-                        .eq(BotOffiaccount::getStatus, BotOffiaccountStatusEnum.BOUND.getStatus())
-                        .orderByDesc(BotOffiaccount::getUpdateTime));
+                .eq(BotOffiaccount::getUid, uid)
+                .eq(BotOffiaccount::getStatus, BotOffiaccountStatusEnum.BOUND.getStatus())
+                .orderByDesc(BotOffiaccount::getUpdateTime));
     }
 
 }

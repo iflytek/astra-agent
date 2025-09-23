@@ -91,21 +91,21 @@ public class ProjectContent {
     public static final String SPECIAL_COOKIE_TOKEN = "c9b1d3f0-7c62-4a8d-b5e3-9a7f6c1d2e8a";
 
     private static final Set<String> VALID_FILE_TYPES = new HashSet<>(Arrays.asList(
-                    HTML_FILE_TYPE,
-                    WORD_FILE_TYPE,
-                    WORDX_FILE_TYPE,
-                    PDF_FILE_TYPE,
-                    MD_FILE_TYPE,
-                    TXT_FILE_TYPE,
-                    XLS_FILE_TYPE,
-                    XLSX_FILE_TYPE,
-                    CSV_FILE_TYPE,
-                    PPT_FILE_TYPE,
-                    PPTX_FILE_TYPE,
-                    JPG_FILE_TYPE,
-                    JPEG_FILE_TYPE,
-                    PNG_FILE_TYPE,
-                    BMP_FILE_TYPE));
+            HTML_FILE_TYPE,
+            WORD_FILE_TYPE,
+            WORDX_FILE_TYPE,
+            PDF_FILE_TYPE,
+            MD_FILE_TYPE,
+            TXT_FILE_TYPE,
+            XLS_FILE_TYPE,
+            XLSX_FILE_TYPE,
+            CSV_FILE_TYPE,
+            PPT_FILE_TYPE,
+            PPTX_FILE_TYPE,
+            JPG_FILE_TYPE,
+            JPEG_FILE_TYPE,
+            PNG_FILE_TYPE,
+            BMP_FILE_TYPE));
 
     public static boolean isValidFileType(String fileFormat) {
         return VALID_FILE_TYPES.contains(fileFormat.toLowerCase());

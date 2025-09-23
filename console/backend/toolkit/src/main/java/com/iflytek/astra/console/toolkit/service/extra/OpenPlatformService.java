@@ -77,11 +77,11 @@ public class OpenPlatformService {
 
         Map<String, String> headers = buildHeader();
         String reqBody = new JSONObject()
-                        .fluentPut("massId", id)
-                        .fluentPut("botDesc", description)
-                        .fluentPut("prologue", prologue)
-                        .fluentPut("inputExample", inputExample)
-                        .toString();
+                .fluentPut("massId", id)
+                .fluentPut("botDesc", description)
+                .fluentPut("prologue", prologue)
+                .fluentPut("inputExample", inputExample)
+                .toString();
 
         log.info("OpenPlatformService syncWorkflowUpdate, url = {}, headers = {}, reqBody = {}", url, headers, reqBody);
         String response = OkHttpUtil.post(url, headers, reqBody);

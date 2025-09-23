@@ -43,16 +43,16 @@ public class ChatListServiceImpl implements ChatListService {
         ChatList latestOne = chatListDataService.findByUidAndChatId(uid, chatId);
         // Query bot list if botId is not null, otherwise query regular list
         if (latestOne != null && latestOne.getId() != null && latestOne.getEnable() == 1
-                        && StringUtils.isBlank(latestOne.getEnabledPluginIds())
-                        && StringUtils.isBlank(latestOne.getFileId())) {
+                && StringUtils.isBlank(latestOne.getEnabledPluginIds())
+                && StringUtils.isBlank(latestOne.getFileId())) {
             // Condition met, try to use user's existing chat list
             List<ChatReqRecords> listReqs = chatDataService.findRequestsByChatIdAndUid(chatId, uid);
 
             if (CollectionUtil.isEmpty(listReqs)) {
                 // User's latest chat list is empty and can be used directly
                 return new ChatListCreateResponse(
-                                latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
-                                latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
+                        latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
+                        latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
             }
             // Otherwise continue to create a new chat list
         }
@@ -89,8 +89,8 @@ public class ChatListServiceImpl implements ChatListService {
 
         chatListDataService.createChat(entity);
         return new ChatListCreateResponse(
-                        entity.getId(), entity.getTitle(), entity.getEnable(),
-                        entity.getCreateTime(), false, null, botId, null, null);
+                entity.getId(), entity.getTitle(), entity.getEnable(),
+                entity.getCreateTime(), false, null, botId, null, null);
     }
 
     /**
@@ -165,16 +165,16 @@ public class ChatListServiceImpl implements ChatListService {
                     chatListDataService.reactivateChatBatch(chatIdList);
                 }
                 return new ChatListCreateResponse(
-                                latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
-                                latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
+                        latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
+                        latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
             } else if (latestOne.getIsDelete() != null && latestOne.getIsDelete() == 0 && latestOne.getEnable() == 1) {
                 return new ChatListCreateResponse(latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
-                                latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
+                        latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
             }
         }
         if (latestOne != null && latestOne.getId() != null && latestOne.getEnable() == 1 // Old chat list is in normal enabled state
-                        && StringUtils.isBlank(latestOne.getEnabledPluginIds()) // Old chat list has no enabled plugins
-                        && StringUtils.isBlank(latestOne.getFileId()) // Old chat list has no ChatFile enabled
+                && StringUtils.isBlank(latestOne.getEnabledPluginIds()) // Old chat list has no enabled plugins
+                && StringUtils.isBlank(latestOne.getFileId()) // Old chat list has no ChatFile enabled
         ) {
             // Condition met, try to use user's existing chat list
             List<ChatReqRecords> listReqs = chatDataService.findRequestsByChatIdAndUid(latestOne.getId(), uid);
@@ -182,8 +182,8 @@ public class ChatListServiceImpl implements ChatListService {
             if (CollectionUtil.isEmpty(listReqs)) {
                 // User's latest chat list is empty and can be used directly
                 return new ChatListCreateResponse(
-                                latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
-                                latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
+                        latestOne.getId(), latestOne.getTitle(), latestOne.getEnable(),
+                        latestOne.getCreateTime(), true, latestOne.getFileId(), botId, null, null);
             }
             // Otherwise continue to create a new chat list
         }
@@ -207,8 +207,8 @@ public class ChatListServiceImpl implements ChatListService {
         chatListDataService.addRootTree(entity.getId(), uid);
 
         return new ChatListCreateResponse(
-                        entity.getId(), entity.getTitle(), entity.getEnable(),
-                        entity.getCreateTime(), false, null, botId, null, null);
+                entity.getId(), entity.getTitle(), entity.getEnable(),
+                entity.getCreateTime(), false, null, botId, null, null);
     }
 
     /**
@@ -272,8 +272,8 @@ public class ChatListServiceImpl implements ChatListService {
         chatListDataService.addRootTree(entity.getId(), uid);
 
         return new ChatListCreateResponse(
-                        entity.getId(), entity.getTitle(), entity.getEnable(),
-                        entity.getCreateTime(), false, null, botId, null, null);
+                entity.getId(), entity.getTitle(), entity.getEnable(),
+                entity.getCreateTime(), false, null, botId, null, null);
     }
 
     private boolean logicDeleteSingleChatList(Long chatListId, String uid) {

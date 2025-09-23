@@ -58,9 +58,9 @@ public class ToolBoxController {
     @Operation(summary = "插件分页列表")
     @SpacePreAuth(key = "ToolBoxController_listTools_GET")
     public Object listTools(@RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
-                    @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-                    @RequestParam(value = "content", required = false) String content,
-                    @RequestParam(value = "status", required = false) Integer status) {
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "content", required = false) String content,
+            @RequestParam(value = "status", required = false) Integer status) {
         return toolBoxService.pageListTools(pageNo, pageSize, content, status);
     }
 
@@ -103,8 +103,8 @@ public class ToolBoxController {
     @GetMapping("/favorite")
     @SpacePreAuth(key = "ToolBoxController_favorite_GET")
     public Object favorite(@RequestParam("toolId") String toolId,
-                    @RequestParam("favoriteFlag") Integer favoriteFlag,
-                    @RequestParam("isMcp") Boolean isMcp) {
+            @RequestParam("favoriteFlag") Integer favoriteFlag,
+            @RequestParam("isMcp") Boolean isMcp) {
         return toolBoxService.favorite(toolId, favoriteFlag, isMcp);
     }
 

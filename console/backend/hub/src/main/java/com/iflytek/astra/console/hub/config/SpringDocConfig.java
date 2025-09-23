@@ -18,15 +18,15 @@ public class SpringDocConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
-                        // Define security scheme
-                        .components(new Components()
-                                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
-                                                        .type(SecurityScheme.Type.HTTP)
-                                                        .scheme("bearer")
-                                                        .bearerFormat("JWT")
-                                                        .description("Please enter a valid JWT Token (format: Bearer <token>)")))
-                        // Globally add security requirements (all interfaces require authentication by default)
-                        .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                // Define security scheme
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                                .description("Please enter a valid JWT Token (format: Bearer <token>)")))
+                // Globally add security requirements (all interfaces require authentication by default)
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 
     @Bean

@@ -34,9 +34,9 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
         if (edit) {
             // Edit mode: query existing record and update
             ChatReasonRecords existingRecord = chatDataService.findReasonByUidAndChatIdAndReqId(
-                            chatReqRecords.getUid(),
-                            chatReqRecords.getChatId(),
-                            chatReqRecords.getId());
+                    chatReqRecords.getUid(),
+                    chatReqRecords.getChatId(),
+                    chatReqRecords.getId());
 
             if (existingRecord != null) {
                 existingRecord.setContent(thinkingResult.toString());
@@ -44,7 +44,7 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
 
                 chatDataService.updateReasonByUidAndChatIdAndReqId(existingRecord);
                 log.info("Updated thinking process record, reqId: {}, chatId: {}, uid: {}",
-                                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
             }
         } else {
             // Create mode: create new record
@@ -68,7 +68,7 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
 
         chatDataService.createReasonRecord(chatReasonRecords);
         log.info("Created new thinking process record, reqId: {}, chatId: {}, uid: {}",
-                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
     }
 
     /**
@@ -86,9 +86,9 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
         if (edit) {
             // Edit mode: query existing record and update
             ChatRespRecords existingRecord = chatDataService.findResponseByUidAndChatIdAndReqId(
-                            chatReqRecords.getUid(),
-                            chatReqRecords.getChatId(),
-                            chatReqRecords.getId());
+                    chatReqRecords.getUid(),
+                    chatReqRecords.getChatId(),
+                    chatReqRecords.getId());
 
             if (existingRecord != null) {
                 existingRecord.setMessage(finalResult.toString());
@@ -99,7 +99,7 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
 
                 chatDataService.updateByUidAndChatIdAndReqId(existingRecord);
                 log.info("Updated chat response record, reqId: {}, chatId: {}, uid: {}",
-                                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
             }
         } else {
             // Create mode: create new record
@@ -111,7 +111,7 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
      * Create new chat response record
      */
     private void createNewChatResponse(ChatReqRecords chatReqRecords, StringBuffer finalResult, StringBuffer sid,
-                    java.time.LocalDateTime now, int dateStamp, Integer answerType) {
+            java.time.LocalDateTime now, int dateStamp, Integer answerType) {
         ChatRespRecords chatRespRecords = new ChatRespRecords();
         chatRespRecords.setUid(chatReqRecords.getUid());
         chatRespRecords.setChatId(chatReqRecords.getChatId());
@@ -125,7 +125,7 @@ public class ChatRecordModelServiceImpl implements ChatRecordModelService {
 
         chatDataService.createResponse(chatRespRecords);
         log.info("Created new chat response record, reqId: {}, chatId: {}, uid: {}",
-                        chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
+                chatReqRecords.getId(), chatReqRecords.getChatId(), chatReqRecords.getUid());
     }
 
 }

@@ -34,14 +34,14 @@ public class EnterpriseUserServiceImpl extends ServiceImpl<EnterpriseUserMapper,
     @Override
     public Long countByEnterpriseIdAndUids(Long enterpriseId, List<String> uids) {
         return this.baseMapper.selectCount(Wrappers.<EnterpriseUser>lambdaQuery()
-                        .eq(EnterpriseUser::getEnterpriseId, enterpriseId)
-                        .in(EnterpriseUser::getUid, uids));
+                .eq(EnterpriseUser::getEnterpriseId, enterpriseId)
+                .in(EnterpriseUser::getUid, uids));
     }
 
     @Override
     public List<EnterpriseUser> listByEnterpriseId(Long enterpriseId) {
         return baseMapper.selectList(Wrappers.<EnterpriseUser>lambdaQuery()
-                        .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
+                .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
     }
 
     @Override
@@ -53,24 +53,24 @@ public class EnterpriseUserServiceImpl extends ServiceImpl<EnterpriseUserMapper,
         }
         UserInfo userInfo = userInfoDataService.findByUid(uid).orElseThrow();
         return this.save(EnterpriseUser.builder()
-                        .enterpriseId(enterpriseId)
-                        .uid(uid)
-                        .nickname(userInfo.getNickname())
-                        .role(roleEnum.getCode())
-                        .build());
+                .enterpriseId(enterpriseId)
+                .uid(uid)
+                .nickname(userInfo.getNickname())
+                .role(roleEnum.getCode())
+                .build());
     }
 
     @Override
     public List<EnterpriseUser> listByRole(Long enterpriseId, EnterpriseRoleEnum roleEnum) {
         return this.baseMapper.selectList(Wrappers.<EnterpriseUser>lambdaQuery()
-                        .eq(EnterpriseUser::getRole, roleEnum.getCode())
-                        .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
+                .eq(EnterpriseUser::getRole, roleEnum.getCode())
+                .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
     }
 
     @Override
     public Long countByEnterpriseId(Long enterpriseId) {
         return this.baseMapper.selectCount(Wrappers.<EnterpriseUser>lambdaQuery()
-                        .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
+                .eq(EnterpriseUser::getEnterpriseId, enterpriseId));
     }
 
     @Override

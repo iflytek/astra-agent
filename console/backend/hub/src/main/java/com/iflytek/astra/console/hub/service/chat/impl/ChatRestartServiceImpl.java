@@ -41,11 +41,11 @@ public class ChatRestartServiceImpl implements ChatRestartService {
         }
 
         ChatTreeIndex chatTreeIndex = ChatTreeIndex.builder()
-                        .rootChatId(chatTreeIndexLatest.getRootChatId())
-                        .parentChatId(chatTreeIndexLatest.getChildChatId())
-                        .childChatId(chatListCreateResponse.getId())
-                        .uid(uid)
-                        .build();
+                .rootChatId(chatTreeIndexLatest.getRootChatId())
+                .parentChatId(chatTreeIndexLatest.getChildChatId())
+                .childChatId(chatListCreateResponse.getId())
+                .uid(uid)
+                .build();
         chatListDataService.createChatTreeIndex(chatTreeIndex);
         return chatListCreateResponse;
     }

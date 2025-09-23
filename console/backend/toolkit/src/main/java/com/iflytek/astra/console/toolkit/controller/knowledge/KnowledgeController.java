@@ -43,7 +43,7 @@ public class KnowledgeController {
      */
     @PostMapping("/create-knowledge")
     @SpacePreAuth(key = "KnowledgeController_createKnowledge_POST",
-                    module = "Knowledge", point = "Create Knowledge", description = "Create Knowledge")
+            module = "Knowledge", point = "Create Knowledge", description = "Create Knowledge")
     public ApiResult<Knowledge> createKnowledge(@RequestBody KnowledgeVO knowledgeVO) throws ExecutionException, InterruptedException {
         return ApiResult.success(knowledgeService.createKnowledge(knowledgeVO));
     }
@@ -59,7 +59,7 @@ public class KnowledgeController {
      */
     @PostMapping("/update-knowledge")
     @SpacePreAuth(key = "KnowledgeController_updateKnowledge_POST",
-                    module = "Knowledge", point = "Update Knowledge", description = "Update Knowledge")
+            module = "Knowledge", point = "Update Knowledge", description = "Update Knowledge")
     public ApiResult<Knowledge> updateKnowledge(@RequestBody KnowledgeVO knowledgeVO) throws ExecutionException, InterruptedException {
         if (CollectionUtils.isNotEmpty(knowledgeVO.getTags())) {
             for (String tag : knowledgeVO.getTags()) {
@@ -82,7 +82,7 @@ public class KnowledgeController {
      */
     @PutMapping("/enable-knowledge")
     @SpacePreAuth(key = "KnowledgeController_enableKnowledge_PUT",
-                    module = "Knowledge", point = "Enable Knowledge", description = "Enable Knowledge")
+            module = "Knowledge", point = "Enable Knowledge", description = "Enable Knowledge")
     public ApiResult<String> enableKnowledge(@RequestParam("id") String id, @RequestParam("enabled") Integer enabled) throws ExecutionException, InterruptedException {
         return ApiResult.success(knowledgeService.enableKnowledge(id, enabled));
     }
@@ -95,7 +95,7 @@ public class KnowledgeController {
      */
     @DeleteMapping("/delete-knowledge")
     @SpacePreAuth(key = "KnowledgeController_deleteKnowledge_DELETE",
-                    module = "Knowledge", point = "Delete Knowledge", description = "Delete Knowledge")
+            module = "Knowledge", point = "Delete Knowledge", description = "Delete Knowledge")
     public ApiResult<Void> deleteKnowledge(@RequestParam("id") String id) {
         knowledgeService.deleteKnowledge(id);
         return ApiResult.success();

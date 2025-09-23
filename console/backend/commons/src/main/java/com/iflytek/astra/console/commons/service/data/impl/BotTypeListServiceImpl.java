@@ -22,8 +22,8 @@ public class BotTypeListServiceImpl implements BotTypeListService {
     public List<BotTypeList> getBotTypeList() {
         // Conditions: recommended and enabled, sorted by weight
         return botTypeListMapper.selectList(Wrappers.<BotTypeList>lambdaQuery()
-                        .eq(BotTypeList::getShowIndex, 1)
-                        .eq(BotTypeList::getIsAct, 1)
-                        .orderByAsc(BotTypeList::getOrderNum));
+                .eq(BotTypeList::getShowIndex, 1)
+                .eq(BotTypeList::getIsAct, 1)
+                .orderByAsc(BotTypeList::getOrderNum));
     }
 }

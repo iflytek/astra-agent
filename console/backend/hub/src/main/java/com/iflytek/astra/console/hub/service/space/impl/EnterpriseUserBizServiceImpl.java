@@ -141,7 +141,7 @@ public class EnterpriseUserBizServiceImpl implements EnterpriseUserBizService {
         vo.setTotal(userCount);
         // Used = team user count + inviting user count
         long used = enterpriseUserService.countByEnterpriseId(enterpriseId)
-                        + inviteRecordService.countJoiningByEnterpriseId(enterpriseId);
+                + inviteRecordService.countJoiningByEnterpriseId(enterpriseId);
         vo.setUsed(Long.valueOf(used).intValue());
         vo.setRemain(vo.getTotal() - vo.getUsed());
         return vo;
@@ -156,7 +156,7 @@ public class EnterpriseUserBizServiceImpl implements EnterpriseUserBizService {
     private boolean removeEnterpriseUser(EnterpriseUser enterpriseUser) {
         // Get user's spaces
         List<SpaceVO> spaceVOS = spaceService.listByEnterpriseIdAndUid(enterpriseUser.getEnterpriseId(),
-                        enterpriseUser.getUid());
+                enterpriseUser.getUid());
 
         String uid = enterpriseService.getUidByEnterpriseId(enterpriseUser.getEnterpriseId());
         if (CollectionUtil.isNotEmpty(spaceVOS)) {
@@ -168,8 +168,8 @@ public class EnterpriseUserBizServiceImpl implements EnterpriseUserBizService {
             }
             // Remove all space users
             spaceUserService.removeByUid(spaceVOS.stream()
-                            .map(SpaceVO::getId)
-                            .collect(Collectors.toSet()), enterpriseUser.getUid());
+                    .map(SpaceVO::getId)
+                    .collect(Collectors.toSet()), enterpriseUser.getUid());
         }
         // Delete team user
         return enterpriseUserService.removeById(enterpriseUser);

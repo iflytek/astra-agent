@@ -131,7 +131,7 @@ class ModelControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         bindRequest(request);
         final ApiResult<Page<LLMInfoVo>> pageApiResult =
-                        new ApiResult<>(0, "message", new Page<>(0L, 0L, 0L, false), 0L);
+                new ApiResult<>(0, "message", new Page<>(0L, 0L, 0L, false), 0L);
 
         // 放宽匹配，避免 eq(new ModelDto()) 造成 equals 不一致
         when(mockModelService.getList(any(ModelDto.class), any(HttpServletRequest.class))).thenReturn(pageApiResult);
@@ -160,7 +160,7 @@ class ModelControllerTest {
         // ★ 不要在 thenReturn 里调用 ApiResult.success()
         ApiResult<?> ok = new ApiResult<>(0, "OK", null, 0L);
         when(mockModelService.getList(any(ModelDto.class), any(HttpServletRequest.class)))
-                        .thenReturn((ApiResult<Page<LLMInfoVo>>) ok);
+                .thenReturn((ApiResult<Page<LLMInfoVo>>) ok);
 
         final ApiResult result = modelControllerUnderTest.list(dto, request);
 
@@ -183,9 +183,9 @@ class ModelControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
 
         final ApiResult<Page<LLMInfoVo>> pageApiResult =
-                        ApiResult.error(new BusinessException(ResponseEnum.SUCCESS, "args"));
+                ApiResult.error(new BusinessException(ResponseEnum.SUCCESS, "args"));
         when(mockModelService.getList(any(ModelDto.class), any(HttpServletRequest.class)))
-                        .thenReturn(pageApiResult);
+                .thenReturn(pageApiResult);
 
         final ApiResult result = modelControllerUnderTest.list(dto, request);
 
@@ -282,7 +282,7 @@ class ModelControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         final ApiResult apiResult = new ApiResult<>(0, "message", "data", 0L);
         when(mockModelService.switchModel(eq(0L), eq(0), eq("option"), any(HttpServletRequest.class)))
-                        .thenReturn(apiResult);
+                .thenReturn(apiResult);
 
         final ApiResult result = modelControllerUnderTest.switchModel("option", 0, 0L, request);
 
@@ -296,7 +296,7 @@ class ModelControllerTest {
         // 不要在 thenReturn 里调用 ApiResult.success()
         ApiResult<?> ok = new ApiResult<>(0, "OK", null, 0L);
         when(mockModelService.switchModel(eq(0L), eq(0), eq("on"), any(HttpServletRequest.class)))
-                        .thenReturn(ok);
+                .thenReturn(ok);
 
         final ApiResult result = modelControllerUnderTest.switchModel("on", 0, 0L, request);
         assertEquals(ok, result);
@@ -307,7 +307,7 @@ class ModelControllerTest {
         final MockHttpServletRequest request = new MockHttpServletRequest();
         final ApiResult apiResult = ApiResult.error(new BusinessException(ResponseEnum.SUCCESS, "args"));
         when(mockModelService.switchModel(eq(0L), eq(0), eq("option"), any(HttpServletRequest.class)))
-                        .thenReturn(apiResult);
+                .thenReturn(apiResult);
 
         final ApiResult result = modelControllerUnderTest.switchModel("option", 0, 0L, request);
 

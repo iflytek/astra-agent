@@ -37,9 +37,9 @@ public class CsvExportUtil {
      * @throws RuntimeException if any I/O error occurs during export
      */
     public static void exportToResponse(HttpServletResponse response,
-                    String fileName,
-                    List<String> headers,
-                    List<List<String>> dataRows) {
+            String fileName,
+            List<String> headers,
+            List<List<String>> dataRows) {
         try {
             response.setContentType("text/csv; charset=UTF-8");
             String encodedFileName = java.net.URLEncoder.encode(fileName, "UTF-8") + ".csv";
@@ -48,7 +48,7 @@ public class CsvExportUtil {
             response.getOutputStream().write(new byte[] {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
 
             PrintWriter writer = new PrintWriter(
-                            new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), true);
+                    new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8), true);
 
             // Write header row
             writeCsvRow(writer, headers);
@@ -77,8 +77,8 @@ public class CsvExportUtil {
      */
     public static void writeCsvRow(PrintWriter writer, List<String> row) {
         String line = row.stream()
-                        .map(CsvExportUtil::escapeCsv)
-                        .collect(Collectors.joining(","));
+                .map(CsvExportUtil::escapeCsv)
+                .collect(Collectors.joining(","));
         writer.println(line);
     }
 
@@ -101,7 +101,7 @@ public class CsvExportUtil {
             return "";
         }
         boolean hasSpecialChar = field.contains(",") || field.contains("\"")
-                        || field.contains("\n") || field.contains("\r");
+                || field.contains("\n") || field.contains("\r");
         String escaped = field.replace("\"", "\"\"");
         return hasSpecialChar ? "\"" + escaped + "\"" : escaped;
     }

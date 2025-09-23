@@ -21,7 +21,7 @@ public interface ChatInfoMapper extends BaseMapper<ChatInfo> {
     List<WorkflowErrorVo> getErrorBySidList(@Param("sidList") List<String> sidList);
 
     List<WorkflowUserFeedbackErrorVo> getUserFeedBackErrorInfo(
-                    @Param("params") WorkflowModelErrorReq workflowModelErrorReq);
+            @Param("params") WorkflowModelErrorReq workflowModelErrorReq);
 
     List<ToolUseDto> selectWorkflowUseCount(@Param("toolIds") List<String> toolIds);
 

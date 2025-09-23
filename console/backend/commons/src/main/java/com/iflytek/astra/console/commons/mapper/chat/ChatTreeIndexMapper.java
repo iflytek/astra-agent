@@ -19,15 +19,15 @@ public interface ChatTreeIndexMapper extends BaseMapper<ChatTreeIndex> {
      * @return Chat tree index list
      */
     @Select("""
-                    select root_chat_id,
-                           parent_chat_id,
-                           child_chat_id,
-                           uid
-                    from chat_tree_index
-                    where root_chat_id = (select root_chat_id
-                                          from chat_tree_index cti
-                                          where child_chat_id = #{childChatId}
-                                            and uid = #{uid})
-                    """)
+            select root_chat_id,
+                   parent_chat_id,
+                   child_chat_id,
+                   uid
+            from chat_tree_index
+            where root_chat_id = (select root_chat_id
+                                  from chat_tree_index cti
+                                  where child_chat_id = #{childChatId}
+                                    and uid = #{uid})
+            """)
     List<ChatTreeIndex> getAllListByChildChatId(@Param("childChatId") Long childChatId, @Param("uid") String uid);
 }

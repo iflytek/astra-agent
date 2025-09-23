@@ -92,8 +92,8 @@ class UserInfoDataServiceFinalTest {
         testUser.setUid(null);
 
         IllegalArgumentException exception = assertThrows(
-                        IllegalArgumentException.class,
-                        () -> userInfoDataService.createOrGetUser(testUser));
+                IllegalArgumentException.class,
+                () -> userInfoDataService.createOrGetUser(testUser));
 
         assertEquals("User UID cannot be empty", exception.getMessage());
         System.out.println("Empty UID exception test passed");
@@ -102,8 +102,8 @@ class UserInfoDataServiceFinalTest {
     @Test
     void testCreateOrGetUser_NullUser() {
         IllegalArgumentException exception = assertThrows(
-                        IllegalArgumentException.class,
-                        () -> userInfoDataService.createOrGetUser(null));
+                IllegalArgumentException.class,
+                () -> userInfoDataService.createOrGetUser(null));
 
         assertEquals("User information cannot be empty", exception.getMessage());
         System.out.println("Empty user information exception test passed");

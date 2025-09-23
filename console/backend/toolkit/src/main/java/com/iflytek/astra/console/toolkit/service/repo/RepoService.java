@@ -311,12 +311,12 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
         // Get corner badges
         List<ConfigInfo> ragIconInfos = configInfoMapper.getListByCategoryAndCode("ICON", "rag");
         Map<String, String> ragIconMap = ragIconInfos.stream()
-                        .filter(c -> c.getIsValid() != null && c.getIsValid() == 1) // Only keep valid ones
-                        .collect(Collectors.toMap(
-                                        ConfigInfo::getRemarks, // key remains as remarks
-                                        c -> c.getName() + c.getValue(), // value concatenated as name+value
-                                        (v1, v2) -> v1 // Take the first one if duplicate remarks
-                        ));
+                .filter(c -> c.getIsValid() != null && c.getIsValid() == 1) // Only keep valid ones
+                .collect(Collectors.toMap(
+                        ConfigInfo::getRemarks, // key remains as remarks
+                        c -> c.getName() + c.getValue(), // value concatenated as name+value
+                        (v1, v2) -> v1 // Take the first one if duplicate remarks
+                ));
         // PageInfo<RepoDto> page = new PageInfo<>(xc_result);
         xc_result.forEach(e -> {
             dataPermissionCheckTool.checkRepoBelong(e);
@@ -358,9 +358,9 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
         long totalCount = result.size();
         // Re-implement list pagination operation
         result = result.stream()
-                        .skip((long) (pageNo - 1) * pageSize)
-                        .limit(pageSize)
-                        .collect(Collectors.toList());
+                .skip((long) (pageNo - 1) * pageSize)
+                .limit(pageSize)
+                .collect(Collectors.toList());
 
         PageData<RepoDto> pageData = new PageData<>();
         pageData.setPageData(result);
@@ -543,11 +543,11 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
         if (CollectionUtils.isEmpty(ragIconInfos))
             return Collections.emptyMap();
         return ragIconInfos.stream()
-                        .filter(c -> c.getIsValid() != null && c.getIsValid() == 1)
-                        .collect(Collectors.toMap(
-                                        ConfigInfo::getRemarks,
-                                        c -> c.getName() + c.getValue(),
-                                        (v1, v2) -> v1));
+                .filter(c -> c.getIsValid() != null && c.getIsValid() == 1)
+                .collect(Collectors.toMap(
+                        ConfigInfo::getRemarks,
+                        c -> c.getName() + c.getValue(),
+                        (v1, v2) -> v1));
     }
 
     /** Set badge/address for each RepoDto and attach Bots (including workflow bindings) */
@@ -566,7 +566,7 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
 
             // Workflow-bound "Bots"
             List<FlowRepoRel> rels = flowRepoRelMapper.selectList(
-                            new LambdaQueryWrapper<FlowRepoRel>().eq(FlowRepoRel::getRepoId, repoDto.getCoreRepoId()));
+                    new LambdaQueryWrapper<FlowRepoRel>().eq(FlowRepoRel::getRepoId, repoDto.getCoreRepoId()));
             if (!CollectionUtils.isEmpty(rels)) {
                 for (FlowRepoRel rel : rels) {
                     SparkBotVO bot = new SparkBotVO();
@@ -595,10 +595,10 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
             long charCount = 0L;
             // File directory tree: only count valid files
             List<FileDirectoryTree> trees = directoryTreeService.list(
-                            Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                            .eq(FileDirectoryTree::getAppId, repoDto.getId().toString())
-                                            .eq(FileDirectoryTree::getIsFile, 1)
-                                            .eq(FileDirectoryTree::getStatus, 1));
+                    Wrappers.lambdaQuery(FileDirectoryTree.class)
+                            .eq(FileDirectoryTree::getAppId, repoDto.getId().toString())
+                            .eq(FileDirectoryTree::getIsFile, 1)
+                            .eq(FileDirectoryTree::getStatus, 1));
             List<Long> fileIds = trees.stream().map(FileDirectoryTree::getFileId).collect(Collectors.toList());
             repoDto.setFileCount((long) fileIds.size());
 
@@ -782,8 +782,8 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
                 // Skip if this fileId has already been processed
                 if (!processedFileIds.containsKey(fileInfoV2.getId())) {
                     FileDirectoryTree fileDirectoryTree = directoryTreeService.getOnly(Wrappers.lambdaQuery(FileDirectoryTree.class)
-                                    .eq(FileDirectoryTree::getAppId, repo.getId())
-                                    .eq(FileDirectoryTree::getFileId, fileInfoV2.getId()));
+                            .eq(FileDirectoryTree::getAppId, repo.getId())
+                            .eq(FileDirectoryTree::getFileId, fileInfoV2.getId()));
                     fileDirectoryTree.setHitCount(fileDirectoryTree.getHitCount() + 1);
                     directoryTreeService.updateById(fileDirectoryTree);
                     processedFileIds.put(fileInfoV2.getId(), fileDirectoryTree);
@@ -864,7 +864,7 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
         RepoVO repoVO = new RepoVO();
         repoVO.setId(id);
         if ((Objects.equals(repo.getStatus(), ProjectContent.REPO_STATUS_CREATED)
-                        || Objects.equals(repo.getStatus(), ProjectContent.REPO_STATUS_PUBLISHED)) && enabled == 0) {
+                || Objects.equals(repo.getStatus(), ProjectContent.REPO_STATUS_PUBLISHED)) && enabled == 0) {
             repoVO.setOperType(ProjectContent.REPO_STATUS_UNPUBLISHED);
         } else if (Objects.equals(repo.getStatus(), ProjectContent.REPO_STATUS_UNPUBLISHED) && enabled == 1) {
             repoVO.setOperType(ProjectContent.REPO_STATUS_PUBLISHED);
@@ -1026,8 +1026,8 @@ public class RepoService extends ServiceImpl<RepoMapper, Repo> {
 
         // Get workflow list that associates with knowledge base
         List<FlowRepoRel> flowBotRelVOList = flowRepoRelMapper.selectList(
-                        new LambdaQueryWrapper<FlowRepoRel>()
-                                        .eq(FlowRepoRel::getRepoId, repo.getCoreRepoId()));
+                new LambdaQueryWrapper<FlowRepoRel>()
+                        .eq(FlowRepoRel::getRepoId, repo.getCoreRepoId()));
         if (!CollectionUtils.isEmpty(flowBotRelVOList)) {
             for (FlowRepoRel flowRepoRel : flowBotRelVOList) {
                 SparkBotVO sparkBotVO = new SparkBotVO();

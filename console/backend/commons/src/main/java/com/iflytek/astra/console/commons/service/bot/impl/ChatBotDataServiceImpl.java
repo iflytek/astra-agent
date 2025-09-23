@@ -181,9 +181,9 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
     @Override
     public boolean deleteBot(Integer botId, String uid) {
         return updateEntity(chatBotBaseMapper, ChatBotBase::getId, ChatBotBase::getUid, botId, uid, ChatBotBase::new, entity -> entity.setIsDelete(1)) &&
-                        updateEntity(chatBotListMapper, ChatBotList::getRealBotId, ChatBotList::getUid, botId, uid, ChatBotList::new, entity -> entity.setIsAct(0)) &&
-                        updateEntity(chatListMapper, ChatList::getBotId, ChatList::getUid, botId, uid, ChatList::new, entity -> entity.setIsDelete(1)) &&
-                        updateEntity(chatBotMarketMapper, ChatBotMarket::getBotId, ChatBotMarket::getUid, botId, uid, ChatBotMarket::new, entity -> entity.setIsDelete(1));
+                updateEntity(chatBotListMapper, ChatBotList::getRealBotId, ChatBotList::getUid, botId, uid, ChatBotList::new, entity -> entity.setIsAct(0)) &&
+                updateEntity(chatListMapper, ChatList::getBotId, ChatList::getUid, botId, uid, ChatList::new, entity -> entity.setIsDelete(1)) &&
+                updateEntity(chatBotMarketMapper, ChatBotMarket::getBotId, ChatBotMarket::getUid, botId, uid, ChatBotMarket::new, entity -> entity.setIsDelete(1));
     }
 
     /**
@@ -200,16 +200,16 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
      * @return Returns true if update is successful and affected rows > 0; otherwise returns false
      */
     private <T> boolean updateEntity(
-                    BaseMapper<T> mapper,
-                    SFunction<T, ?> field1,
-                    SFunction<T, ?> field2,
-                    Object value1,
-                    Object value2,
-                    Supplier<T> entitySupplier,
-                    Consumer<T> configurator) {
+            BaseMapper<T> mapper,
+            SFunction<T, ?> field1,
+            SFunction<T, ?> field2,
+            Object value1,
+            Object value2,
+            Supplier<T> entitySupplier,
+            Consumer<T> configurator) {
         LambdaQueryWrapper<T> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(field1, value1)
-                        .eq(field2, value2);
+                .eq(field2, value2);
 
         // Create new entity instance using supplier
         T entity = entitySupplier.get();
@@ -359,12 +359,12 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
             return false;
         }
         ChatBotBase chatBotBase = chatBotBaseMapper.selectOne(Wrappers.lambdaQuery(ChatBotBase.class)
-                        .eq(ChatBotBase::getId, botId)
-                        .eq(ChatBotBase::getIsDelete, 1));
+                .eq(ChatBotBase::getId, botId)
+                .eq(ChatBotBase::getIsDelete, 1));
 
         ChatBotMarket chatBotMarket = chatBotMarketMapper.selectOne(Wrappers.lambdaQuery(ChatBotMarket.class)
-                        .eq(ChatBotMarket::getBotId, botId)
-                        .eq(ChatBotMarket::getIsDelete, 1));
+                .eq(ChatBotMarket::getBotId, botId)
+                .eq(ChatBotMarket::getIsDelete, 1));
         return chatBotBase != null || chatBotMarket != null;
     }
 
@@ -375,8 +375,8 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         }
 
         LambdaQueryWrapper<ChatBotMarket> wrapper = Wrappers.lambdaQuery(ChatBotMarket.class)
-                        .eq(ChatBotMarket::getBotId, botId)
-                        .eq(ChatBotMarket::getIsDelete, 0);
+                .eq(ChatBotMarket::getBotId, botId)
+                .eq(ChatBotMarket::getIsDelete, 0);
 
         return chatBotMarketMapper.selectOne(wrapper);
     }
@@ -411,27 +411,27 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         }
         // Query botId based on spaceId
         List<Integer> spaceBotIdList = chatBotBaseMapper.selectList(Wrappers.lambdaQuery(ChatBotBase.class)
-                        .eq(ChatBotBase::getSpaceId, spaceId)
-                        .eq(ChatBotBase::getIsDelete, 0)
-                        .select(ChatBotBase::getId))
-                        .stream()
-                        .map(ChatBotBase::getId)
-                        .toList();
+                .eq(ChatBotBase::getSpaceId, spaceId)
+                .eq(ChatBotBase::getIsDelete, 0)
+                .select(ChatBotBase::getId))
+                .stream()
+                .map(ChatBotBase::getId)
+                .toList();
         log.info("deleteBotForDeleteSpace-start to remove assistants, uid={}, spaceId={}, spaceBotIdList={}", uid, spaceId, spaceBotIdList);
         // Remove assistants
         removeBotForDeleteSpace(uid, spaceId, spaceBotIdList);
         log.info("deleteBotForDeleteSpace-start to delete assistants, uid={}, spaceId={}", uid, spaceId);
         // Delete bot
         chatBotBaseMapper.update(Wrappers.lambdaUpdate(ChatBotBase.class)
-                        .eq(ChatBotBase::getSpaceId, spaceId)
-                        .eq(ChatBotBase::getIsDelete, 0)
-                        .set(ChatBotBase::getIsDelete, 1));
+                .eq(ChatBotBase::getSpaceId, spaceId)
+                .eq(ChatBotBase::getIsDelete, 0)
+                .set(ChatBotBase::getIsDelete, 1));
         log.info("deleteBotForDeleteSpace-start to maintain botDataSet, uid={}, spaceId={}", uid, spaceId);
         // Update status of datasets associated with assistant
         LambdaUpdateWrapper<BotDataset> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.in(BotDataset::getBotId, spaceBotIdList)
-                        .set(BotDataset::getIsAct, 0)
-                        .set(BotDataset::getUpdateTime, LocalDateTime.now());
+                .set(BotDataset::getIsAct, 0)
+                .set(BotDataset::getUpdateTime, LocalDateTime.now());
         botDatasetMapper.update(null, updateWrapper);
         // If version = 3, sync to engineering institute
         for (Integer botId : spaceBotIdList) {
@@ -451,8 +451,8 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         // Take down assistants
         LambdaUpdateWrapper<ChatBotMarket> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.in(ChatBotMarket::getBotId, spaceBotIdList)
-                        .set(ChatBotMarket::getBotStatus, 0)
-                        .set(ChatBotMarket::getIsDelete, 1);
+                .set(ChatBotMarket::getBotStatus, 0)
+                .set(ChatBotMarket::getIsDelete, 1);
 
         chatBotMarketMapper.update(null, updateWrapper);
     }
@@ -460,10 +460,10 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
     @Override
     public ChatBotList findByUidAndBotId(String uid, Integer botId) {
         return chatBotListMapper.selectOne(new LambdaQueryWrapper<>(ChatBotList.class)
-                        .eq(ChatBotList::getUid, uid)
-                        .eq(ChatBotList::getRealBotId, botId)
-                        .orderByDesc(ChatBotList::getCreateTime)
-                        .last("limit 1"));
+                .eq(ChatBotList::getUid, uid)
+                .eq(ChatBotList::getRealBotId, botId)
+                .orderByDesc(ChatBotList::getCreateTime)
+                .last("limit 1"));
     }
 
     @Override
@@ -528,7 +528,7 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         promptBotDetail.setSupportUploadList(Collections.singletonList(supportUpload));
 
         List<ChatBotPromptStruct> promptStructList = promptStructMapper.selectList(
-                        Wrappers.lambdaQuery(ChatBotPromptStruct.class).eq(ChatBotPromptStruct::getBotId, botId));
+                Wrappers.lambdaQuery(ChatBotPromptStruct.class).eq(ChatBotPromptStruct::getBotId, botId));
         if (CollectionUtil.isNotEmpty(promptStructList)) {
             promptBotDetail.setPromptStructList(promptStructList);
         } else {
@@ -593,16 +593,16 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
     public List<Integer> getReleaseChannel(String uid, Integer botId) {
         List<Integer> releaseList = new ArrayList<>();
         boolean marketExist = chatBotMarketMapper.exists(Wrappers.lambdaQuery(ChatBotMarket.class)
-                        .eq(ChatBotMarket::getUid, uid)
-                        .eq(ChatBotMarket::getBotId, botId)
-                        .in(ChatBotMarket::getBotStatus, BotStatusEnum.shelves()));
+                .eq(ChatBotMarket::getUid, uid)
+                .eq(ChatBotMarket::getBotId, botId)
+                .in(ChatBotMarket::getBotStatus, BotStatusEnum.shelves()));
         if (marketExist) {
             releaseList.add(ReleaseTypeEnum.MARKET.getCode());
         }
         boolean apiExist = botApiMapper.exists(Wrappers.lambdaQuery(ChatBotApi.class)
-                        .eq(ChatBotApi::getUid, uid)
-                        .eq(ChatBotApi::getBotId, botId)
-                        .orderByDesc(ChatBotApi::getUpdateTime));
+                .eq(ChatBotApi::getUid, uid)
+                .eq(ChatBotApi::getBotId, botId)
+                .orderByDesc(ChatBotApi::getUpdateTime));
         if (apiExist) {
             releaseList.add(ReleaseTypeEnum.BOT_API.getCode());
         }

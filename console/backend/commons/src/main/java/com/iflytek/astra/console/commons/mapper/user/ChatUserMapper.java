@@ -10,7 +10,7 @@ import java.util.Map;
 public interface ChatUserMapper extends BaseMapper<ChatUser> {
 
     void updateIsAbleByUid(@Param(value = "uid") Long uid,
-                    @Param(value = "isAble") Integer isAble);
+            @Param(value = "isAble") Integer isAble);
 
     List<ChatUser> selectUserByUidSet(Map<String, Object> param);
 }

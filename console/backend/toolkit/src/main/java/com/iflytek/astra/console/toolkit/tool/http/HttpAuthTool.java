@@ -122,7 +122,7 @@ public class HttpAuthTool {
         String baseString = builder.toString();
         Mac mac = Mac.getInstance("HmacSHA1");
         SecretKeySpec keySpec = new SecretKeySpec(accessKeySecret.getBytes(StandardCharsets.UTF_8),
-                        StandardCharsets.UTF_8.name());
+                StandardCharsets.UTF_8.name());
         mac.init(keySpec);
         // Get signature bytes
         byte[] signBytes = mac.doFinal(baseString.getBytes(StandardCharsets.UTF_8));

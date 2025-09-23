@@ -146,7 +146,7 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
         checkFile(uid, fileName, fileUrl, fileSize, limitEnum);
 
         Map<String, String> fileIdMap = documentHandler(null, uid, vo.getChatId(), fileUrl, fileName, fileSize,
-                        limitEnum, vo.getFileBusinessKey(), vo.getDocumentType(), vo.getParamName());
+                limitEnum, vo.getFileBusinessKey(), vo.getDocumentType(), vo.getParamName());
 
         if (fileIdMap == null) {
             fileIdMap = new HashMap<>();
@@ -196,8 +196,8 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
     }
 
     public Map<String, String> documentHandler(Long chatFileUserId, String uid, Long chatId, String fileUrl, String fileName, Long fileSize,
-                    ChatFileLimitEnum limitEnum, String fileBusinessKey,
-                    Integer documentType, String paramName) {
+            ChatFileLimitEnum limitEnum, String fileBusinessKey,
+            Integer documentType, String paramName) {
         // Metering
         redissonClient.getKeys().expire(limitEnum.getRedisPrefix() + uid, CommonUtil.calculateSecondsUntilEndOfDay(), TimeUnit.SECONDS);
         log.info("User {} currently uploaded file count: {}", uid, redissonClient.getBucket(limitEnum.getRedisPrefix() + uid).get());
@@ -206,25 +206,25 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
             // First write to chat_file_user table as placeholder to get chatFileUserId
             Integer businessType = limitEnum.getValue();
             ChatFileUser chatFileUser = ChatFileUser.builder()
-                            .fileId(null)
-                            .fileName(fileName)
-                            .uid(uid)
-                            .fileUrl(fileUrl)
-                            .fileSize(fileSize)
-                            .createTime(LocalDateTime.now())
-                            .updateTime(LocalDateTime.now())
-                            .clientType(1)
-                            .deleted(0)
-                            .businessType(businessType)
-                            .display(limitEnum.getDisplay())
-                            .fileStatus(LongContextStatusEnum.PROCESSING.getValue())
-                            .extraLink(null)
-                            .fileBusinessKey(fileBusinessKey)
-                            .documentType(documentType)
-                            .collectOriginFrom(null)
-                            .icon(null)
-                            .fileIndex(chatDataService.getFileUserCount(uid) + 1)
-                            .build();
+                    .fileId(null)
+                    .fileName(fileName)
+                    .uid(uid)
+                    .fileUrl(fileUrl)
+                    .fileSize(fileSize)
+                    .createTime(LocalDateTime.now())
+                    .updateTime(LocalDateTime.now())
+                    .clientType(1)
+                    .deleted(0)
+                    .businessType(businessType)
+                    .display(limitEnum.getDisplay())
+                    .fileStatus(LongContextStatusEnum.PROCESSING.getValue())
+                    .extraLink(null)
+                    .fileBusinessKey(fileBusinessKey)
+                    .documentType(documentType)
+                    .collectOriginFrom(null)
+                    .icon(null)
+                    .fileIndex(chatDataService.getFileUserCount(uid) + 1)
+                    .build();
             chatFileUserId = chatDataService.createChatFileUser(chatFileUser).getId();
         }
 
@@ -233,26 +233,26 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
     }
 
     private Map<String, String> agentMaasHandle(String uid,
-                    Long chatId,
-                    String fileUrl,
-                    String fileName,
-                    Long chatFileUserId,
-                    ChatFileLimitEnum limitEnum, String paramName) {
+            Long chatId,
+            String fileUrl,
+            String fileName,
+            Long chatFileUserId,
+            ChatFileLimitEnum limitEnum, String paramName) {
         log.info("agent platform document parsing, uid: {}, chatId:{}, fileUrl: {}, fileName: {}, chatFileUserId: {}",
-                        uid, chatId, fileUrl, fileName, chatFileUserId);
+                uid, chatId, fileUrl, fileName, chatFileUserId);
         // Bind chatFileUser and chatFileReq
         String fileId = "agent_" + chatFileUserId;
         // After parsing is complete, update fileId
         chatDataService.setFileId(chatFileUserId, fileId);
         ChatFileReq chatFileReq = ChatFileReq.builder()
-                        .fileId(fileId)
-                        .chatId(chatId)
-                        .uid(uid)
-                        .createTime(LocalDateTime.now())
-                        .updateTime(LocalDateTime.now())
-                        .clientType(1)
-                        .businessType(limitEnum.getValue())
-                        .build();
+                .fileId(fileId)
+                .chatId(chatId)
+                .uid(uid)
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
+                .clientType(1)
+                .businessType(limitEnum.getValue())
+                .build();
         chatDataService.createChatFileReq(chatFileReq);
         // Set file status to completed
         chatDataService.setProcessed(chatFileUserId);

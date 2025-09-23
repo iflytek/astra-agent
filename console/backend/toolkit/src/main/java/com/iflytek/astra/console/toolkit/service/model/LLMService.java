@@ -157,9 +157,9 @@ public class LLMService {
         if (isScene) {
             if ("workflow".equals(scene)) {
                 LambdaQueryWrapper<ConfigInfo> lqw = Wrappers.lambdaQuery(ConfigInfo.class)
-                                .eq(ConfigInfo::getCode, authSource)
-                                .eq(ConfigInfo::getName, String.valueOf(nodeType))
-                                .eq(ConfigInfo::getIsValid, 1);
+                        .eq(ConfigInfo::getCode, authSource)
+                        .eq(ConfigInfo::getName, String.valueOf(nodeType))
+                        .eq(ConfigInfo::getIsValid, 1);
                 if ("pre".equals(env)) {
                     lqw.eq(ConfigInfo::getCategory, "LLM_WORKFLOW_FILTER_PRE");
                     if ("agent".equals(nodeType)) {
@@ -221,9 +221,9 @@ public class LLMService {
             return;
         }
         List<Model> models = modelMapper.selectList(new LambdaQueryWrapper<Model>()
-                        .eq(Model::getUid, userId)
-                        .eq(Model::getEnable, 1)
-                        .eq(Model::getIsDeleted, 0));
+                .eq(Model::getUid, userId)
+                .eq(Model::getEnable, 1)
+                .eq(Model::getIsDeleted, 0));
         for (Model model : models) {
             LLMInfoVo llmInfoVo = new LLMInfoVo();
             llmInfoVo.setId(model.getId());
@@ -277,8 +277,8 @@ public class LLMService {
         if (enabledCache != null) {
             try {
                 enabledMap = JSON.parseObject(
-                                String.valueOf(enabledCache),
-                                new TypeReference<Map<String, Boolean>>() {});
+                        String.valueOf(enabledCache),
+                        new TypeReference<Map<String, Boolean>>() {});
             } catch (Exception ex) {
                 log.warn("enabledMap parse failed, will re-init. raw={}", enabledCache);
                 enabledMap = new HashMap<>();
@@ -311,9 +311,9 @@ public class LLMService {
                 vo.setUpdateTime(modelCommon.getUpdateTime());
                 vo.setUserName(modelCommon.getUserName());
                 ConfigInfo llmTag = configInfoMapper.selectOne(Wrappers.lambdaQuery(ConfigInfo.class)
-                                .eq(ConfigInfo::getCategory, "LLM_TAG")
-                                .eq(ConfigInfo::getCode, vo.getServiceId())
-                                .eq(ConfigInfo::getIsValid, 1));
+                        .eq(ConfigInfo::getCategory, "LLM_TAG")
+                        .eq(ConfigInfo::getCode, vo.getServiceId())
+                        .eq(ConfigInfo::getIsValid, 1));
                 if (llmTag != null) {
                     vo.setTag(JSON.parseArray(llmTag.getValue(), String.class));
                 }
@@ -363,9 +363,9 @@ public class LLMService {
         BizWorkflowData bizWorkflowData = JSON.parseObject(data, BizWorkflowData.class);
         bizWorkflowData.getNodes().forEach(n -> {
             if (StrUtil.startWithAny(n.getId(),
-                            WorkflowConst.NodeType.SPARK_LLM,
-                            WorkflowConst.NodeType.DECISION_MAKING,
-                            WorkflowConst.NodeType.EXTRACTOR_PARAMETER)) {
+                    WorkflowConst.NodeType.SPARK_LLM,
+                    WorkflowConst.NodeType.DECISION_MAKING,
+                    WorkflowConst.NodeType.EXTRACTOR_PARAMETER)) {
                 String domain = n.getData().getNodeParam().getString("domain");
                 if (domainSet.contains(domain)) {
                     return;
@@ -377,9 +377,9 @@ public class LLMService {
                     patchId = null;
                 }
                 array.add(new JSONObject()
-                                .fluentPut("domain", domain)
-                                .fluentPut("channel", serviceId)
-                                .fluentPut("patchId", patchId));
+                        .fluentPut("domain", domain)
+                        .fluentPut("channel", serviceId)
+                        .fluentPut("patchId", patchId));
             }
         });
 

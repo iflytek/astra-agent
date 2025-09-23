@@ -203,8 +203,8 @@ public class JsonConverter {
             case "number" -> (mode == Mode.VALUE) ? 0 : "number";
             case "boolean" -> (mode == Mode.VALUE) ? DEFAULT_BOOL : "boolean";
             case "object" -> (mode == Mode.VALUE)
-                            ? convertObjectProperties(propsIfObject, Mode.VALUE)
-                            : convertObjectProperties(propsIfObject, Mode.TYPE);
+                    ? convertObjectProperties(propsIfObject, Mode.VALUE)
+                    : convertObjectProperties(propsIfObject, Mode.TYPE);
             default -> (mode == Mode.VALUE) ? new JSONObject() : elemType;
         };
     }

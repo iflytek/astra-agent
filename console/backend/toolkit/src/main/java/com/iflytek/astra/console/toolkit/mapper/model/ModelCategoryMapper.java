@@ -25,8 +25,8 @@ public interface ModelCategoryMapper extends BaseMapper<ModelCategory> {
 
     /** Custom duplicate check: whether the same key + (tenant) + normalized(name) already exists */
     Long findCustomIdByKeyAndNormalized(@Param("key") String key,
-                    @Param("ownerUid") String ownerUid,
-                    @Param("name") String name);
+            @Param("ownerUid") String ownerUid,
+            @Param("name") String name);
 
 
     /** Batch binding: official items */

@@ -13,12 +13,12 @@ import java.util.*;
 public class DBTableExcelReadListener extends AnalysisEventListener<Map<Integer, String>> {
 
     private static final List<String> expectedHeaders = Arrays.asList(
-                    "字段名*", "数据类型*", "描述*", "默认值", "是否必填*");
+            "字段名*", "数据类型*", "描述*", "默认值", "是否必填*");
     private static final List<String> expectedHeadersEn = Arrays.asList(
-                    "Field Name*", "Data Type*", "Description*", "Default Value", "Required*");
+            "Field Name*", "Data Type*", "Description*", "Default Value", "Required*");
 
     private static final List<String> fieldType = Arrays.asList(
-                    "String", "Integer", "Time", "Number", "Boolean");
+            "String", "Integer", "Time", "Number", "Boolean");
 
     private List<DbTableFieldDto> tableFields;
 

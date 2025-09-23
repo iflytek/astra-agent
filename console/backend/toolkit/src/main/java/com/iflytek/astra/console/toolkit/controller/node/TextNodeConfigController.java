@@ -36,8 +36,8 @@ public class TextNodeConfigController {
     public Object list() {
         String uid = UserInfoManagerHandler.getUserId();
         return textNodeConfigService.list(new LambdaQueryWrapper<TextNodeConfig>()
-                        .in(TextNodeConfig::getUid, Arrays.asList(uid, -1))
-                        .orderByDesc(TextNodeConfig::getCreateTime));
+                .in(TextNodeConfig::getUid, Arrays.asList(uid, -1))
+                .orderByDesc(TextNodeConfig::getCreateTime));
     }
 
     @GetMapping("/delete")

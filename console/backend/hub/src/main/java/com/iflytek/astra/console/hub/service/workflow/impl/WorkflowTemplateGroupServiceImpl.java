@@ -21,6 +21,6 @@ public class WorkflowTemplateGroupServiceImpl implements WorkflowTemplateGroupSe
     public List<WorkflowTemplateGroup> getTemplateGroup() {
 
         return workflowTemplateGroupMapper.selectList(Wrappers.lambdaQuery(WorkflowTemplateGroup.class)
-                        .eq(WorkflowTemplateGroup::getIsDelete, false));
+                .eq(WorkflowTemplateGroup::getIsDelete, false));
     }
 }

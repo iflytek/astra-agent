@@ -168,9 +168,9 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private String decryptApiKey(String apiKey) {
         ConfigInfo modelSecretKey = configInfoMapper.selectOne(Wrappers.<ConfigInfo>lambdaQuery()
-                        .eq(ConfigInfo::getCategory, "MODEL_SECRET_KEY")
-                        .eq(ConfigInfo::getCode, "private_key")
-                        .eq(ConfigInfo::getIsValid, 1));
+                .eq(ConfigInfo::getCategory, "MODEL_SECRET_KEY")
+                .eq(ConfigInfo::getCode, "private_key")
+                .eq(ConfigInfo::getIsValid, 1));
         if (modelSecretKey == null) {
             throw new BusinessException(ResponseEnum.MODEL_API_KEY_NOT_FOUND);
         }
@@ -216,12 +216,12 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             List<ConfigInfo> list = configInfoMapper.getListByCategory(CAT_IP_BLACKLIST);
             String rawBlacklist = (list != null && !list.isEmpty()) ? list.getFirst().getValue() : "";
             List<String> blacklist =
-                            StrUtil.isBlank(rawBlacklist)
-                                            ? Collections.emptyList()
-                                            : Arrays.stream(rawBlacklist.split(","))
-                                                            .map(String::trim)
-                                                            .filter(StrUtil::isNotBlank)
-                                                            .collect(toList());
+                    StrUtil.isBlank(rawBlacklist)
+                            ? Collections.emptyList()
+                            : Arrays.stream(rawBlacklist.split(","))
+                                    .map(String::trim)
+                                    .filter(StrUtil::isNotBlank)
+                                    .collect(toList());
 
             SsrfProperties ssrfProperties = new SsrfProperties();
             // Note: The underlying object field name is ipBlaklist (third-party spelling), maintain
@@ -241,10 +241,10 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
             // 2) Only do pre-validation on host segment
             String hostOnly =
-                            normalized.getProtocol()
-                                            + "://"
-                                            + normalized.getHost()
-                                            + (normalized.getPort() != -1 ? (":" + normalized.getPort()) : "");
+                    normalized.getProtocol()
+                            + "://"
+                            + normalized.getHost()
+                            + (normalized.getPort() != -1 ? (":" + normalized.getPort()) : "");
             guard.validateUrlParam(hostOnly);
 
             // 3) Path completion
@@ -277,7 +277,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private String doPostModelApi(String url, Map<String, Object> body, HttpHeaders headers) {
         ResponseEntity<String> response =
-                        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
+                restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
         return response.getBody();
     }
 
@@ -296,11 +296,11 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         if (isNew) {
             // Duplicate name validation
             Model exist =
-                            this.getOne(
-                                            new LambdaQueryWrapper<Model>()
-                                                            .eq(Model::getUid, request.getUid())
-                                                            .eq(Model::getName, request.getModelName())
-                                                            .eq(Model::getIsDeleted, 0));
+                    this.getOne(
+                            new LambdaQueryWrapper<Model>()
+                                    .eq(Model::getUid, request.getUid())
+                                    .eq(Model::getName, request.getModelName())
+                                    .eq(Model::getIsDeleted, 0));
             if (exist != null) {
                 throw new BusinessException(ResponseEnum.MODEL_NAME_EXISTED);
             }
@@ -310,31 +310,31 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             model.setCreateTime(new Date());
         } else {
             model =
-                            this.getOne(
-                                            new LambdaQueryWrapper<Model>()
-                                                            .eq(Model::getId, request.getId())
-                                                            .eq(Model::getUid, request.getUid())
-                                                            .eq(Model::getIsDeleted, 0));
+                    this.getOne(
+                            new LambdaQueryWrapper<Model>()
+                                    .eq(Model::getId, request.getId())
+                                    .eq(Model::getUid, request.getUid())
+                                    .eq(Model::getIsDeleted, 0));
             if (model == null) {
                 throw new BusinessException(ResponseEnum.MODEL_NOT_EXIST);
             }
 
             // Handle workflow cleanup triggered by config deletion
             List<Config> existConfigs =
-                            Optional.ofNullable(model.getConfig()).map(s -> JSON.parseArray(s, Config.class)).orElse(null);
+                    Optional.ofNullable(model.getConfig()).map(s -> JSON.parseArray(s, Config.class)).orElse(null);
             List<Config> updateConfigs = request.getConfig();
             Set<String> updateKeys =
-                            Optional.ofNullable(updateConfigs)
-                                            .orElse(Collections.emptyList())
-                                            .stream()
-                                            .map(Config::getKey)
-                                            .collect(Collectors.toSet());
+                    Optional.ofNullable(updateConfigs)
+                            .orElse(Collections.emptyList())
+                            .stream()
+                            .map(Config::getKey)
+                            .collect(Collectors.toSet());
             List<Config> removedConfigs =
-                            Optional.ofNullable(existConfigs)
-                                            .orElse(Collections.emptyList())
-                                            .stream()
-                                            .filter(cfg -> !updateKeys.contains(cfg.getKey()))
-                                            .collect(toList());
+                    Optional.ofNullable(existConfigs)
+                            .orElse(Collections.emptyList())
+                            .stream()
+                            .filter(cfg -> !updateKeys.contains(cfg.getKey()))
+                            .collect(toList());
             if (!removedConfigs.isEmpty()) {
                 log.info("Model ID={} following configs were deleted: {}", model.getId(), removedConfigs);
                 checkParamWorkflow(model, removedConfigs);
@@ -342,20 +342,20 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
             // Exclude self from duplicate name validation
             Model exist =
-                            this.getOne(
-                                            new LambdaQueryWrapper<Model>()
-                                                            .eq(Model::getUid, request.getUid())
-                                                            .eq(Model::getName, request.getModelName())
-                                                            .ne(Model::getId, request.getId())
-                                                            .eq(Model::getIsDeleted, 0));
+                    this.getOne(
+                            new LambdaQueryWrapper<Model>()
+                                    .eq(Model::getUid, request.getUid())
+                                    .eq(Model::getName, request.getModelName())
+                                    .ne(Model::getId, request.getId())
+                                    .eq(Model::getIsDeleted, 0));
             if (exist != null) {
                 throw new BusinessException(ResponseEnum.MODEL_NAME_EXISTED);
             }
 
             // Check if domain/URL changed to update workflow nodes
             boolean needUpdateWorkflow =
-                            !Objects.equals(model.getDomain(), request.getDomain())
-                                            || !Objects.equals(model.getUrl(), request.getEndpoint());
+                    !Objects.equals(model.getDomain(), request.getDomain())
+                            || !Objects.equals(model.getUrl(), request.getEndpoint());
             if (needUpdateWorkflow) {
                 updateNodeInfo(request);
             }
@@ -373,7 +373,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         model.setApiKey(request.getApiKey());
         model.setColor(request.getColor());
         model.setConfig(
-                        Optional.ofNullable(request.getConfig()).map(JSON::toJSONString).orElse(null));
+                Optional.ofNullable(request.getConfig()).map(JSON::toJSONString).orElse(null));
         model.setUpdateTime(new Date());
 
         if (isNew) {
@@ -391,7 +391,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
     private void insertTagInfo(ModelValidationRequest request, Model model) {
         // Assemble category request
         ModelCategoryReq req = Optional.ofNullable(request.getModelCategoryReq())
-                        .orElseGet(ModelCategoryReq::new);
+                .orElseGet(ModelCategoryReq::new);
 
         // Uniformly supplement ownership and bind model ID
         req.setOwnerUid(request.getUid());
@@ -404,18 +404,18 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
      */
     private void checkParamWorkflow(Model model, List<Config> removedConfigs) {
         List<Workflow> workflows =
-                        workflowMapper.selectList(
-                                        new LambdaQueryWrapper<Workflow>()
-                                                        .eq(Workflow::getUid, model.getUid())
-                                                        .eq(Workflow::getDeleted, false));
+                workflowMapper.selectList(
+                        new LambdaQueryWrapper<Workflow>()
+                                .eq(Workflow::getUid, model.getUid())
+                                .eq(Workflow::getDeleted, false));
 
         ConfigInfo selfModelConfig =
-                        configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
+                configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
         List<String> prefixAllowList =
-                        Arrays.asList(Optional.ofNullable(selfModelConfig)
-                                        .map(ConfigInfo::getValue)
-                                        .orElse("")
-                                        .split(","));
+                Arrays.asList(Optional.ofNullable(selfModelConfig)
+                        .map(ConfigInfo::getValue)
+                        .orElse("")
+                        .split(","));
 
         for (Workflow workflow : workflows) {
             BizWorkflowData data = JSON.parseObject(workflow.getData(), BizWorkflowData.class);
@@ -435,17 +435,17 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
                 }
 
                 boolean matched =
-                                Objects.equals(model.getDomain(), nodeParam.getString("domain"))
-                                                || Objects.equals(model.getDomain(), nodeParam.getString("serviceId"))
-                                                || Objects.equals(model.getUrl(), nodeParam.getString("url"))
-                                                || Objects.equals(model.getUrl(), nodeParam.getString("serviceId"));
+                        Objects.equals(model.getDomain(), nodeParam.getString("domain"))
+                                || Objects.equals(model.getDomain(), nodeParam.getString("serviceId"))
+                                || Objects.equals(model.getUrl(), nodeParam.getString("url"))
+                                || Objects.equals(model.getUrl(), nodeParam.getString("serviceId"));
 
                 if ("agent".equals(prefix) && !matched) {
                     JSONObject modelConfig = nodeParam.getJSONObject("modelConfig");
                     matched =
-                                    modelConfig != null
-                                                    && (Objects.equals(model.getDomain(), modelConfig.getString("domain"))
-                                                                    || Objects.equals(model.getUrl(), modelConfig.getString("api")));
+                            modelConfig != null
+                                    && (Objects.equals(model.getDomain(), modelConfig.getString("domain"))
+                                            || Objects.equals(model.getUrl(), modelConfig.getString("api")));
                 }
 
                 if (!matched) {
@@ -462,7 +462,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
                         extraParams.remove(key);
                         updated = true;
                         log.info(
-                                        "workflowId={}, nodeId={}, remove model config key={}", workflow.getId(), node.getId(), key);
+                                "workflowId={}, nodeId={}, remove model config key={}", workflow.getId(), node.getId(), key);
                     }
                 }
             }
@@ -478,18 +478,18 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private void updateNodeInfo(ModelValidationRequest request) {
         List<Workflow> workflows =
-                        workflowMapper.selectList(
-                                        new LambdaQueryWrapper<Workflow>()
-                                                        .eq(Workflow::getUid, request.getUid())
-                                                        .eq(Workflow::getDeleted, false));
+                workflowMapper.selectList(
+                        new LambdaQueryWrapper<Workflow>()
+                                .eq(Workflow::getUid, request.getUid())
+                                .eq(Workflow::getDeleted, false));
 
         ConfigInfo selfModelConfig =
-                        configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
+                configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
         List<String> prefixAllowList =
-                        Arrays.asList(Optional.ofNullable(selfModelConfig)
-                                        .map(ConfigInfo::getValue)
-                                        .orElse("")
-                                        .split(","));
+                Arrays.asList(Optional.ofNullable(selfModelConfig)
+                        .map(ConfigInfo::getValue)
+                        .orElse("")
+                        .split(","));
 
         for (Workflow workflow : workflows) {
             BizWorkflowData data = JSON.parseObject(workflow.getData(), BizWorkflowData.class);
@@ -504,7 +504,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
                     continue;
                 }
                 changed |=
-                                updateNodeParam(node, prefix, request.getDomain(), request.getEndpoint());
+                        updateNodeParam(node, prefix, request.getDomain(), request.getEndpoint());
             }
 
             if (changed) {
@@ -569,25 +569,25 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
         ConfigInfo planFilterCfg = configInfoMapper.getByCategoryAndCode(CAT_LLM_FILTER, CODE_FILTER_PLAN);
         ConfigInfo summaryFilterCfg =
-                        configInfoMapper.getByCategoryAndCode(CAT_LLM_FILTER, CODE_FILTER_SUMMARY);
+                configInfoMapper.getByCategoryAndCode(CAT_LLM_FILTER, CODE_FILTER_SUMMARY);
         if (planFilterCfg == null || summaryFilterCfg == null) {
             return ApiResult.error(ResponseEnum.FILTER_CONF_MISS);
         }
 
         LambdaQueryWrapper<ConfigInfo> lqw =
-                        Wrappers.lambdaQuery(ConfigInfo.class)
-                                        .eq(ConfigInfo::getCode, CODE_XINGCHEN)
-                                        .eq(ConfigInfo::getName, NAME_MODEL_SQUARE)
-                                        .eq(ConfigInfo::getIsValid, 1)
-                                        .eq(
-                                                        ConfigInfo::getCategory,
-                                                        "pre".equals(env) ? CAT_LLM_WORKFLOW_FILTER_PRE : CAT_LLM_WORKFLOW_FILTER);
+                Wrappers.lambdaQuery(ConfigInfo.class)
+                        .eq(ConfigInfo::getCode, CODE_XINGCHEN)
+                        .eq(ConfigInfo::getName, NAME_MODEL_SQUARE)
+                        .eq(ConfigInfo::getIsValid, 1)
+                        .eq(
+                                ConfigInfo::getCategory,
+                                "pre".equals(env) ? CAT_LLM_WORKFLOW_FILTER_PRE : CAT_LLM_WORKFLOW_FILTER);
 
         ConfigInfo llmSceneFilter = configInfoMapper.selectOne(lqw);
         sceneFilter =
-                        llmSceneFilter != null
-                                        ? StrUtil.split(llmSceneFilter.getValue(), ",")
-                                        : new ArrayList<>();
+                llmSceneFilter != null
+                        ? StrUtil.split(llmSceneFilter.getValue(), ",")
+                        : new ArrayList<>();
 
         planFilter = StrUtil.split(planFilterCfg.getValue(), ",");
         summaryFilter = StrUtil.split(summaryFilterCfg.getValue(), ",");
@@ -638,15 +638,15 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
         if (StringUtils.isNotEmpty(dto.getName())) {
             merged =
-                            merged.stream()
-                                            .filter(s -> StrUtil.contains(s.getName(), dto.getName()))
-                                            .collect(toList());
+                    merged.stream()
+                            .filter(s -> StrUtil.contains(s.getName(), dto.getName()))
+                            .collect(toList());
         }
 
         merged.sort(
-                        Comparator.comparing(
-                                        LLMInfoVo::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                                        .reversed());
+                Comparator.comparing(
+                        LLMInfoVo::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .reversed());
 
         int start = Math.max(0, (dto.getPage() - 1) * dto.getPageSize());
         int end = Math.min(start + dto.getPageSize(), merged.size());
@@ -661,9 +661,9 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
 
     private void dealWithSelfModel(
-                    ModelDto dto, List<LLMInfoVo> ownerSquareList, String nameKeyword, Integer type) {
+            ModelDto dto, List<LLMInfoVo> ownerSquareList, String nameKeyword, Integer type) {
         LambdaQueryWrapper<Model> wrapper =
-                        new LambdaQueryWrapper<Model>().eq(Model::getIsDeleted, 0);
+                new LambdaQueryWrapper<Model>().eq(Model::getIsDeleted, 0);
 
         if (StringUtils.isNotBlank(nameKeyword)) {
             wrapper.eq(Model::getName, nameKeyword);
@@ -828,11 +828,11 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     public String getPublicKey() {
         ConfigInfo publicKey =
-                        configInfoMapper.selectOne(
-                                        new LambdaQueryWrapper<ConfigInfo>()
-                                                        .eq(ConfigInfo::getCategory, CAT_MODEL_SECRET_KEY)
-                                                        .eq(ConfigInfo::getCode, CODE_PUBLIC_KEY)
-                                                        .eq(ConfigInfo::getIsValid, 1));
+                configInfoMapper.selectOne(
+                        new LambdaQueryWrapper<ConfigInfo>()
+                                .eq(ConfigInfo::getCategory, CAT_MODEL_SECRET_KEY)
+                                .eq(ConfigInfo::getCode, CODE_PUBLIC_KEY)
+                                .eq(ConfigInfo::getIsValid, 1));
         return Optional.ofNullable(publicKey).map(ConfigInfo::getValue).orElse(null);
     }
 
@@ -872,7 +872,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
      */
     private void checkWorkflowReference(String uid, Model model) {
         LambdaQueryWrapper<Workflow> lqw =
-                        new LambdaQueryWrapper<Workflow>().eq(Workflow::getDeleted, false);
+                new LambdaQueryWrapper<Workflow>().eq(Workflow::getDeleted, false);
 
         Long spaceId = SpaceInfoUtil.getSpaceId();
         if (spaceId != null) {
@@ -885,12 +885,12 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         List<Workflow> workflows = workflowMapper.selectList(lqw);
 
         ConfigInfo selfModelConfig =
-                        configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
+                configInfoMapper.getByCategoryAndCode(CAT_LLM_WORKFLOW_FILTER, CODE_SELF_MODEL);
         List<String> prefixAllowList =
-                        Arrays.asList(Optional.ofNullable(selfModelConfig)
-                                        .map(ConfigInfo::getValue)
-                                        .orElse("")
-                                        .split(","));
+                Arrays.asList(Optional.ofNullable(selfModelConfig)
+                        .map(ConfigInfo::getValue)
+                        .orElse("")
+                        .split(","));
 
         for (Workflow workflow : workflows) {
             BizWorkflowData data = JSON.parseObject(workflow.getData(), BizWorkflowData.class);
@@ -929,7 +929,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         List<LLMInfoVo> records = page.getRecords();
 
         Map<Long, LLMInfoVo> mapById =
-                        records.stream().collect(toMap(LLMInfoVo::getLlmId, v -> v, (a, b) -> a));
+                records.stream().collect(toMap(LLMInfoVo::getLlmId, v -> v, (a, b) -> a));
 
         if (!mapById.containsKey(llmId)) {
             return Boolean.FALSE;
@@ -937,11 +937,11 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         LLMInfoVo vo = mapById.get(llmId);
 
         boolean matched =
-                        Objects.equals(vo.getServiceId(), serviceId) && Objects.equals(vo.getUrl(), url);
+                Objects.equals(vo.getServiceId(), serviceId) && Objects.equals(vo.getUrl(), url);
         if (!matched) {
             log.info(
-                            "checkModelBase mismatch, llmId={}, expect serviceId/url=({}/{}) but got ({}/{})",
-                            llmId, vo.getServiceId(), vo.getUrl(), serviceId, url);
+                    "checkModelBase mismatch, llmId={}, expect serviceId/url=({}/{}) but got ({}/{})",
+                    llmId, vo.getServiceId(), vo.getUrl(), serviceId, url);
         }
         return matched;
     }
@@ -981,10 +981,10 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             merged.addAll(ownerList);
 
         merged.sort(
-                        Comparator.comparing(
-                                        LLMInfoVo::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                                        .reversed()
-                                        .thenComparing(v -> Optional.ofNullable(v.getId()).orElse(0L)));
+                Comparator.comparing(
+                        LLMInfoVo::getCreateTime, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .reversed()
+                        .thenComparing(v -> Optional.ofNullable(v.getId()).orElse(0L)));
 
         final int total = merged.size();
         final int from = Math.min((page - 1) * pageSize, total);
@@ -1005,13 +1005,13 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
     private List<String> loadSceneFilterSafe() {
         try {
             LambdaQueryWrapper<ConfigInfo> lqw =
-                            Wrappers.lambdaQuery(ConfigInfo.class)
-                                            .eq(ConfigInfo::getCode, CODE_XINGCHEN)
-                                            .eq(ConfigInfo::getName, NAME_MODEL_SQUARE)
-                                            .eq(ConfigInfo::getIsValid, 1)
-                                            .eq(
-                                                            ConfigInfo::getCategory,
-                                                            "pre".equals(env) ? CAT_LLM_WORKFLOW_FILTER_PRE : CAT_LLM_WORKFLOW_FILTER);
+                    Wrappers.lambdaQuery(ConfigInfo.class)
+                            .eq(ConfigInfo::getCode, CODE_XINGCHEN)
+                            .eq(ConfigInfo::getName, NAME_MODEL_SQUARE)
+                            .eq(ConfigInfo::getIsValid, 1)
+                            .eq(
+                                    ConfigInfo::getCategory,
+                                    "pre".equals(env) ? CAT_LLM_WORKFLOW_FILTER_PRE : CAT_LLM_WORKFLOW_FILTER);
 
             ConfigInfo cfg = configInfoMapper.selectOne(lqw);
             if (cfg == null || StrUtil.isBlank(cfg.getValue())) {
@@ -1054,7 +1054,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
         // 1) Calculate operable workflow set (only query necessary columns, reduce IO)
         LambdaQueryWrapper<Workflow> lqw = new LambdaQueryWrapper<Workflow>()
-                        .select(Workflow::getId, Workflow::getFlowId, Workflow::getData, Workflow::getUpdateTime, Workflow::getDeleted);
+                .select(Workflow::getId, Workflow::getFlowId, Workflow::getData, Workflow::getUpdateTime, Workflow::getDeleted);
         if (StringUtils.isNotBlank(flowId)) {
             lqw.eq(Workflow::getFlowId, flowId);
         } else {
@@ -1137,7 +1137,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         // 4) Batch update (only update workflows that have changed)
         // workflowService.updateBatchById(toUpdate);
         log.info("offModel: Batch replacement completed, flowsUpdated={}, nodesTouched={}, details={}",
-                        toUpdate.size(), nodeTouched, wfChangedCount);
+                toUpdate.size(), nodeTouched, wfChangedCount);
 
         Map<String, Object> ret = new HashMap<>();
         ret.put("flowsUpdated", toUpdate.size());
@@ -1166,7 +1166,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
         // 2) Parse contextLength
         Integer contextLength = resolveContextLength(
-                        Optional.ofNullable(dto.getModelCategoryReq()).orElse(null));
+                Optional.ofNullable(dto.getModelCategoryReq()).orElse(null));
 
         // 3) Assemble deployment parameters
         ModelDeployVo deployVo = buildDeployVo(dto, contextLength);
@@ -1202,9 +1202,9 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private void ensureNoDuplicateName(LocalModelDto dto, boolean isCreate) {
         LambdaQueryWrapper<Model> dupLqw = Wrappers.<Model>lambdaQuery()
-                        .eq(Model::getUid, dto.getUid())
-                        .eq(Model::getName, dto.getModelName())
-                        .eq(Model::getIsDeleted, 0);
+                .eq(Model::getUid, dto.getUid())
+                .eq(Model::getName, dto.getModelName())
+                .eq(Model::getIsDeleted, 0);
         if (!isCreate) {
             dupLqw.ne(Model::getId, dto.getId());
         }
@@ -1270,7 +1270,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private String deployModel(boolean isCreate, ModelDeployVo deployVo, String oldServiceId) {
         return isCreate ? modelHandler.deployModel(deployVo)
-                        : modelHandler.deployModelUpdate(deployVo, oldServiceId);
+                : modelHandler.deployModelUpdate(deployVo, oldServiceId);
     }
 
     private void fillCommonModelFields(Model model, LocalModelDto dto, String serviceId) {
@@ -1289,13 +1289,13 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         boolean ok = isCreate ? this.save(model) : this.updateById(model);
         if (!ok) {
             throw new BusinessException(
-                            ResponseEnum.RESPONSE_FAILED, isCreate ? "Failed to add model" : "Failed to update model");
+                    ResponseEnum.RESPONSE_FAILED, isCreate ? "Failed to add model" : "Failed to update model");
         }
     }
 
     private void bindCategory(LocalModelDto dto, Model model) {
         ModelCategoryReq req = Optional.ofNullable(dto.getModelCategoryReq())
-                        .orElseGet(ModelCategoryReq::new);
+                .orElseGet(ModelCategoryReq::new);
         req.setOwnerUid(dto.getUid());
         req.setModelId(model.getId());
         modelCategoryService.saveAll(req);
@@ -1368,7 +1368,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             } catch (Exception ex) {
                 // Single model exception does not interrupt the whole
                 log.warn("[flushStatusBatch] uid={}, modelId={}, serviceId={} check failed: {}",
-                                uid, model.getId(), serviceId, ex.getMessage());
+                        uid, model.getId(), serviceId, ex.getMessage());
             }
         }
 

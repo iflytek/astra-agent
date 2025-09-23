@@ -73,18 +73,18 @@ class S3ClientUtilTest {
 
     private void ensureBucketExists() throws Exception {
         MinioClient client = MinioClient.builder()
-                        .endpoint(TEST_ENDPOINT)
-                        .credentials(TEST_ACCESS_KEY, TEST_SECRET_KEY)
-                        .build();
+                .endpoint(TEST_ENDPOINT)
+                .credentials(TEST_ACCESS_KEY, TEST_SECRET_KEY)
+                .build();
 
         boolean bucketExists = client.bucketExists(BucketExistsArgs.builder()
-                        .bucket(TEST_BUCKET)
-                        .build());
+                .bucket(TEST_BUCKET)
+                .build());
 
         if (!bucketExists) {
             client.makeBucket(MakeBucketArgs.builder()
-                            .bucket(TEST_BUCKET)
-                            .build());
+                    .bucket(TEST_BUCKET)
+                    .build());
         }
     }
 
@@ -158,7 +158,7 @@ class S3ClientUtilTest {
 
         // Verify BusinessException is thrown (due to invalid credentials)
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
-                        () -> invalidS3ClientUtil.uploadObject(TEST_BUCKET, objectKey, contentType, inputStream, 12, -1));
+                () -> invalidS3ClientUtil.uploadObject(TEST_BUCKET, objectKey, contentType, inputStream, 12, -1));
 
         Assertions.assertEquals(ResponseEnum.S3_UPLOAD_ERROR.getCode(), exception.getCode());
     }
@@ -197,7 +197,7 @@ class S3ClientUtilTest {
 
         // Verify BusinessException is thrown (due to invalid credentials)
         BusinessException exception = Assertions.assertThrows(BusinessException.class,
-                        () -> invalidS3ClientUtil.generatePresignedPutUrl(TEST_BUCKET, objectKey, expirySeconds));
+                () -> invalidS3ClientUtil.generatePresignedPutUrl(TEST_BUCKET, objectKey, expirySeconds));
 
         Assertions.assertEquals(ResponseEnum.S3_PRESIGN_ERROR.getCode(), exception.getCode());
     }
@@ -363,13 +363,13 @@ class S3ClientUtilTest {
 
         // Verify if URL is accessible
         Assertions.assertTrue(isUrlAccessible(generatedUrl),
-                        "Generated URL should be accessible: " + generatedUrl);
+                "Generated URL should be accessible: " + generatedUrl);
 
         // Verify correct content can be read through URL
         try {
             String downloadedContent = readFromUrl(generatedUrl);
             Assertions.assertEquals(testContent, downloadedContent,
-                            "Content downloaded via URL should match uploaded content");
+                    "Content downloaded via URL should match uploaded content");
         } catch (IOException e) {
             Assertions.fail("Failed to read content via URL: " + e.getMessage());
         }
@@ -393,13 +393,13 @@ class S3ClientUtilTest {
 
         // Verify if URL is accessible
         Assertions.assertTrue(isUrlAccessible(generatedUrl),
-                        "Generated URL should be accessible: " + generatedUrl);
+                "Generated URL should be accessible: " + generatedUrl);
 
         // Verify correct content can be read through URL
         try {
             String downloadedContent = readFromUrl(generatedUrl);
             Assertions.assertEquals(testContent, downloadedContent,
-                            "Content downloaded via URL should match uploaded content");
+                    "Content downloaded via URL should match uploaded content");
         } catch (IOException e) {
             Assertions.fail("Failed to read content via URL: " + e.getMessage());
         }
@@ -436,7 +436,7 @@ class S3ClientUtilTest {
             connection.getOutputStream().write(testContentBytes);
             int responseCode = connection.getResponseCode();
             Assertions.assertEquals(200, responseCode,
-                            "Presigned URL upload should succeed, response code should be 200");
+                    "Presigned URL upload should succeed, response code should be 200");
         } finally {
             connection.disconnect();
         }
@@ -444,13 +444,13 @@ class S3ClientUtilTest {
         // Verify uploaded file can be accessed via direct URL
         String directUrl = TEST_ENDPOINT + "/" + TEST_BUCKET + "/" + objectKey;
         Assertions.assertTrue(isUrlAccessible(directUrl),
-                        "Uploaded file should be accessible via direct URL");
+                "Uploaded file should be accessible via direct URL");
 
         // Verify uploaded content is correct
         try {
             String downloadedContent = readFromUrl(directUrl);
             Assertions.assertEquals(testContent, downloadedContent,
-                            "Content downloaded via direct URL should match uploaded content");
+                    "Content downloaded via direct URL should match uploaded content");
         } catch (IOException e) {
             Assertions.fail("Failed to read content via direct URL: " + e.getMessage());
         }
@@ -464,6 +464,6 @@ class S3ClientUtilTest {
 
         // Verify non-existent URL is not accessible
         Assertions.assertFalse(isUrlAccessible(invalidUrl),
-                        "Non-existent file URL should not be accessible");
+                "Non-existent file URL should not be accessible");
     }
 }

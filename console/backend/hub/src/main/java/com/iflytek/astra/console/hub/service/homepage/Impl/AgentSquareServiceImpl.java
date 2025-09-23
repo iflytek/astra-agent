@@ -47,13 +47,13 @@ public class AgentSquareServiceImpl implements AgentSquareService {
     @Override
     public List<BotTypeDto> getBotTypeList() {
         return botTypeListService.getBotTypeList()
-                        .stream()
-                        .map(item -> new BotTypeDto(
-                                        item.getTypeKey(),
-                                        item.getTypeName(),
-                                        item.getIcon(),
-                                        item.getTypeNameEn()))
-                        .toList();
+                .stream()
+                .map(item -> new BotTypeDto(
+                        item.getTypeKey(),
+                        item.getTypeName(),
+                        item.getIcon(),
+                        item.getTypeNameEn()))
+                .toList();
     }
 
     @Override
@@ -67,30 +67,30 @@ public class AgentSquareServiceImpl implements AgentSquareService {
 
         // Use Stream to process each assistant, convert to DTO
         List<BotInfoDto> botInfoList = marketPage.getRecords()
-                        .stream()
-                        .map(market -> {
-                            String creatorName = userInfoDataService.findNickNameByUid(market.getUid()).orElse(null);
-                            ChatList latestChat = chatListDataService.findLatestEnabledChatByUserAndBot(uid, market.getBotId());
-                            Long chatId = latestChat != null ? latestChat.getId() : null;
-                            return new BotInfoDto(
-                                            market.getBotId(),
-                                            chatId,
-                                            market.getBotName(),
-                                            type,
-                                            market.getAvatar(),
-                                            market.getPrompt(),
-                                            market.getBotDesc(),
-                                            favoriteIds.contains(market.getBotId()),
-                                            creatorName);
-                        })
-                        .collect(Collectors.toList());
+                .stream()
+                .map(market -> {
+                    String creatorName = userInfoDataService.findNickNameByUid(market.getUid()).orElse(null);
+                    ChatList latestChat = chatListDataService.findLatestEnabledChatByUserAndBot(uid, market.getBotId());
+                    Long chatId = latestChat != null ? latestChat.getId() : null;
+                    return new BotInfoDto(
+                            market.getBotId(),
+                            chatId,
+                            market.getBotName(),
+                            type,
+                            market.getAvatar(),
+                            market.getPrompt(),
+                            market.getBotDesc(),
+                            favoriteIds.contains(market.getBotId()),
+                            creatorName);
+                })
+                .collect(Collectors.toList());
 
         return new BotListPageDto(
-                        botInfoList,
-                        Math.toIntExact(marketPage.getTotal()),
-                        Math.toIntExact(marketPage.getSize()),
-                        Math.toIntExact(marketPage.getCurrent()),
-                        Math.toIntExact(marketPage.getPages()));
+                botInfoList,
+                Math.toIntExact(marketPage.getTotal()),
+                Math.toIntExact(marketPage.getSize()),
+                Math.toIntExact(marketPage.getCurrent()),
+                Math.toIntExact(marketPage.getPages()));
     }
 
 }

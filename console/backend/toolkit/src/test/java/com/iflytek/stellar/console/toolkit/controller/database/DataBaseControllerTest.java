@@ -90,7 +90,7 @@ class DataBaseControllerTest {
         databaseDto.setDescription("测试数据库描述");
 
         when(databaseService.create(any(DatabaseDto.class)))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_NOT_EMPTY));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_NOT_EMPTY));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -108,7 +108,7 @@ class DataBaseControllerTest {
         databaseDto.setDescription("测试数据库描述");
 
         when(databaseService.create(any(DatabaseDto.class)))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_EXIST));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_EXIST));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -140,7 +140,7 @@ class DataBaseControllerTest {
         // Arrange
         Long dbId = 999L;
         when(databaseService.getDatabaseInfo(dbId))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -190,8 +190,8 @@ class DataBaseControllerTest {
         // Arrange
         Long dbId = 999L;
         doThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST))
-                        .when(databaseService)
-                        .delete(dbId);
+                .when(databaseService)
+                .delete(dbId);
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -311,8 +311,8 @@ class DataBaseControllerTest {
         dbTableDto.setDescription("测试表");
 
         doThrow(new CustomException(CustomExceptionCode.DATABASE_TABLE_FIELD_CANNOT_EMPTY))
-                        .when(databaseService)
-                        .createDbTable(any(DbTableDto.class));
+                .when(databaseService)
+                .createDbTable(any(DbTableDto.class));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -434,10 +434,10 @@ class DataBaseControllerTest {
     void testImportDbTableField_Success() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "fields.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "test content".getBytes());
+                "file",
+                "fields.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "test content".getBytes());
 
         List<DbTableFieldDto> mockFields = new ArrayList<>();
         DbTableFieldDto field = new DbTableFieldDto();
@@ -464,13 +464,13 @@ class DataBaseControllerTest {
     void testImportDbTableField_UnsupportedFormat() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "fields.txt",
-                        "text/plain",
-                        "test content".getBytes());
+                "file",
+                "fields.txt",
+                "text/plain",
+                "test content".getBytes());
 
         when(databaseService.importDbTableField(any()))
-                        .thenThrow(new CustomException(CustomExceptionCode.REPO_FILE_UPLOAD_FAILED));
+                .thenThrow(new CustomException(CustomExceptionCode.REPO_FILE_UPLOAD_FAILED));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -608,10 +608,10 @@ class DataBaseControllerTest {
         Long tableId = 1L;
         Integer execDev = 1; // 增量导入
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "data.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "test data content".getBytes());
+                "file",
+                "data.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "test data content".getBytes());
 
         doNothing().when(databaseService).importTableData(tableId, execDev, file);
 
@@ -682,11 +682,11 @@ class DataBaseControllerTest {
 
         // 第一次调用成功
         when(databaseService.create(databaseDto1))
-                        .thenReturn(createMockDbInfo(1L, "并发测试数据库", "第一个请求"));
+                .thenReturn(createMockDbInfo(1L, "并发测试数据库", "第一个请求"));
 
         // 第二次调用失败（名称重复）
         when(databaseService.create(databaseDto2))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_EXIST));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_NAME_EXIST));
 
         // Act
         ApiResult<Void> result1 = dataBaseController.createDatabase(databaseDto1);
@@ -746,8 +746,8 @@ class DataBaseControllerTest {
         operateDto.setData(dataList);
 
         doThrow(new CustomException(CustomExceptionCode.DATABASE_TYPE_ILLEGAL))
-                        .when(databaseService)
-                        .operateTableData(any(DbTableOperateDto.class));
+                .when(databaseService)
+                .operateTableData(any(DbTableOperateDto.class));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -794,10 +794,10 @@ class DataBaseControllerTest {
         Long tableId = 1L;
         Integer execDev = 1; // 增量导入
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "incremental_data.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "incremental test data content".getBytes());
+                "file",
+                "incremental_data.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "incremental test data content".getBytes());
 
         doNothing().when(databaseService).importTableData(tableId, execDev, file);
 
@@ -817,10 +817,10 @@ class DataBaseControllerTest {
         Long tableId = 1L;
         Integer execDev = 2; // 覆盖导入
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "overwrite_data.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "overwrite test data content".getBytes());
+                "file",
+                "overwrite_data.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "overwrite test data content".getBytes());
 
         doNothing().when(databaseService).importTableData(tableId, execDev, file);
 
@@ -840,14 +840,14 @@ class DataBaseControllerTest {
         Long tableId = 1L;
         Integer execDev = 1;
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "wrong_format.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "wrong format content".getBytes());
+                "file",
+                "wrong_format.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "wrong format content".getBytes());
 
         doThrow(new CustomException(CustomExceptionCode.DATABASE_IMPORT_FAILED))
-                        .when(databaseService)
-                        .importTableData(tableId, execDev, file);
+                .when(databaseService)
+                .importTableData(tableId, execDev, file);
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -904,8 +904,8 @@ class DataBaseControllerTest {
         Long tableId = 999L;
         MockHttpServletResponse response = new MockHttpServletResponse();
         doThrow(new CustomException(CustomExceptionCode.DATABASE_NOT_EXIST))
-                        .when(databaseService)
-                        .getTableTemplateFile(any(HttpServletResponse.class), eq(tableId));
+                .when(databaseService)
+                .getTableTemplateFile(any(HttpServletResponse.class), eq(tableId));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {
@@ -988,10 +988,10 @@ class DataBaseControllerTest {
     void testImportDbTableField_CSV_Success() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "fields.csv",
-                        "text/csv",
-                        "field_name,field_type,description\ntest_field,VARCHAR,测试字段".getBytes());
+                "file",
+                "fields.csv",
+                "text/csv",
+                "field_name,field_type,description\ntest_field,VARCHAR,测试字段".getBytes());
 
         List<DbTableFieldDto> mockFields = new ArrayList<>();
         DbTableFieldDto field = new DbTableFieldDto();
@@ -1017,13 +1017,13 @@ class DataBaseControllerTest {
     void testImportDbTableField_InvalidContent() {
         // Arrange
         MockMultipartFile file = new MockMultipartFile(
-                        "file",
-                        "invalid_fields.xlsx",
-                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "invalid content".getBytes());
+                "file",
+                "invalid_fields.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "invalid content".getBytes());
 
         when(databaseService.importDbTableField(any()))
-                        .thenThrow(new CustomException(CustomExceptionCode.DATABASE_TABLE_FIELD_IMPORT_DEFAULT));
+                .thenThrow(new CustomException(CustomExceptionCode.DATABASE_TABLE_FIELD_IMPORT_DEFAULT));
 
         // Act & Assert
         assertThrows(CustomException.class, () -> {

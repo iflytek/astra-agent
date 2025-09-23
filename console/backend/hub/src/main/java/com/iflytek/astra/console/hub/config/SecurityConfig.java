@@ -31,26 +31,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain resourceServerFilterChain(HttpSecurity http) throws Exception {
         http
-                        .authorizeHttpRequests(authorize -> authorize
-                                        .requestMatchers(
-                                                        WebMvcConfig.NO_AUTH_REQUIRED_APIS)
-                                        .permitAll()
-                                        .anyRequest()
-                                        .authenticated() // Other interfaces require authentication
-                        )
-                        // Enable OAuth2 resource server support with JWT format tokens
-                        .oauth2ResourceServer(oauth2 -> oauth2
-                                        .jwt(Customizer.withDefaults()))
-                        .exceptionHandling(exceptions -> exceptions
-                                        .authenticationEntryPoint(restfulAuthenticationEntryPoint)
-                                        .accessDeniedHandler(restfulAccessDeniedHandler))
-                        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                        // Disable CSRF - JWT-based frontend-backend separation projects don't need CSRF protection
-                        .csrf(AbstractHttpConfigurer::disable)
-                        // Configure stateless session
-                        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                        .formLogin(AbstractHttpConfigurer::disable)
-                        .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(
+                                WebMvcConfig.NO_AUTH_REQUIRED_APIS)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated() // Other interfaces require authentication
+                )
+                // Enable OAuth2 resource server support with JWT format tokens
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults()))
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(restfulAuthenticationEntryPoint)
+                        .accessDeniedHandler(restfulAccessDeniedHandler))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // Disable CSRF - JWT-based frontend-backend separation projects don't need CSRF protection
+                .csrf(AbstractHttpConfigurer::disable)
+                // Configure stateless session
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
 
         ;
 

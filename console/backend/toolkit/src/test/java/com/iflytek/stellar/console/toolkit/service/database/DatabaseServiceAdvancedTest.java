@@ -69,22 +69,22 @@ public class DatabaseServiceAdvancedTest {
         userInfoMock = mockStatic(com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.class);
 
         spaceInfoUtilMock.when(() -> com.iflytek.astra.console.commons.util.space.SpaceInfoUtil.getSpaceId())
-                        .thenReturn(TEST_SPACE_ID);
+                .thenReturn(TEST_SPACE_ID);
         userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
-                        .thenReturn(TEST_USER_ID);
+                .thenReturn(TEST_USER_ID);
         userInfoMock.when(() -> com.iflytek.astra.console.toolkit.handler.UserInfoManagerHandler.getUserId())
-                        .thenReturn(TEST_USER_ID);
+                .thenReturn(TEST_USER_ID);
 
         // Mock核心系统服务
         when(coreSystemService.createDatabase(anyString(), anyString(), anyLong(), anyString()))
-                        .thenReturn(MOCK_DB_ID);
+                .thenReturn(MOCK_DB_ID);
         when(coreSystemService.cloneDataBase(anyLong(), anyString(), anyString()))
-                        .thenReturn(MOCK_DB_ID + 1);
+                .thenReturn(MOCK_DB_ID + 1);
         doNothing().when(coreSystemService).modifyDataBase(anyLong(), anyString(), anyString());
         doNothing().when(coreSystemService).dropDataBase(anyLong(), anyString());
         doNothing().when(coreSystemService).execDDL(anyString(), anyString(), anyLong(), anyLong());
         when(coreSystemService.execDML(anyString(), anyString(), anyLong(), anyLong(), anyInt(), anyInt()))
-                        .thenReturn(new ArrayList<>());
+                .thenReturn(new ArrayList<>());
     }
 
     @AfterEach
@@ -125,10 +125,10 @@ public class DatabaseServiceAdvancedTest {
 
         // 获取创建的表
         DbTable createdTable = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("复杂测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("复杂测试表"))
+                .findFirst()
+                .orElseThrow();
 
         // 准备复杂更新：更新表名、描述，同时增删改字段
         DbTableDto updateDto = new DbTableDto();
@@ -180,7 +180,7 @@ public class DatabaseServiceAdvancedTest {
 
         // 验证DDL执行（表重命名、字段操作等）
         verify(coreSystemService, atLeastOnce())
-                        .execDDL(anyString(), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(MOCK_DB_ID));
+                .execDDL(anyString(), eq(TEST_USER_ID), eq(TEST_SPACE_ID), eq(MOCK_DB_ID));
 
         log.info("✅ 复杂表结构更新测试通过");
     }
@@ -200,15 +200,15 @@ public class DatabaseServiceAdvancedTest {
         tableDto.setDbId(database.getId());
         tableDto.setName("批量操作表");
         tableDto.setFields(Arrays.asList(
-                        createField("name", "string", "姓名", true),
-                        createField("age", "integer", "年龄", false)));
+                createField("name", "string", "姓名", true),
+                createField("age", "integer", "年龄", false)));
         databaseService.createDbTable(tableDto);
 
         DbTable table = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("批量操作表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("批量操作表"))
+                .findFirst()
+                .orElseThrow();
 
         // 准备批量操作数据
         DbTableOperateDto operateDto = new DbTableOperateDto();
@@ -239,8 +239,8 @@ public class DatabaseServiceAdvancedTest {
 
         // Assert - 验证批量DML执行
         verify(coreSystemService, times(10))
-                        .execDML(contains("INSERT INTO"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
-                                        eq(MOCK_DB_ID), eq(DBOperateEnum.UPDATE.getCode()), eq(1));
+                .execDML(contains("INSERT INTO"), eq(TEST_USER_ID), eq(TEST_SPACE_ID),
+                        eq(MOCK_DB_ID), eq(DBOperateEnum.UPDATE.getCode()), eq(1));
 
         log.info("✅ 批量数据操作测试通过，处理了 {} 条数据", batchData.size());
     }
@@ -263,15 +263,15 @@ public class DatabaseServiceAdvancedTest {
         databaseService.createDbTable(tableDto);
 
         DbTable table = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("导入测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("导入测试表"))
+                .findFirst()
+                .orElseThrow();
 
         // 模拟部分导入失败的Excel文件
         String csvContent = "name\n用户1\n\n用户3"; // 第二行为空，可能导致失败
         MockMultipartFile file = new MockMultipartFile(
-                        "file", "import_test.csv", "text/csv", csvContent.getBytes());
+                "file", "import_test.csv", "text/csv", csvContent.getBytes());
 
         // Act & Assert - 预期可能抛出异常或处理部分失败
         try {
@@ -351,10 +351,10 @@ public class DatabaseServiceAdvancedTest {
         databaseService.createDbTable(tableDto);
 
         DbTable table = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("分页测试表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("分页测试表"))
+                .findFirst()
+                .orElseThrow();
 
         // 测试边界分页参数
         DbTableSelectDataDto selectDto = new DbTableSelectDataDto();
@@ -365,11 +365,11 @@ public class DatabaseServiceAdvancedTest {
 
         // Mock数据返回
         when(coreSystemService.execDML(contains("SELECT * FROM"), anyString(), anyLong(),
-                        anyLong(), eq(DBOperateEnum.SELECT.getCode()), anyInt()))
-                        .thenReturn(new ArrayList<>());
+                anyLong(), eq(DBOperateEnum.SELECT.getCode()), anyInt()))
+                .thenReturn(new ArrayList<>());
         when(coreSystemService.execDML(contains("SELECT COUNT(*)"), anyString(), anyLong(),
-                        anyLong(), eq(DBOperateEnum.SELECT_TOTAL_COUNT.getCode()), anyInt()))
-                        .thenReturn(0L);
+                anyLong(), eq(DBOperateEnum.SELECT_TOTAL_COUNT.getCode()), anyInt()))
+                .thenReturn(0L);
 
         // Act & Assert - 最大页面大小应该被限制
         assertDoesNotThrow(() -> {
@@ -407,10 +407,10 @@ public class DatabaseServiceAdvancedTest {
         databaseService.createDbTable(tableDto);
 
         DbTable table = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("字段校验表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("字段校验表"))
+                .findFirst()
+                .orElseThrow();
 
         // 准备包含非法字段的数据操作
         DbTableOperateDto operateDto = new DbTableOperateDto();
@@ -453,16 +453,16 @@ public class DatabaseServiceAdvancedTest {
         tableDto.setDbId(database.getId());
         tableDto.setName("必填字段表");
         tableDto.setFields(Arrays.asList(
-                        createField("required_field", "string", "必填字段", true), // 必填
-                        createField("optional_field", "string", "可选字段", false) // 可选
+                createField("required_field", "string", "必填字段", true), // 必填
+                createField("optional_field", "string", "可选字段", false) // 可选
         ));
         databaseService.createDbTable(tableDto);
 
         DbTable table = dbTableMapper.selectList(null)
-                        .stream()
-                        .filter(t -> t.getName().equals("必填字段表"))
-                        .findFirst()
-                        .orElseThrow();
+                .stream()
+                .filter(t -> t.getName().equals("必填字段表"))
+                .findFirst()
+                .orElseThrow();
 
         // 准备缺少必填字段的数据操作
         DbTableOperateDto operateDto = new DbTableOperateDto();

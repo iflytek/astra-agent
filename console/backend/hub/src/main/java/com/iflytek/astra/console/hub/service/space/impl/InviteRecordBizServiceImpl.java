@@ -105,22 +105,22 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
         // Check if space capacity is full, including users being invited
         if (Objects.equals(space.getType(), SpaceTypeEnum.FREE.getCode())) {
             if ((spaceUserService.countFreeSpaceUser(space.getUid())
-                            + inviteRecordService.countJoiningByUid(space.getUid(), SpaceTypeEnum.FREE) + dtos.size()) > spaceLimitProperties.getFree().getUserCount()) {
+                    + inviteRecordService.countJoiningByUid(space.getUid(), SpaceTypeEnum.FREE) + dtos.size()) > spaceLimitProperties.getFree().getUserCount()) {
                 return ApiResult.error(ResponseEnum.INVITE_SPACE_USER_FULL);
             }
         } else if (Objects.equals(space.getType(), SpaceTypeEnum.PRO.getCode())) {
             if ((spaceUserService.countProSpaceUser(space.getUid())
-                            + inviteRecordService.countJoiningByUid(space.getUid(), SpaceTypeEnum.PRO) + dtos.size()) > spaceLimitProperties.getPro().getUserCount()) {
+                    + inviteRecordService.countJoiningByUid(space.getUid(), SpaceTypeEnum.PRO) + dtos.size()) > spaceLimitProperties.getPro().getUserCount()) {
                 return ApiResult.error(ResponseEnum.INVITE_SPACE_USER_FULL);
             }
         } else if (Objects.equals(space.getType(), SpaceTypeEnum.TEAM.getCode())) {
             if ((enterpriseUserService.countByEnterpriseId(space.getEnterpriseId())
-                            + inviteRecordService.countJoiningByEnterpriseId(space.getEnterpriseId()) + dtos.size()) > spaceLimitProperties.getTeam().getUserCount()) {
+                    + inviteRecordService.countJoiningByEnterpriseId(space.getEnterpriseId()) + dtos.size()) > spaceLimitProperties.getTeam().getUserCount()) {
                 return ApiResult.error(ResponseEnum.INVITE_TEAM_USER_FULL);
             }
         } else if (Objects.equals(space.getType(), SpaceTypeEnum.ENTERPRISE.getCode())) {
             if ((enterpriseUserService.countByEnterpriseId(space.getEnterpriseId())
-                            + inviteRecordService.countJoiningByEnterpriseId(space.getEnterpriseId()) + dtos.size()) > spaceLimitProperties.getEnterprise().getUserCount()) {
+                    + inviteRecordService.countJoiningByEnterpriseId(space.getEnterpriseId()) + dtos.size()) > spaceLimitProperties.getEnterprise().getUserCount()) {
                 return ApiResult.error(ResponseEnum.INVITE_ENTERPRISE_USER_FULL);
             }
         }
@@ -191,7 +191,7 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
 
         // Check if enterprise member count is full, including users being invited
         if ((enterpriseUserService.countByEnterpriseId(enterpriseId)
-                        + inviteRecordService.countJoiningByEnterpriseId(enterpriseId) + dtos.size()) > userCount) {
+                + inviteRecordService.countJoiningByEnterpriseId(enterpriseId) + dtos.size()) > userCount) {
             return ApiResult.error(ResponseEnum.INVITE_ENTERPRISE_USER_FULL);
         }
         // Check if already an enterprise user
@@ -259,20 +259,20 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
         // For enterprise invitation, add enterprise user
         if (InviteRecordTypeEnum.ENTERPRISE.getCode().equals(inviteRecord.getType())) {
             if (!enterpriseUserService.addEnterpriseUser(inviteRecord.getEnterpriseId(), inviteRecord.getInviteeUid(),
-                            Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? EnterpriseRoleEnum.GOVERNOR : EnterpriseRoleEnum.STAFF)) {
+                    Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? EnterpriseRoleEnum.GOVERNOR : EnterpriseRoleEnum.STAFF)) {
                 throw new BusinessException(ResponseEnum.INVITE_ADD_TEAM_USER_FAILED);
             }
             // Add space user
         } else if (InviteRecordTypeEnum.SPACE.getCode().equals(inviteRecord.getType())) {
             if (!spaceUserService.addSpaceUser(inviteRecord.getSpaceId(), inviteRecord.getInviteeUid(),
-                            Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? SpaceRoleEnum.ADMIN : SpaceRoleEnum.MEMBER)) {
+                    Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? SpaceRoleEnum.ADMIN : SpaceRoleEnum.MEMBER)) {
                 throw new BusinessException(ResponseEnum.SPACE_USER_ADD_FAILED);
             }
             Space space = spaceService.getSpaceById(inviteRecord.getSpaceId());
             // For enterprise space invitation, if not joined team, add user
             if (space.getEnterpriseId() != null) {
                 if (!enterpriseUserService.addEnterpriseUser(space.getEnterpriseId(), inviteRecord.getInviteeUid(),
-                                Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? EnterpriseRoleEnum.GOVERNOR : EnterpriseRoleEnum.STAFF)) {
+                        Objects.equals(InviteRecordRoleEnum.ADMIN.getCode(), inviteRecord.getRole()) ? EnterpriseRoleEnum.GOVERNOR : EnterpriseRoleEnum.STAFF)) {
                     throw new BusinessException(ResponseEnum.INVITE_ADD_TEAM_USER_FAILED);
                 }
             }
@@ -480,8 +480,8 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
             Set<String> joinedUids = getJoinedUids(type);
             Set<String> invitingUids = inviteRecordService.getInvitingUids(type);
             Map<String, String> mobileMap = userInfos.stream()
-                            .filter(i -> i.getUid() != null)
-                            .collect(Collectors.toMap(UserInfo::getUid, i -> i.getMobile() != null ? i.getMobile() : ""));
+                    .filter(i -> i.getUid() != null)
+                    .collect(Collectors.toMap(UserInfo::getUid, i -> i.getMobile() != null ? i.getMobile() : ""));
             return userInfos.stream().map(i -> {
                 ChatUserVO chatUserVO = new ChatUserVO();
                 chatUserVO.setMobile(mobileMap.get(i.getUid()));
@@ -519,9 +519,9 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
             }
             // Query users
             List<UserInfo> userInfos = userInfoDataService.findUsersByMobiles(
-                            mobiles.stream()
-                                            .filter(i -> StringUtils.isNumeric(i) && i.length() == 11)
-                                            .collect(Collectors.toSet()));
+                    mobiles.stream()
+                            .filter(i -> StringUtils.isNumeric(i) && i.length() == 11)
+                            .collect(Collectors.toSet()));
             List<ChatUserVO> chatUserVOS = getChatUserVOS(InviteRecordTypeEnum.ENTERPRISE, userInfos);
             if (CollectionUtil.isEmpty(chatUserVOS)) {
                 return ApiResult.error(ResponseEnum.INVITE_NO_CORRESPONDING_USERS_FOUND);
@@ -541,48 +541,48 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
         List<UserInfoResultExcelDTO> userInfoResultExcelDTOS = getUserInfoResultDTOS(chatUserVOS, mobiles);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         EasyExcel.write(outputStream, UserInfoResultExcelDTO.class)
-                        .registerWriteHandler(new CellWriteHandler() {
-                            @Override
-                            public void afterCellDispose(CellWriteHandlerContext context) {
-                                if (BooleanUtils.isTrue(context.getHead()) && context.getRowIndex() == 0) {
-                                    WriteCellData<?> cellData = context.getFirstCellData();
-                                    WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
-                                    writeCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
-                                    writeCellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-                                }
-                                if (BooleanUtils.isFalse(context.getHead())
-                                                && Objects.equals(context.getHeadData().getField().getName(), "result")) {
-                                    String value = context.getFirstCellData().getStringValue();
-                                    WriteCellData<?> cellData = context.getFirstCellData();
-                                    WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
-                                    writeCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
-                                    if (Objects.equals(value, UserInfoResultEnum.NORMAL.getDesc())) {
-                                        writeCellStyle.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
-                                    } else if (Objects.equals(value, UserInfoResultEnum.NOT_EXIST.getDesc())) {
-                                        writeCellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
-                                    } else if (Objects.equals(value, UserInfoResultEnum.JOINED.getDesc())) {
-                                        writeCellStyle.setFillForegroundColor(IndexedColors.TURQUOISE.getIndex());
-                                    } else if (Objects.equals(value, UserInfoResultEnum.INVITING.getDesc())) {
-                                        writeCellStyle.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
-                                    } else if (Objects.equals(value, UserInfoResultEnum.INVALID_MOBILE.getDesc())) {
-                                        writeCellStyle.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
-                                    }
-                                }
+                .registerWriteHandler(new CellWriteHandler() {
+                    @Override
+                    public void afterCellDispose(CellWriteHandlerContext context) {
+                        if (BooleanUtils.isTrue(context.getHead()) && context.getRowIndex() == 0) {
+                            WriteCellData<?> cellData = context.getFirstCellData();
+                            WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
+                            writeCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
+                            writeCellStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+                        }
+                        if (BooleanUtils.isFalse(context.getHead())
+                                && Objects.equals(context.getHeadData().getField().getName(), "result")) {
+                            String value = context.getFirstCellData().getStringValue();
+                            WriteCellData<?> cellData = context.getFirstCellData();
+                            WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
+                            writeCellStyle.setFillPatternType(FillPatternType.SOLID_FOREGROUND);
+                            if (Objects.equals(value, UserInfoResultEnum.NORMAL.getDesc())) {
+                                writeCellStyle.setFillForegroundColor(IndexedColors.BRIGHT_GREEN.getIndex());
+                            } else if (Objects.equals(value, UserInfoResultEnum.NOT_EXIST.getDesc())) {
+                                writeCellStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+                            } else if (Objects.equals(value, UserInfoResultEnum.JOINED.getDesc())) {
+                                writeCellStyle.setFillForegroundColor(IndexedColors.TURQUOISE.getIndex());
+                            } else if (Objects.equals(value, UserInfoResultEnum.INVITING.getDesc())) {
+                                writeCellStyle.setFillForegroundColor(IndexedColors.ORANGE.getIndex());
+                            } else if (Objects.equals(value, UserInfoResultEnum.INVALID_MOBILE.getDesc())) {
+                                writeCellStyle.setFillForegroundColor(IndexedColors.GREY_50_PERCENT.getIndex());
                             }
-                        })
-                        .useDefaultStyle(false)
-                        .sheet("Sheet1")
-                        .doWrite(userInfoResultExcelDTOS);
+                        }
+                    }
+                })
+                .useDefaultStyle(false)
+                .sheet("Sheet1")
+                .doWrite(userInfoResultExcelDTOS);
         String fileName = NameUtil.generateUniqueFileName("result.xlsx");
         return s3ClientUtil.uploadObject("space/" + fileName,
-                        MediaType.APPLICATION_OCTET_STREAM_VALUE,
-                        new ByteArrayInputStream(outputStream.toByteArray()));
+                MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                new ByteArrayInputStream(outputStream.toByteArray()));
     }
 
     private @NotNull List<UserInfoResultExcelDTO> getUserInfoResultDTOS(List<ChatUserVO> chatUserVOS, List<String> mobiles) {
         List<UserInfoResultExcelDTO> userInfoResultExcelDTOS = new ArrayList<>();
         Map<String, ChatUserVO> collect = chatUserVOS.stream()
-                        .collect(Collectors.toMap(ChatUserVO::getMobile, i -> i));
+                .collect(Collectors.toMap(ChatUserVO::getMobile, i -> i));
         for (String mobile : mobiles) {
             UserInfoResultExcelDTO userInfoResultExcelDTO = new UserInfoResultExcelDTO();
             userInfoResultExcelDTO.setMobile(mobile);
@@ -615,9 +615,9 @@ public class InviteRecordBizServiceImpl implements InviteRecordBizService {
 
             }
         })
-                        .sheet()
-                        .headRowNumber(2)
-                        .doRead();
+                .sheet()
+                .headRowNumber(2)
+                .doRead();
         return mobiles;
     }
 }

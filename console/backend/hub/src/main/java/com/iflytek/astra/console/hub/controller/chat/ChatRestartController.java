@@ -63,7 +63,7 @@ public class ChatRestartController {
                 supportContext = chatBotMarket.getSupportContext();
             } else {
                 ChatBotBase chatBotBase = chatBotDataService.findById(chatList.getBotId())
-                                .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
+                        .orElseThrow(() -> new BusinessException(ResponseEnum.BOT_NOT_EXISTS));
                 supportContext = chatBotBase.getSupportContext();
             }
             if (supportContext.equals(1)) {

@@ -89,19 +89,19 @@ public class WorkflowSseEventSourceListener extends EventSourceListener {
         if (!promptDebugger) {
             if (chatResponse.getCode() != 0) {
                 workflowMapper.update(Wrappers.lambdaUpdate(Workflow.class)
-                                .eq(Workflow::getFlowId, flowId)
-                                .set(Workflow::getCanPublish, false));
+                        .eq(Workflow::getFlowId, flowId)
+                        .set(Workflow::getCanPublish, false));
             } else {
                 if (Objects.equals(version, "") || version == null) {
                     // Mark workflow as publishable
                     workflowMapper.update(Wrappers.lambdaUpdate(Workflow.class)
-                                    .eq(Workflow::getFlowId, flowId)
-                                    .set(Workflow::getCanPublish, true));
+                            .eq(Workflow::getFlowId, flowId)
+                            .set(Workflow::getCanPublish, true));
                 } else {
                     // Mark workflow as non-publishable
                     workflowMapper.update(Wrappers.lambdaUpdate(Workflow.class)
-                                    .eq(Workflow::getFlowId, flowId)
-                                    .set(Workflow::getCanPublish, false));
+                            .eq(Workflow::getFlowId, flowId)
+                            .set(Workflow::getCanPublish, false));
                 }
             }
         } else {
@@ -110,8 +110,8 @@ public class WorkflowSseEventSourceListener extends EventSourceListener {
                 Node node = chatResponse.getWorkflowStep().getNode();
                 Choice choice = chatResponse.getChoices().get(0);
                 if (node.getId().equalsIgnoreCase(WorkflowConst.NodeType.FLOW_END) &&
-                                choice.getFinishReason() != null &&
-                                choice.getFinishReason().toString().equalsIgnoreCase(STOP)) {
+                        choice.getFinishReason() != null &&
+                        choice.getFinishReason().toString().equalsIgnoreCase(STOP)) {
                     // Delete comparison groups
                     coreSystemService.deleteComparisons(flowId, version);
                 }
@@ -194,8 +194,8 @@ public class WorkflowSseEventSourceListener extends EventSourceListener {
     public void onFailure(@NotNull EventSource eventSource, Throwable t, Response response) {
         log.error("WorkflowSseEventSourceListener[{}] onFailure, response = {}, t = {}", sseId, response, t.getMessage(), t);
         String errorMsg = (t instanceof SocketTimeoutException)
-                        ? "Request timeout, please try again later"
-                        : "Connection failed, please try again later";
+                ? "Request timeout, please try again later"
+                : "Connection failed, please try again later";
         ChatResponse errorResponse = new ChatResponse(errorMsg);
         SseEmitterUtil.sendAndCompleteWithError(sseId, errorResponse);
     }
@@ -222,7 +222,7 @@ public class WorkflowSseEventSourceListener extends EventSourceListener {
                         }
                         char codePoint = content.charAt(j);
                         if ((codePoint >= 65 && codePoint <= 90) // A-Z
-                                        || (codePoint >= 97 && codePoint <= 122)) {
+                                || (codePoint >= 97 && codePoint <= 122)) {
                             ThreadUtil.sleep(1);
                         } else {
                             if (interval > 0) {

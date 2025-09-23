@@ -66,10 +66,10 @@ public class RedisCacheConfig implements CachingConfigurer {
 
     private RedisCacheConfiguration createBaseCacheConfiguration(Duration ttl) {
         return RedisCacheConfiguration.defaultCacheConfig()
-                        .entryTtl(ttl)
-                        .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-                        .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer()))
-                        .disableCachingNullValues();
+                .entryTtl(ttl)
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jackson2JsonRedisSerializer()))
+                .disableCachingNullValues();
     }
 
     /**
@@ -86,9 +86,9 @@ public class RedisCacheConfig implements CachingConfigurer {
         // ObjectMapper.DefaultTyping.NON_FINAL indicates that type information is included for all
         // non-final types
         redisObjectMapper.activateDefaultTyping(
-                        LaissezFaireSubTypeValidator.instance,
-                        ObjectMapper.DefaultTyping.NON_FINAL,
-                        JsonTypeInfo.As.PROPERTY);
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL,
+                JsonTypeInfo.As.PROPERTY);
 
         return new GenericJackson2JsonRedisSerializer(redisObjectMapper);
     }

@@ -15,13 +15,13 @@ public interface SpaceMapper extends BaseMapper<Space> {
     List<SpaceVO> recentVisitList(@Param("uid") String uid, @Param("enterpriseId") Long enterpriseId);
 
     List<SpaceVO> joinList(@Param("uid") String uid, @Param("enterpriseId") Long enterpriseId,
-                    @Param("name") String name);
+            @Param("name") String name);
 
     List<SpaceVO> selfList(@Param("uid") String uid, @Param("role") Integer role,
-                    @Param("enterpriseId") Long enterpriseId, @Param("name") String name);
+            @Param("enterpriseId") Long enterpriseId, @Param("name") String name);
 
     List<SpaceVO> corporateList(@Param("uid") String uid, @Param("enterpriseId") Long enterpriseId,
-                    @Param("name") String name);
+            @Param("name") String name);
 
     SpaceVO getByUidAndId(@Param("uid") String uid, @Param("spaceId") Long spaceId);
 

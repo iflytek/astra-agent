@@ -124,8 +124,8 @@ public class WorkflowExportService {
 
             // Keep only whitelist fields
             List<String> allowedKeys = new ArrayList<>(Arrays.asList(
-                            "name", "description", "avatarIcon", "avatarColor",
-                            "edgeType", "category", "advancedConfig"));
+                    "name", "description", "avatarIcon", "avatarColor",
+                    "edgeType", "category", "advancedConfig"));
             meta.keySet().removeIf(k -> !allowedKeys.contains(k));
 
             // Remove null value fields
@@ -314,9 +314,9 @@ public class WorkflowExportService {
      */
     private void cleanDataBaseNode(JSONObject param, HttpServletRequest request) {
         List<DbInfo> dbInfos = dbInfoMapper.selectList(new QueryWrapper<DbInfo>().lambda()
-                        .eq(DbInfo::getUid, UserInfoManagerHandler.getUserId())
-                        .eq(DbInfo::getDeleted, false)
-                        .orderByDesc(DbInfo::getCreateTime));
+                .eq(DbInfo::getUid, UserInfoManagerHandler.getUserId())
+                .eq(DbInfo::getDeleted, false)
+                .orderByDesc(DbInfo::getCreateTime));
         if (CollUtil.isNotEmpty(dbInfos)) {
             Set<Long> collect = dbInfos.stream().map(DbInfo::getDbId).collect(Collectors.toSet());
             String dbId = param.getString("dbId");
@@ -361,13 +361,13 @@ public class WorkflowExportService {
      * @param data Node data
      */
     private void cleanPluginNode(JSONObject param, String uid,
-                    BizNodeData data) {
+            BizNodeData data) {
         String pluginId = param.getString("pluginId");
         ToolBox toolBox = toolBoxService.getOnly(new LambdaQueryWrapper<ToolBox>()
-                        .eq(ToolBox::getToolId, pluginId));
+                .eq(ToolBox::getToolId, pluginId));
         if (toolBox == null || (!toolBox.getIsPublic()
-                        && !Objects.equals(Long.parseLong(toolBox.getUserId()), bizConfig.getAdminUid())
-                        && !Objects.equals(Long.parseLong(toolBox.getUserId()), uid))) {
+                && !Objects.equals(Long.parseLong(toolBox.getUserId()), bizConfig.getAdminUid())
+                && !Objects.equals(Long.parseLong(toolBox.getUserId()), uid))) {
             param.remove("pluginId");
             param.remove("uid");
             data.setInputs(Collections.emptyList());
@@ -401,7 +401,7 @@ public class WorkflowExportService {
      * @param prefix Node type prefix
      */
     private void cleanKnowledgeNode(JSONObject param, String uid,
-                    Set<Long> allowedLlmSet, String prefix) {
+            Set<Long> allowedLlmSet, String prefix) {
         if ("knowledge-pro".equals(prefix)) {
             cleanLlmNode(param, allowedLlmSet, uid);
         }
@@ -424,8 +424,8 @@ public class WorkflowExportService {
      * @param request HTTP request context
      */
     private void cleanAgentNode(JSONObject param,
-                    Set<Long> allowedLlmSet,
-                    HttpServletRequest request) {
+            Set<Long> allowedLlmSet,
+            HttpServletRequest request) {
 
         if (!allowedLlmSet.contains(param.getLong("llmId"))) {
             param.remove("serviceId");
@@ -446,10 +446,10 @@ public class WorkflowExportService {
 
         if (CollUtil.isNotEmpty(knowledgeArray)) {
             Set<String> userRepos = repoService.list(1, 999, "", "create_time", request, "")
-                            .getPageData()
-                            .stream()
-                            .map(r -> r.getCoreRepoId())
-                            .collect(Collectors.toSet());
+                    .getPageData()
+                    .stream()
+                    .map(r -> r.getCoreRepoId())
+                    .collect(Collectors.toSet());
 
             boolean hasInvalidRepo = knowledgeArray.stream().anyMatch(o -> {
                 JSONObject j = (JSONObject) o;
@@ -470,7 +470,7 @@ public class WorkflowExportService {
         for (int i = 0; tools != null && i < tools.size(); i++) {
             String toolId = tools.getString(i);
             ToolBox toolBox = toolBoxService.getOnly(new LambdaQueryWrapper<ToolBox>()
-                            .eq(ToolBox::getToolId, toolId));
+                    .eq(ToolBox::getToolId, toolId));
             if (toolBox == null || (!toolBox.getIsPublic() && !Objects.equals(toolBox.getUserId(), bizConfig.getAdminUid()))) {
                 tools.remove(i--);
                 toolSet.add(toolId);
@@ -480,17 +480,17 @@ public class WorkflowExportService {
         if (toolsList != null && CollUtil.isNotEmpty(toolSet)) {
             toolsList.removeIf(tool -> {
                 JSONObject toolJson = (tool instanceof JSONObject)
-                                ? (JSONObject) tool
-                                : new JSONObject((Map<String, Object>) tool);
+                        ? (JSONObject) tool
+                        : new JSONObject((Map<String, Object>) tool);
                 return "tool".equals(toolJson.getString("type"))
-                                && toolSet.contains(toolJson.getString("toolId"));
+                        && toolSet.contains(toolJson.getString("toolId"));
             });
         }
     }
 
     private static void removeLlmParamNew(JSONObject nodeParam) {
         List<String> keys = Arrays.asList("domain", "serviceId", "maxTokens", "temperature",
-                        "topK", "llmId", "url", "uid", "patchId");
+                "topK", "llmId", "url", "uid", "patchId");
         keys.forEach(nodeParam::remove);
     }
 }

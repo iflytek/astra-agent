@@ -207,14 +207,14 @@ public class DistributedLockAspect {
      * Handle lock acquisition failure
      */
     private Object handleLockFailure(String lockKey, DistributedLock distributedLock,
-                    ProceedingJoinPoint point) throws Throwable {
+            ProceedingJoinPoint point) throws Throwable {
         logLockFailure(lockKey, distributedLock);
         return executeFailureStrategy(lockKey, distributedLock, point);
     }
 
     private void logLockFailure(String lockKey, DistributedLock distributedLock) {
         String message = String.format("Failed to acquire distributed lock: key=%s, waitTime=%d%s",
-                        lockKey, distributedLock.waitTime(), distributedLock.timeUnit().name().toLowerCase());
+                lockKey, distributedLock.waitTime(), distributedLock.timeUnit().name().toLowerCase());
         log.warn(message);
     }
 
@@ -237,7 +237,7 @@ public class DistributedLockAspect {
      */
     private void logLockOperation(String lockKey, DistributedLock distributedLock, String operation) {
         log.info("Distributed lock operation: operation={}, key={}, lockType={}, waitTime={}s, leaseTime={}s, " + "failStrategy={}, description={}", operation, lockKey, distributedLock.lockType(),
-                        getTimeInSeconds(distributedLock.waitTime(), distributedLock.timeUnit()), getTimeInSeconds(distributedLock.leaseTime(), distributedLock.timeUnit()), distributedLock.failStrategy(), distributedLock.description());
+                getTimeInSeconds(distributedLock.waitTime(), distributedLock.timeUnit()), getTimeInSeconds(distributedLock.leaseTime(), distributedLock.timeUnit()), distributedLock.failStrategy(), distributedLock.description());
     }
 
     /**

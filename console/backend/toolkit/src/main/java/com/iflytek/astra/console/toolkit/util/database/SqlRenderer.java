@@ -20,9 +20,9 @@ public final class SqlRenderer {
 
     /** Reserved SQL keywords (can be extended as needed) */
     private static final Set<String> RESERVED = new HashSet<>(Arrays.asList(
-                    "SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP", "TRUNCATE",
-                    "COMMENT", "WHERE", "FROM", "TABLE", "COLUMN", "AND", "OR", "NOT", "JOIN", "ON",
-                    "INTO", "VALUES", "SET", "ORDER", "GROUP", "BY", "LIMIT", "OFFSET", "AS"));
+            "SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "ALTER", "DROP", "TRUNCATE",
+            "COMMENT", "WHERE", "FROM", "TABLE", "COLUMN", "AND", "OR", "NOT", "JOIN", "ON",
+            "INTO", "VALUES", "SET", "ORDER", "GROUP", "BY", "LIMIT", "OFFSET", "AS"));
 
     /** Safe threshold for identifier length (PostgreSQL default is 63) */
     public static final int MAX_IDENTIFIER_LENGTH = 63;
