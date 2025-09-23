@@ -18,7 +18,7 @@ public class ChatFileHttpClient {
 
     /**
      *
-     * @description: 此方法专用于获取星火知识库服务，写死appid，区分插件
+     * @description: This method is specifically for obtaining Xinghuo Knowledge Base service, using hardcoded appid to distinguish plugins
      * @date: 2024/09/25 14:16
      */
     public HashMap<String, String> getSignForXinghuoDs() {

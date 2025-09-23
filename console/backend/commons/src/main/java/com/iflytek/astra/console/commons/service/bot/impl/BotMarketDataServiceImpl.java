@@ -63,14 +63,14 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
     }
 
     /**
-     * 查询助手是否在市场上架
+     * Query whether assistant is on market shelf
      *
      * @param bots
      * @return
      */
     @Override
     public boolean botsOnMarket(List<Long> bots) {
-        // 根据botId一次性查出所有status
+        // Query all status by botId at once
         List<ChatBotMarket> chatBotMarkets = chatBotMarketMapper.selectByBotIds(bots);
         if (chatBotMarkets.isEmpty()) {
             return false;
@@ -84,7 +84,7 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
     }
 
     /**
-     * 获取我的添加的下拉分页记录
+     * Get my added dropdown pagination records
      *
      * @param botMarketForm
      * @param uid
@@ -118,7 +118,7 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
             }
         }
         Long count = chatBotListMapper.countCheckBotList(param);
-        // 执行分页查询
+        // Execute pagination query
         int pageNum = botMarketForm.getPageIndex();
         int pageSize = Math.min(botMarketForm.getPageSize(), 200);
         int offset = (pageNum - 1) * pageSize;
@@ -158,12 +158,12 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
                             .collect(Collectors.toMap(
                                             json -> json.getInteger("botId"),
                                             json -> {
-                                                // 处理extraInputs
+                                                // Process extraInputs
                                                 if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
                                                     JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
                                                     int size = extraInputs.size();
                                                     if (extraInputs.containsValue("image")) {
-                                                        size -= 2; // image 要减去两个
+                                                        size -= 2; // image needs to subtract two
                                                     }
                                                     return size > 0;
                                                 } else {

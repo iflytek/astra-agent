@@ -34,7 +34,7 @@ public class DatasetInfo {
     private Integer status;
 
     /**
-     * 数据集类型 0-星火(默认)；1-maas
+     * Dataset type 0-Spark(default); 1-maas
      */
     @TableField(exist = false)
     private int type;

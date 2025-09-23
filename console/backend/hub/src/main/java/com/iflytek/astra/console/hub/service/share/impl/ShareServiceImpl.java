@@ -38,7 +38,7 @@ public class ShareServiceImpl implements ShareService {
     }
 
     /**
-     * 生产智能体分享的密钥
+     * Generate a share key for the agent
      *
      * @param uid uid
      * @param relatedType type
@@ -49,7 +49,7 @@ public class ShareServiceImpl implements ShareService {
     public String getShareKey(String uid, int relatedType, Long relatedId) {
         AgentShareRecord record = shareDataService.findActiveShareRecord(uid, relatedType, relatedId);
         if (Objects.isNull(record)) {
-            // 生成新的key，写到表里
+            // Generate a new key and save it to the table
             String key = Md5Util.encryption(relatedId + "_salt_" + uid + System.currentTimeMillis() / 1000);
             shareDataService.createShareRecord(uid, relatedId, key, relatedType);
             return key;
@@ -58,7 +58,7 @@ public class ShareServiceImpl implements ShareService {
     }
 
     /**
-     * 根据key 获取分享的智能体
+     * Get shared agent by key
      *
      * @param shareKey key
      * @return record

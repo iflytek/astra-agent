@@ -143,13 +143,13 @@ public interface ChatBotDataService {
     ChatBotMarket findMarketBotByBotId(Integer botId);
 
     /**
-     * 检查用户在指定空间内是否有重复的助手名称
+     * Check if user has duplicate assistant names within the specified space
      *
-     * @param uid 用户ID
-     * @param botId 助手ID（编辑时传入，创建时传null）
-     * @param botName 助手名称
-     * @param spaceId 空间ID
-     * @return 如果存在重复名称返回true，否则返回false
+     * @param uid User ID
+     * @param botId Assistant ID (passed in when editing, null when creating)
+     * @param botName Assistant name
+     * @param spaceId Space ID
+     * @return Returns true if duplicate name exists, otherwise returns false
      */
     Boolean checkRepeatBotName(String uid, Integer botId, String botName, Long spaceId);
 

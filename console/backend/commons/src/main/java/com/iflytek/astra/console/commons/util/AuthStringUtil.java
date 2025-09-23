@@ -22,7 +22,7 @@ public class AuthStringUtil {
     public static String assembleAuthURL(String uri, String method, String apiKey, String apiSecret, byte[] body) throws Exception {
         URL url = new URL(uri);
 
-        // 获取日期
+        // Get date
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         String date = format.format(new Date());
@@ -52,7 +52,7 @@ public class AuthStringUtil {
                         .append("digest: ")
                         .append(digest);
 
-        // 使用hmac-sha256计算签名
+        // Use hmac-sha256 to calculate signature
         Charset charset = StandardCharsets.UTF_8;
         Mac mac = Mac.getInstance("hmacsha256");
         SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(charset), "hmacsha256");
@@ -69,7 +69,7 @@ public class AuthStringUtil {
         header.put("date", date);
         header.put("digest", digest);
 
-        // 获取鉴权参数
+        // Get authentication parameters
         return uri + "?" + header.entrySet()
                         .stream()
                         .map(entry -> {
@@ -84,7 +84,7 @@ public class AuthStringUtil {
     }
 
     /**
-     * 生成用于鉴权的URL
+     * Generate URL for authentication
      */
     public static String assembleRequestUrl(String httpRequestUrl, String method, String apiKey, String apiSecret) {
         URL url;
@@ -116,26 +116,26 @@ public class AuthStringUtil {
     public static Map<String, String> authMap(String httpRequestUrl, String method, String apiKey, String apiSecret, String body) {
         try {
             URL url = new URL(httpRequestUrl);
-            // 获取当前时间作为签名时间，RFC1123格式
+            // Get current time as signature time, RFC1123 format
             SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
             format.setTimeZone(TimeZone.getTimeZone("GMT"));
             String date = format.format(new Date());
             MessageDigest instance = MessageDigest.getInstance("SHA-256");
             instance.update(body.getBytes(StandardCharsets.UTF_8));
             String digest = "SHA-256=" + Base64.getEncoder().encodeToString(instance.digest());
-            // 拼接签名字符串
+            // Concatenate signature string
             String builder = "host: " + url.getHost() + "\n" +
                             "date: " + date + "\n" +
                             method + " " +
                             url.getPath() + " HTTP/1.1" + "\n" +
                             "digest: " + digest;
-            // 签名结果,先做HmacSHA256加密，再做Base64
+            // Signature result, first do HmacSHA256 encryption, then do Base64
             Mac mac = Mac.getInstance("hmacsha256");
             SecretKeySpec spec = new SecretKeySpec(apiSecret.getBytes(StandardCharsets.UTF_8), "hmacsha256");
             mac.init(spec);
             byte[] hexDigits = mac.doFinal(builder.getBytes(StandardCharsets.UTF_8));
             String sha = Base64.getEncoder().encodeToString(hexDigits);
-            // 构建请求参数 此时不需要urlencoding
+            // Build request parameters, no need for urlencoding at this time
             String authorization = String.format("api_key=\"%s\", algorithm=\"%s\", headers=\"%s\", signature=\"%s\"", apiKey, "hmac-sha256", "host date request-line digest", sha);
             Map<String, String> resultMap = new HashMap<>(4);
             resultMap.put("host", url.getHost());
@@ -149,11 +149,11 @@ public class AuthStringUtil {
     }
 
     /**
-     * 获取签名
+     * Get signature
      *
-     * @param appId 签名的key
-     * @param secret 签名秘钥
-     * @return 返回签名
+     * @param appId Signature key
+     * @param secret Signature secret
+     * @return Return signature
      */
     public static String getSignature(String appId, String secret, long ts) {
         try {
@@ -165,11 +165,11 @@ public class AuthStringUtil {
     }
 
     /**
-     * sha1加密
+     * SHA1 encryption
      *
-     * @param encryptText 加密文本
-     * @param encryptKey 加密键
-     * @return 加密
+     * @param encryptText Encryption text
+     * @param encryptKey Encryption key
+     * @return Encryption result
      */
     private static String hmacSHA1Encrypt(String encryptText, String encryptKey) throws SignatureException {
         byte[] rawHmac;
@@ -191,16 +191,16 @@ public class AuthStringUtil {
     private static String md5(String cipherText) {
         try {
             byte[] data = cipherText.getBytes();
-            // 信息摘要是安全的单向哈希函数，它接收任意大小的数据，并输出固定长度的哈希值。
+            // Message digest is a secure one-way hash function that takes data of any size and outputs a fixed-length hash value.
             MessageDigest mdInst = MessageDigest.getInstance("MD5");
 
-            // MessageDigest对象通过使用 update方法处理数据， 使用指定的byte数组更新摘要
+            // MessageDigest object processes data by using the update method, updating the digest with the specified byte array
             mdInst.update(data);
 
-            // 摘要更新之后，通过调用digest（）执行哈希计算，获得密文
+            // After the digest is updated, hash calculation is performed by calling digest() to obtain the ciphertext
             byte[] md = mdInst.digest();
 
-            // 把密文转换成十六进制的字符串形式
+            // Convert the ciphertext to hexadecimal string format
             int j = md.length;
             char[] str = new char[j * 2];
             int k = 0;
@@ -208,7 +208,7 @@ public class AuthStringUtil {
                 str[k++] = MD5_TABLE[byte0 >>> 4 & 0xf]; // 5
                 str[k++] = MD5_TABLE[byte0 & 0xf]; // F
             }
-            // 返回经过加密后的字符串
+            // Return the encrypted string
             return new String(str);
         } catch (Exception e) {
             return null;

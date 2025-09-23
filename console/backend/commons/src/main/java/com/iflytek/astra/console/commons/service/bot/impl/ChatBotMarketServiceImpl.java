@@ -42,7 +42,7 @@ public class ChatBotMarketServiceImpl implements ChatBotMarketService {
     @Transactional(propagation = Propagation.REQUIRED)
     @Override
     public void updateBotMarketStatus(String uid, Integer botId) {
-        // 先查一下botId是否上架市场
+        // First check if botId is listed in the market
         Long count = chatBotMarketMapper.selectCount(Wrappers.lambdaQuery(ChatBotMarket.class)
                         .eq(ChatBotMarket::getUid, uid)
                         .eq(ChatBotMarket::getBotId, botId)

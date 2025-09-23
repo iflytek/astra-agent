@@ -16,18 +16,18 @@ public class BotMarketForm {
 
     private Long uid;
 
-    // bot分类
+    // Bot category
     private Integer botType;
 
     /**
-     * 支持多个类型的查询
+     * Support multiple type queries
      */
     private String botTypeMulti;
 
-    // 审核状态，传空就是全部
+    // Audit status, empty means all
     private List<Integer> botStatus;
 
-    // 版本,1 是智能体,3 是工作流
+    // Version, 1 is agent, 3 is workflow
     private Integer version;
 
     private int status;
@@ -36,21 +36,21 @@ public class BotMarketForm {
 
     private int pageSize = 15;
 
-    // 默认是国内，1是国内，2是海外
+    // Default is domestic, 1 is domestic, 2 is overseas
     private Integer showType;
 
-    // 只有官方助手
+    // Official assistants only
     private int official;
 
     private List<Integer> excludeBot = new ArrayList<>();
 
     /**
-     * 排序字段
+     * Sort field
      */
     private String sort;
 
     /**
-     * 根据botType获取botTypes (最低成本的改动)
+     * Get botTypes based on botType (lowest cost change)
      */
     public String getBotTypeMulti() {
         if (botType == null) {

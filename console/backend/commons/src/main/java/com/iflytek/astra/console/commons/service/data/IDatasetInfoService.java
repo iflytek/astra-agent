@@ -8,7 +8,7 @@ import java.util.List;
 public interface IDatasetInfoService {
 
     /**
-     * 查询助手名下的数据集
+     * Query datasets under the assistant
      *
      * @param uid
      * @param botId

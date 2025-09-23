@@ -307,12 +307,12 @@ public class BotServiceImpl implements BotService {
 
     @Override
     public ChatBotBase copyBot(String uid, Integer botId, Long spaceId) {
-        // 创建新的同名助手
+        // Create new assistant with same name
         BotDetail detail = chatBotBaseMapper.botDetail(Math.toIntExact(botId));
         ChatBotBase botBase = new ChatBotBase();
         BeanUtils.copyProperties(detail, botBase);
         botBase.setId(null);
-        // 设置一个新助手名，作为区别
+        // Set a new assistant name as differentiation
         botBase.setUid(uid);
         botBase.setSpaceId(spaceId);
         botBase.setBotName(detail.getBotName() + RandomUtil.randomString(6));
@@ -667,7 +667,7 @@ public class BotServiceImpl implements BotService {
             if (!releaseStatusJson.getJSONArray("data").isEmpty()) {
                 String releaseStatus = releaseStatusJson.getJSONArray("data").getJSONObject(0).getString("publishResult");
                 log.info("botId:{} query release status: {}", botId, releaseStatus);
-                botInfo.setBotStatus(Objects.equals(releaseStatus, "成功") ? ShelfStatusEnum.ON_SHELF.getCode() : ShelfStatusEnum.OFF_SHELF.getCode());
+                botInfo.setBotStatus(Objects.equals(releaseStatus, "success") ? ShelfStatusEnum.ON_SHELF.getCode() : ShelfStatusEnum.OFF_SHELF.getCode());
             }
 
             String versionMax = versionResult.getJSONObject("data").getString("workflowMaxVersion");

@@ -7,7 +7,7 @@ public class Md5Util {
 
 
     /**
-     * Md5加密
+     * MD5 encryption
      */
     public static String encryption(String plainText) {
         String re_md5 = new String();

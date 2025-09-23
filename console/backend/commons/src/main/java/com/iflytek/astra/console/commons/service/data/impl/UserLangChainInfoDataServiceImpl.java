@@ -29,17 +29,17 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
 
     @Override
     public List<JSONObject> findByBotIdSet(Set<Integer> idSet) {
-        // 检查输入参数是否为空或无效
+        // Check if input parameters are null or invalid
         if (idSet == null || idSet.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 执行数据库查询，获取 UserLangChainInfo 列表
+        // Execute database query to get UserLangChainInfo list
         List<UserLangChainInfo> records = userLangChainInfoMapper.selectList(
                         Wrappers.<UserLangChainInfo>lambdaQuery()
                                         .in(UserLangChainInfo::getBotId, idSet));
 
-        // 使用 Stream API 进行转换
+        // Transform using Stream API
         return records.stream()
                         .map(record -> JSON.parseObject(JSON.toJSONString(record)))
                         .collect(Collectors.toList());

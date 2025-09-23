@@ -44,9 +44,9 @@ public class WorkflowServiceImpl implements WorkflowBotService {
             throw new BusinessException(ResponseEnum.DATA_NOT_FOUND);
         }
         Integer botId = info.getBotId();
-        // 如果maasId已存在,就直接结束
+        // If maasId already exists, end directly
         if (redissonClient.getBucket(MaasUtil.generatePrefix(uid, botId)).isExists()) {
-            log.info("----- 星火已获取到此工作流,结束任务: {}", JSONObject.toJSONString(synchronize));
+            log.info("----- Xinghuo has obtained this workflow, ending task: {}", JSONObject.toJSONString(synchronize));
             redissonClient.getBucket(MaasUtil.generatePrefix(uid, botId)).delete();
             return botId;
         }
@@ -61,7 +61,7 @@ public class WorkflowServiceImpl implements WorkflowBotService {
                         .updateTime(LocalDateTime.now())
                         .build();
         userLangChainDataService.insertUserLangChainInfo(userLangChainInfo);
-        log.info("----- 星辰工作流同步成功,原始massId: {}, flowId: {}, 新助手: {}", originId, flowId, currentBotId);
+        log.info("----- Astra workflow synchronization successful, original massId: {}, flowId: {}, new assistant: {}", originId, flowId, currentBotId);
         return Math.toIntExact(currentBotId);
     }
 }

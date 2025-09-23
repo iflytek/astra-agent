@@ -527,11 +527,26 @@ public class BotAIServiceImpl implements BotAIService {
     private String getDefaultPromptTemplate(String promptKey) {
         switch (promptKey) {
             case "avatar_generation":
-                return "Please generate a professional avatar for an AI assistant named \"{0}\". Description: {1}. Requirements: 1.Modern and clean style 2.Harmonious color scheme 3.Professional AI assistant image 4.Suitable for application interface display";
+                return """
+                        Please generate a professional avatar for an AI assistant named "{0}". Description: {1}. \
+                        Requirements: 1.Modern and clean style 2.Harmonious color scheme 3.Professional AI assistant image \
+                        4.Suitable for application interface display""";
             case "sentence_bot_generation":
-                return "Based on the user description: \"{0}\", please generate a complete AI assistant configuration. Please output strictly in the following format: Assistant Name: [Concise and clear assistant name] Assistant Category: [Choose from: Workplace/Learning/Writing/Programming/Lifestyle/Health] Assistant Description: [One sentence describing the main function] Role Setting: [Detailed description of role identity and professional background] Target Task: [Clearly state the main tasks to be completed] Requirement Description: [Detailed functional requirements and usage scenarios] Input Examples: [Provide 2-3 possible user input examples, separated by |] Note: Please ensure each field has specific content, do not use placeholders.";
+                return """
+                        Based on the user description: "{0}", please generate a complete AI assistant configuration. \
+                        Please output strictly in the following format: Assistant Name: [Concise and clear assistant name] \
+                        Assistant Category: [Choose from: Workplace/Learning/Writing/Programming/Lifestyle/Health] \
+                        Assistant Description: [One sentence describing the main function] \
+                        Role Setting: [Detailed description of role identity and professional background] \
+                        Target Task: [Clearly state the main tasks to be completed] \
+                        Requirement Description: [Detailed functional requirements and usage scenarios] \
+                        Input Examples: [Provide 2-3 possible user input examples, separated by |] \
+                        Note: Please ensure each field has specific content, do not use placeholders.""";
             case "prologue_generation":
-                return "Please generate a friendly and professional opening message for an AI assistant named \"{0}\". Requirements: 1.Friendly and natural tone 2.Highlight professional capabilities 3.Guide users to start conversation 4.Keep within 50 words";
+                return """
+                        Please generate a friendly and professional opening message for an AI assistant named "{0}". \
+                        Requirements: 1.Friendly and natural tone 2.Highlight professional capabilities \
+                        3.Guide users to start conversation 4.Keep within 50 words""";
             default:
                 throw new BusinessException(ResponseEnum.SYSTEM_ERROR);
         }

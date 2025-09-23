@@ -10,10 +10,10 @@ import lombok.Data;
 @Data
 public class CardAddBody {
 
-    @Min(value = 0, message = "关联类型不能为空")
+    @Min(value = 0, message = "Relation type cannot be empty")
     private int relateType;
 
-    @NotNull(message = "关联ID不能为空")
+    @NotNull(message = "Relation ID cannot be empty")
     private Long relateId;
 
 }

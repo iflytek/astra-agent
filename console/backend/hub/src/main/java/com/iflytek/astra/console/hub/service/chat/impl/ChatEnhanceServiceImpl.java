@@ -166,11 +166,11 @@ public class ChatEnhanceServiceImpl implements ChatEnhanceService {
     }
 
     /**
-     * 删除chat_file_req表单信息 注：所有绑定ReqId的信息都不做删除
+     * Delete chat_file_req table information Note: All information bound to ReqId will not be deleted
      *
-     * @param fileId 文件ID
-     * @param chatId 聊天ID
-     * @param uid 用户ID
+     * @param fileId File ID
+     * @param chatId Chat ID
+     * @param uid User ID
      */
     @Override
     public void delete(String fileId, Long chatId, String uid) {

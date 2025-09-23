@@ -33,7 +33,7 @@ public class SseEmitterUtil {
                     .build();
 
     /**
-     * 使用map对象，便于根据userId来获取对应的SseEmitter，或者放redis里面
+     * Use Map object for easy access to SseEmitter by userId, or store in Redis
      */
     private static final Map<String, SseEmitter> SESSION_MAP = new ConcurrentHashMap<>(256);
 
@@ -48,13 +48,13 @@ public class SseEmitterUtil {
     }
 
     /**
-     * sse返回
+     * SSE response
      */
     public static void sendMsgLikeTypeWriter(String content, String sseId, Long interval) {
         try {
-            // 字符串中不包含英文字母，逐个字符输出
+            // String contains no English letters, output character by character
             for (int j = 0; j < content.length(); j++) {
-                // 逐个字刷入sse进行发送
+                // Send character by character through SSE
                 SseEmitterUtil.sendMessage(sseId, Base64Util.encode(String.valueOf(content.charAt(j))));
                 char codePoint = content.charAt(j);
                 if ((codePoint >= 65 && codePoint <= 90)
@@ -67,23 +67,23 @@ public class SseEmitterUtil {
                 }
             }
         } catch (Exception e) {
-            // 关ws
+            // Close WS
             if (e instanceof IllegalStateException) {
-                log.error("过期的发送内容,sse已关闭");
+                log.error("Expired send content, SSE already closed");
             } else {
-                log.error("sse发送异常", e);
+                log.error("SSE send exception", e);
             }
         }
     }
 
     /**
-     * 创建用户连接并返回 SseEmitter
+     * Create user connection and return SseEmitter
      *
      * @return SseEmitter
      */
     public static SseEmitter create(String sseId) {
         SseEmitter sseEmitter = new SseEmitter();
-        // 注册回调
+        // Register callbacks
         sseEmitter.onCompletion(completionCallBack(sseId));
         sseEmitter.onError(errorCallBack(sseId));
         sseEmitter.onTimeout(timeoutCallBack(sseId));
@@ -93,7 +93,7 @@ public class SseEmitterUtil {
 
     public static SseEmitter create(String sseId, long timeout) {
         SseEmitter sseEmitter = new SseEmitter(timeout);
-        // 注册回调
+        // Register callbacks
         sseEmitter.onCompletion(completionCallBack(sseId));
         sseEmitter.onError(errorCallBack(sseId));
         sseEmitter.onTimeout(timeoutCallBack(sseId));
@@ -102,15 +102,15 @@ public class SseEmitterUtil {
     }
 
     /**
-     * 给指定用户发送信息
+     * Send message to specific user
      */
     public static void sendMessage(String sseId, Object message) {
         if (SESSION_MAP.containsKey(sseId)) {
             try {
                 SESSION_MAP.get(sseId).send(message);
             } catch (IOException e) {
-                if (e.getMessage().contains("断开的管道")) {
-                    // 前端浏览器存在断开连接，则调整为info级别
+                if (e.getMessage().contains("Broken pipe")) {
+                    // Frontend browser connection disconnected, adjust to info level
                     log.info("SSE[{}]推送异常:{}", sseId, e.getMessage());
                 } else {
                     log.error("SSE[{}]推送异常:{}", sseId, e.getMessage());
@@ -121,18 +121,18 @@ public class SseEmitterUtil {
     }
 
     /**
-     * 移除用户连接
+     * Remove user connection
      */
     public static void close(String sseId) {
         try {
             SseEmitter sseEmitter = SESSION_MAP.get(sseId);
             if (sseEmitter != null) {
-                // 关闭sse
+                // Close SSE
                 sseEmitter.complete();
                 SESSION_MAP.remove(sseId);
             }
         } catch (IllegalStateException e) {
-            log.info("sse已被关闭过 : {}", e.getMessage());
+            log.info("SSE already closed: {}", e.getMessage());
         }
     }
 
@@ -140,12 +140,12 @@ public class SseEmitterUtil {
         try {
             SseEmitter sseEmitter = SESSION_MAP.get(sseId);
             if (sseEmitter != null) {
-                // 关闭sse
+                // Close SSE
                 sseEmitter.completeWithError(t);
                 SESSION_MAP.remove(sseId);
             }
         } catch (IllegalStateException e) {
-            log.info("sse已被关闭过 : {}", e.getMessage());
+            log.info("SSE already closed: {}", e.getMessage());
         }
     }
 
@@ -181,14 +181,14 @@ public class SseEmitterUtil {
         try {
             sseEmitter.send(message);
         } catch (IOException e) {
-            log.info("newSseAndSendMessageClose异常:{}", e.getMessage());
+            log.info("newSseAndSendMessageClose exception: {}", e.getMessage());
         }
         sseEmitter.complete();
         return sseEmitter;
     }
 
     /**
-     * 发送错误信息并关闭连接
+     * Send error message and close connection
      */
     public static void sendAndCompleteWithError(String sseId, Object errorResponse) {
         SseEmitter emitter = SESSION_MAP.get(sseId);
@@ -196,17 +196,17 @@ public class SseEmitterUtil {
             try {
                 emitter.send(SseEmitter.event().name("error").data(errorResponse));
             } catch (IOException e) {
-                log.warn("SSE[{}] 发送错误消息异常: {}", sseId, e.getMessage(), e);
+                log.warn("SSE[{}] send error message exception: {}", sseId, e.getMessage(), e);
             } finally {
                 try {
                     emitter.completeWithError(new RuntimeException(errorResponse.toString()));
                 } catch (Exception ex) {
-                    log.warn("SSE[{}] completeWithError 异常: {}", sseId, ex.getMessage(), ex);
+                    log.warn("SSE[{}] completeWithError exception: {}", sseId, ex.getMessage(), ex);
                 }
                 SESSION_MAP.remove(sseId);
             }
         } else {
-            log.warn("SSE[{}] 不存在，无法发送错误信息", sseId);
+            log.warn("SSE[{}] does not exist, cannot send error message", sseId);
         }
     }
 

@@ -24,12 +24,12 @@ public class UserLangChainLogServiceImpl implements UserLangChainLogService {
     @Override
     public UserLangChainLog insertUserLangChainLog(UserLangChainLog userLangChainLog) {
         Long botId = userLangChainLog.getBotId();
-        // 先查询记录数是否超过20条,超过20条开始滚动替换
+        // First check if record count exceeds 20, start rolling replacement if over 20
         List<UserLangChainLog> result = userLangChainLogMapper.selectList(
                         new LambdaQueryWrapper<UserLangChainLog>()
                                         .eq(UserLangChainLog::getBotId, botId)
                                         .orderByAsc(UserLangChainLog::getUpdateTime));
-        // 如果历史版本超过20条记录，则进行滚动更新
+        // If historical versions exceed 20 records, perform rolling update
         if (result != null && result.size() >= LOG_MAX_SIZE) {
             LocalDateTime updateTime = result.getFirst().getUpdateTime();
             updateOldRecord(userLangChainLog, updateTime);
@@ -47,7 +47,7 @@ public class UserLangChainLogServiceImpl implements UserLangChainLogService {
         try {
             userLangChainLogMapper.update(userLangChainLog, updateWrapper);
         } catch (Exception e) {
-            log.error("更新助手2.0结构到MySQL异常", e);
+            log.error("Exception updating assistant 2.0 structure to MySQL", e);
         }
     }
 }

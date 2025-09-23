@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * BOT市场分页对象
+ * BOT market pagination object
  */
 @Data
 public class ChatBotMarketPage {
@@ -42,7 +42,7 @@ public class ChatBotMarketPage {
     private Integer supportContext;
 
     /**
-     * 是否本人创建
+     * Whether created by user
      */
     private boolean mine;
 
@@ -65,21 +65,21 @@ public class ChatBotMarketPage {
     private String creatorName;
 
     /**
-     * 审核时间
+     * Audit time
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime auditTime;
 
     /**
-     * 创建时间
+     * Create time
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     /**
-     * 修改时间
+     * Update time
      */
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

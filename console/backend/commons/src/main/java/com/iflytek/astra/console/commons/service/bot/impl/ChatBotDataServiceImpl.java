@@ -474,11 +474,11 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
 
     @Override
     public ChatBotBase copyBot(String uid, Integer botId, Long spaceId) {
-        // 创建新的同名助手
+        // Create new assistant with same name
         BotDetail botDetail = chatBotBaseMapper.botDetail(Math.toIntExact(botId));
         botDetail.setId(null);
         ChatBotBase base = new ChatBotBase();
-        // 设置一个新助手名，作为区别
+        // Set a new assistant name as differentiation
         base.setUid(uid);
         base.setSpaceId(spaceId);
         base.setBotName(base.getBotName() + RandomUtil.randomString(6));
@@ -496,7 +496,7 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         if (!chatBotMarketMapper.exists(wrapper)) {
             return Boolean.TRUE;
         }
-        // 直接下架助手, 无需经过综管审核
+        // Directly remove assistant from shelf, no need for comprehensive management review
         wrapper.set("bot_status", 0);
         chatBotMarketMapper.update(null, wrapper);
         botFavoriteService.delete(uid, botId);
@@ -548,7 +548,7 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         List<DatasetInfo> datasetInfoList = datasetInfoService.getDatasetByBot(uid, botId);
         promptBotDetail.setDatasetList(datasetInfoList);
 
-        // bot_type转成parent_type_key的值
+        // Convert bot_type to parent_type_key value
         Integer botType = promptBotDetail.getBotType();
         if (botType == null) {
             botType = 0;
@@ -563,7 +563,7 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         } else {
             promptBotDetail.setEditable(true);
         }
-        // 获取助手发布渠道
+        // Get assistant release channels
         promptBotDetail.setReleaseType(getReleaseChannel(uid, botId));
         return promptBotDetail;
     }
@@ -606,7 +606,7 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         if (apiExist) {
             releaseList.add(ReleaseTypeEnum.BOT_API.getCode());
         }
-        // mcp渠道处理
+        // MCP channel processing
         McpData mcp = mcpDataService.getMcp(botId.longValue());
         if (Objects.nonNull(mcp) && "1".equals(mcp.getReleased())) {
             releaseList.add(ReleaseTypeEnum.MCP.getCode());

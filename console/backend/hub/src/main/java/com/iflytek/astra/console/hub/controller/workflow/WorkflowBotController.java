@@ -55,13 +55,13 @@ public class WorkflowBotController {
     private MaasUtil maasUtil;
 
     @GetMapping("/templateGroup")
-    @Operation(summary = "work flow template", description = "获取星辰工作流的分组信息")
+    @Operation(summary = "work flow template", description = "Get workflow group information")
     public ApiResult<List<WorkflowTemplateGroup>> templateGroup(HttpServletRequest request) {
-        // 拦截器进行登录校验
+        // Interceptor performs login verification
         return ApiResult.success(workflowTemplateGroupService.getTemplateGroup());
     }
 
-    @Operation(summary = "work flow template", description = "根据模板创建工作流助手")
+    @Operation(summary = "work flow template", description = "Create workflow assistant from template")
     @PostMapping("/createFromTemplate")
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<BotInfoDto> createFromTemplate(@RequestBody MaasDuplicate maasDuplicate) {
@@ -70,7 +70,7 @@ public class WorkflowBotController {
     }
 
     @PostMapping("/templateList")
-    @Operation(summary = "work flow template", description = "获取星辰工作流的模版")
+    @Operation(summary = "work flow template", description = "Get workflow templates")
     public ApiResult<List<MaasTemplate>> templateList(HttpServletRequest request,
                     @RequestBody WorkflowTemplateQueryDto queryDto) {
         return ApiResult.success(botMaasService.templateList(queryDto));

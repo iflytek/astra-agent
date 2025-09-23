@@ -10,18 +10,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MaasApi {
 
-    // 工作流 id
+    // Workflow id
     private String flow_id;
 
     private JSONObject data;
 
-    // 用户的 appid
+    // User's appid
     private String app_id;
 
-    // 发布状态，枚举值, 1:发布
+    // Publish status, enum value, 1: published
     private Integer release_status;
 
-    // 2:开放平台
+    // 2: Open platform
     private Integer plat;
 
     private String version;

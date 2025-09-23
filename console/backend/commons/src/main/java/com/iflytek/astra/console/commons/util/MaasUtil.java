@@ -297,25 +297,25 @@ public class MaasUtil {
     }
 
     /**
-     * 编排助手设置标签
+     * Set tags for workflow assistant
      */
     @Transactional
     public void setBotTag(JSONObject botInfo) {
         try {
-            // 从 redis 中拿到助手标签映射表
-            // 大致结构如下 [{"name":"知识库","tag":["知识库"]}, 省略..................]
+            // Get assistant tag mapping table from redis
+            // Structure is like [{"name":"Knowledge Base","tag":["Knowledge Base"]}, omitted..................]
             String botTagList = redissonClient.getBucket(BOT_TAG_LIST).get().toString();
             if (StringUtils.isNotBlank(botTagList)) {
                 JSONArray jsonBotTag = JSONArray.parseArray(botTagList);
                 Integer botId = botInfo.getInteger("botId");
                 JSONArray nodes = botInfo.getJSONObject("data").getJSONArray("nodes");
-                // 统计 node 名称出现的次数， 因为一个节点出现一次与多次时对应的标签不一定相同
+                // Count node name occurrences, as tags may differ for single vs multiple node appearances
                 Map<String, Integer> nodeNameCountMap = new HashMap<>();
                 for (int i = 0; i < nodes.size(); i++) {
                     String name = nodes.getJSONObject(i).getJSONObject("data").getJSONObject("nodeMeta").getString("aliasName");
                     nodeNameCountMap.put(name, nodeNameCountMap.getOrDefault(name, 0) + 1);
                 }
-                // 最终的标签列表，确保没有重复的标签
+                // Final tag list, ensure no duplicate tags
                 HashSet<BotTag> tags = new HashSet<>();
                 for (int i = 0; i < nodes.size(); i++) {
                     String name = nodes.getJSONObject(i).getJSONObject("data").getJSONObject("nodeMeta").getString("aliasName");
@@ -332,14 +332,14 @@ public class MaasUtil {
                         }
                     }
                 }
-                // 重新发布的时候先将原来的标签变的不可用
+                // When republishing, first disable the original tags
                 ChatBotTag updateChatBotTag = new ChatBotTag();
                 updateChatBotTag.setIsAct(0);
                 chatBotTagService.update(updateChatBotTag, Wrappers.lambdaQuery(ChatBotTag.class).eq(ChatBotTag::getBotId, botId));
-                // 发布此次的标签, 最多只需要3条标签
+                // Publish tags for this time, maximum of 3 tags needed
                 List<ChatBotTag> chatBotTagList = new ArrayList<>();
                 List<BotTag> list = new ArrayList<>(tags);
-                // 根据index降序排序
+                // Sort by index in descending order
                 list.sort((a, b) -> b.getIndex() - a.getIndex());
                 for (int i = 0; i < list.size(); i++) {
                     BotTag item = list.get(i);
@@ -351,16 +351,16 @@ public class MaasUtil {
                 }
                 chatBotTagService.saveBatch(chatBotTagList);
             } else {
-                log.error("助手标签映射表在 Redis 中为null");
+                log.error("Assistant tag mapping table is null in Redis");
             }
         } catch (Exception e) {
-            log.error("助手标签解析失败， 请求入参为：{}， error：{}", botInfo.toJSONString(0), e.getMessage());
+            log.error("Failed to parse assistant tags, request parameters: {}, error: {}", botInfo.toJSONString(0), e.getMessage());
             throw e;
         }
     }
 
     public JSONObject createApi(String flowId, String appid) {
-        log.info("----- 发布mass 工作流flowId: {}", flowId);
+        log.info("----- Publishing mass workflow flowId: {}", flowId);
         MaasApi maasApi = new MaasApi(flowId, appid);
         Map<String, String> pubAuth = AuthStringUtil.authMap(publishApi, "POST", consumerKey, consumerSecret, JSONObject.toJSONString(maasApi));
         // Build request body
@@ -388,10 +388,10 @@ public class MaasUtil {
         } catch (IOException e) {
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
         }
-        log.info("----- 发布maas api 响应: {}", response);
+        log.info("----- Publish maas api response: {}", response);
         JSONObject res = JSONObject.parseObject(response);
         if (res.getInteger("code") != 0) {
-            log.info("------ 发布maas api 失败, massId: {},appid: {}, reason: {}", flowId, appid, response);
+            log.info("------ Failed to publish maas api, massId: {},appid: {}, reason: {}", flowId, appid, response);
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
         }
 
@@ -421,21 +421,21 @@ public class MaasUtil {
         } catch (IOException e) {
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
         }
-        log.info("----- 绑定maas api 响应: {}", authResponse);
+        log.info("----- Bind maas api response: {}", authResponse);
         JSONObject authResJson = JSONObject.parseObject(authResponse);
         if (authResJson.getInteger("code") != 0) {
-            log.info("------ 绑定maas api 失败, massId: {},appid: {}, reason: {}", flowId, appid, authResJson);
+            log.info("------ Failed to bind maas api, massId: {},appid: {}, reason: {}", flowId, appid, authResJson);
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
         }
         return new JSONObject();
     }
 
     public JSONObject copyWorkFlow(Long maasId, String uid) {
-        log.info("----- 复制maas 工作流id: {}", maasId);
+        log.info("----- Copying maas workflow id: {}", maasId);
         HttpUrl httpUrl = HttpUrl.parse(cloneWorkFlowUrl + "/workflow/internal-clone")
                         .newBuilder()
                         .addQueryParameter("id", String.valueOf(maasId)) // 使用您的 massId
-                        .addQueryParameter("password", "xfyun") // 根据目标方法逻辑设置密码
+                        .addQueryParameter("password", "xfyun") // Set password according to target method logic
                         .build();
         Request httpRequest = new Request.Builder()
                         .url(httpUrl)
@@ -444,19 +444,19 @@ public class MaasUtil {
         String responseBody = "";
         try (Response response = client.newCall(httpRequest).execute()) {
             if (!response.isSuccessful()) {
-                // 处理请求失败的情况
+                // Handle request failure
                 throw new IOException("Unexpected code " + response);
             }
             responseBody = response.body().string();
         } catch (IOException e) {
-            // 处理异常
+            // Handle exception
             log.error("Failed to call internal-clone endpoint", e);
             throw new BusinessException(ResponseEnum.CLONE_BOT_FAILED);
         }
         JSONObject resClone = JSON.parseObject(responseBody);
 
         if (resClone == null) {
-            log.info("------ 复制maas 工作流失败, maasId: {}, reason: {}", maasId, resClone);
+            log.info("------ Failed to copy maas workflow, maasId: {}, reason: {}", maasId, resClone);
             return null;
         }
         return resClone;
@@ -492,12 +492,12 @@ public class MaasUtil {
         }
         JSONObject res = JSON.parseObject(response);
         if (res.getInteger("code") != 0) {
-            log.info("------ 获取工作流入参类型失败, flowId: {}, reason: {}", flowId, response);
+            log.info("------ Failed to get workflow input parameter types, flowId: {}, reason: {}", flowId, response);
             return null;
         }
-        log.info("----- flowId: {} 工作流的入参: {}", flowId, response);
+        log.info("----- flowId: {} workflow input parameters: {}", flowId, response);
         JSONArray dataArray = res.getJSONArray("data");
-        // 先把固定输入删掉
+        // Remove fixed inputs first
         List<JSONObject> filteredParams = new ArrayList<>();
         for (int i = 0; i < dataArray.size(); i++) {
             JSONObject param = dataArray.getJSONObject(i);
@@ -510,7 +510,7 @@ public class MaasUtil {
         wrapper.eq(ChatBotBase::getId, botId);
         List<JSONObject> extraInputs = new ArrayList<>();
         if (!filteredParams.isEmpty()) {
-            // 获得把这个参数的输入类型
+            // Get the input type of this parameter
             for (JSONObject param : filteredParams) {
                 String type;
                 JSONObject extraInput = new JSONObject();
@@ -524,7 +524,7 @@ public class MaasUtil {
                     extraInput.put("type", type);
                     extraInput.put("fullParam", param);
                 } else {
-                    // 非文件&非String类型的参数（eg；integer/boolean...）处理
+                    // Handle non-file & non-String type parameters (e.g. integer/boolean...)
                     extraInput.put(param.getString("name"), param.getJSONObject("schema").getString("type"));
                     extraInput.put(param.getString("name") + "_required", param.getBoolean("required"));
                     extraInput.put("name", param.getString("name"));
@@ -539,11 +539,11 @@ public class MaasUtil {
         } else {
             wrapper.set(ChatBotBase::getSupportUpload, BotUploadEnum.NONE.getValue());
         }
-        // 更新字段
+        // Update fields
         if (!Objects.isNull(wrapper.getSqlSet())) {
             chatBotBaseMapper.update(null, wrapper);
         }
-        // 更新记录
+        // Update record
         chainInfo.setExtraInputsConfig(JSON.toJSONString(extraInputs));
         chainInfo.setExtraInputs(JSON.toJSONString(keepOldValue(extraInputs)));
         userLangChainDataService.updateByBotId(botId, chainInfo);
@@ -551,7 +551,7 @@ public class MaasUtil {
     }
 
     /**
-     * 保持老的逻辑, 找到第一个不为文件数组类型的参数，并返回
+     * Keep old logic, find the first parameter that is not a file array type and return it
      *
      * @param extraInputs
      * @return
@@ -561,7 +561,7 @@ public class MaasUtil {
             return new JSONObject();
         }
         for (JSONObject extraInput : extraInputs) {
-            // 不是文件数组& 不是其他基础类型
+            // Not file array & not other basic types
             if (!isFileArray(extraInput)) {
                 if (!NO_SUPPORT_TYPE.contains(extraInput.getString("type"))) {
                     return extraInput;
@@ -572,7 +572,7 @@ public class MaasUtil {
     }
 
     /**
-     * 判断参数是否为数组类型
+     * Determine if parameter is array type
      *
      * @param param
      * @return
@@ -585,7 +585,7 @@ public class MaasUtil {
                 return false;
             }
         } catch (Exception e) {
-            log.error("判断参数是否为数组类型异常: {}", e.getMessage());
+            log.error("Exception determining if parameter is array type: {}", e.getMessage());
             return false;
         }
     }

@@ -17,7 +17,7 @@ public class DatasetFileServiceImpl implements IDatasetFileService {
     private BotDatasetMaasMapper botDatasetMaasMapper;
 
     /**
-     * 获取maas数据集下的助手信息
+     * Get assistant information under MAAS dataset
      *
      * @param datasetId
      * @return
@@ -25,7 +25,7 @@ public class DatasetFileServiceImpl implements IDatasetFileService {
     @Override
     public List<DatasetStats> getMaasDataset(Long datasetId) {
         List<Long> datasetIdList = Collections.singletonList(datasetId);
-        // 查询每个数据集关联的助手列表
+        // Query the list of assistants associated with each dataset
         return botDatasetMaasMapper.selectBotStatsMaps(datasetIdList);
     }
 

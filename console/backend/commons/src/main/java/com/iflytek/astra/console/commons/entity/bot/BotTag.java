@@ -22,7 +22,7 @@ public class BotTag {
         return Objects.equals(tagName, botTag.tagName);
     }
 
-    // 重写hashCode方法，只基于tagName生成hash值
+    // Override hashCode method, generate hash value based on tagName only
     @Override
     public int hashCode() {
         return Objects.hash(tagName);

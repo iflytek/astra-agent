@@ -53,20 +53,20 @@ public class BotMaasServiceImpl implements BotMaasService {
     @Override
     public BotInfoDto createFromTemplate(String uid, MaasDuplicate massDuplicate) {
         Long spaceId = SpaceInfoUtil.getSpaceId();
-        // 创建一个事件,在 /massCopySynchronize被消费
+        // Create an event, consumed by /massCopySynchronize
         Long maasId = massDuplicate.getMaasId();
         UserLangChainInfo userLangChainInfo = userLangChainDataService.selectByMaasId(maasId);
         if (Objects.isNull(userLangChainInfo)) {
-            log.info("----- 星火未找到星辰的工作流: {}", JSONObject.toJSONString(userLangChainInfo));
+            log.info("----- Xinghuo did not find Astra workflow: {}", JSONObject.toJSONString(userLangChainInfo));
             throw new BusinessException(ResponseEnum.BOT_NOT_EXIST);
         }
         redissonClient.getBucket(MaasUtil.generatePrefix(uid, Math.toIntExact(userLangChainInfo.getId()))).set(userLangChainInfo.getId().toString(), Duration.ofSeconds(60));
         BotInfoDto botInfoDto = botService.insertWorkflowBot(uid, massDuplicate, spaceId);
-        // 检查 response 是否成功
+        // Check if response is successful
         if (botInfoDto == null) {
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
         }
-        // 复制出一个新的工作流给助手
+        // Copy a new workflow for the assistant
         JSONObject res = maasUtil.copyWorkFlow(massDuplicate.getMaasId(), uid);
         if (Objects.isNull(res) || res.isEmpty()) {
             throw new BusinessException(ResponseEnum.CREATE_BOT_FAILED);
@@ -79,7 +79,7 @@ public class BotMaasServiceImpl implements BotMaasService {
 
     @Override
     public Integer massCopySynchronize(CloneSynchronize synchronize) {
-        log.info("------ 星辰工作流复制同步: {}", JSONObject.toJSONString(synchronize));
+        log.info("------ Astra workflow copy synchronization: {}", JSONObject.toJSONString(synchronize));
         String uid = synchronize.getUid();
         String originId = synchronize.getOriginId();
         Long maasId = synchronize.getCurrentId();
@@ -87,13 +87,13 @@ public class BotMaasServiceImpl implements BotMaasService {
         Long spaceId = synchronize.getSpaceId();
         UserLangChainInfo userLangChainInfo = userLangChainDataService.selectByMaasId(maasId);
         if (Objects.isNull(userLangChainInfo)) {
-            log.info("----- 星火未找到星辰的工作流: {}", JSONObject.toJSONString(synchronize));
+            log.info("----- Xinghuo did not find Astra workflow: {}", JSONObject.toJSONString(synchronize));
             throw new BusinessException(ResponseEnum.BOT_NOT_EXIST);
         }
         Integer botId = userLangChainInfo.getBotId();
-        // 如果massId已存在,就直接结束
+        // If massId already exists, end directly
         if (redissonClient.getBucket(MaasUtil.generatePrefix(uid, botId)).isExists()) {
-            log.info("----- 星火已获取到此工作流,结束任务: {}", JSONObject.toJSONString(synchronize));
+            log.info("----- Xinghuo has obtained this workflow, ending task: {}", JSONObject.toJSONString(synchronize));
             redissonClient.getBucket(MaasUtil.generatePrefix(uid, botId)).delete();
             return botId;
         }
@@ -108,7 +108,7 @@ public class BotMaasServiceImpl implements BotMaasService {
                         .updateTime(LocalDateTime.now())
                         .build();
         userLangChainDataService.insertUserLangChainInfo(userLangChainInfo);
-        log.info("----- 星辰工作流同步成功,原始massId: {}, flowId: {}, 新助手: {}", originId, flowId, currentBotId);
+        log.info("----- Astra workflow synchronization successful, original massId: {}, flowId: {}, new assistant: {}", originId, flowId, currentBotId);
         return base.getId();
     }
 
@@ -121,7 +121,7 @@ public class BotMaasServiceImpl implements BotMaasService {
 
         LambdaQueryWrapper<MaasTemplate> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(MaasTemplate::getIsAct, 1);
-        // 根据groupId查询
+        // Query by groupId
         if (queryDto.getGroupId() != null) {
             queryWrapper.eq(MaasTemplate::getGroupId, queryDto.getGroupId());
         }
@@ -129,7 +129,7 @@ public class BotMaasServiceImpl implements BotMaasService {
 
         Page<MaasTemplate> resultPage = maasTemplateMapper.selectPage(page, queryWrapper);
 
-        // 4. 返回当前页的数据列表
+        // 4. Return data list of current page
         return resultPage.getRecords();
     }
 }

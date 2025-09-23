@@ -8,7 +8,7 @@ import java.util.List;
 public interface ChatBotTagService extends IService<ChatBotTag> {
 
     /**
-     * 传入 botid 返回 botId 对应的数组
+     * Pass in botId and return the corresponding array for botId
      *
      * @param botId
      * @return
@@ -16,7 +16,7 @@ public interface ChatBotTagService extends IService<ChatBotTag> {
     List<String> getBotTagList(Long botId);
 
     /**
-     * 助手送审的时候就会展示，跟新最新的标签
+     * Displayed when the assistant is submitted for review, update the latest tags
      */
     void updateTags(Long botId);
 

@@ -5,7 +5,7 @@ import java.util.List;
 
 public enum BotStatusEnum {
 
-    // bot状态，0下架，2已上架
+    // bot status, 0 removed, 2 published
     REMOVED(0),
     PUBLISHED(2),
     MARKET_NOT_EXIST(-9);
@@ -31,6 +31,6 @@ public enum BotStatusEnum {
                 return value;
             }
         }
-        throw new EnumConstantNotPresentException(BotStatusEnum.class, "未找到相关枚举类");
+        throw new EnumConstantNotPresentException(BotStatusEnum.class, "Related enum class not found");
     }
 }

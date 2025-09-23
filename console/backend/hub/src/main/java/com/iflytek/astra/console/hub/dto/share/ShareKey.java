@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(name = "ShareKey", description = "分享密钥响应")
+@Schema(name = "ShareKey", description = "Share key response")
 public class ShareKey {
 
-    @Schema(description = "分享智能体密钥")
+    @Schema(description = "Shared agent key")
     private String shareAgentKey;
 }

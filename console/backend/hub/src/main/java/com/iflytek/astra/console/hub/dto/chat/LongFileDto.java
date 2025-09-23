@@ -21,7 +21,7 @@ public class LongFileDto {
     private String fileBusinessKey;
 
     /**
-     * 智能体开始节点的文件参数名称
+     * File parameter name of the agent's start node
      */
     private String paramName;
 }

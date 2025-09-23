@@ -10,7 +10,7 @@ public interface ShareService {
     int getBotStatus(Long relatedId);
 
     /**
-     * 生产智能体分享的密钥
+     * Generate a share key for the agent
      *
      * @param uid uid
      * @param relatedType type
@@ -20,7 +20,7 @@ public interface ShareService {
     String getShareKey(String uid, int relatedType, Long relatedId);
 
     /**
-     * 根据key 获取分享的智能体
+     * Get shared agent by key
      *
      * @param shareKey key
      * @return record
