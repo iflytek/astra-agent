@@ -1,6 +1,6 @@
-# 为 Astra Agent 做出贡献
+# 为 Astron Agent 做出贡献
 
-感谢您对 Astra Agent 项目的关注！我们欢迎社区贡献，感谢您帮助改进这个项目。
+感谢您对 Astron Agent 项目的关注！我们欢迎社区贡献，感谢您帮助改进这个项目。
 
 ## 目录
 
@@ -43,12 +43,12 @@
 1. 在 GitHub 上 Fork 仓库
 2. 克隆您的 Fork 到本地：
    ```bash
-   git clone https://github.com/your-username/astra-agent.git
-   cd astra-agent
+   git clone https://github.com/your-username/astron-agent.git
+   cd astron-agent
    ```
 3. 添加上游仓库：
    ```bash
-   git remote add upstream https://github.com/iflytek/astra-agent.git
+   git remote add upstream https://github.com/iflytek/astron-agent.git
    ```
 
 ## 开发环境搭建
@@ -84,10 +84,10 @@ make hooks-install
 
 ## 项目结构
 
-Astra Agent 是一个基于微服务的平台，具有以下结构：
+Astron Agent 是一个基于微服务的平台，具有以下结构：
 
 ```
-astra-agent/
+astron-agent/
 ├── console/                   # 控制台子系统
 │   ├── backend/               # Java Spring Boot 服务
 │   │   ├── auth/              # 认证服务
@@ -161,7 +161,7 @@ make safe-push
 
 ### 多语言支持
 
-Astra Agent 支持多种编程语言，具有统一的质量标准：
+Astron Agent 支持多种编程语言，具有统一的质量标准：
 
 | 语言 | 格式化 | 质量工具 | 标准 |
 |------|--------|----------|------|
@@ -405,4 +405,4 @@ docs(guide): 完善快速开始指南
 3. 创建带有 "question" 标签的新问题
 4. 联系维护者
 
-感谢您为 Astra Agent 做出贡献！🚀
+感谢您为 Astron Agent 做出贡献！🚀
