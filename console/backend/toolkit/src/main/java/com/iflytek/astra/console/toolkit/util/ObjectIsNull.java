@@ -48,12 +48,13 @@ public final class ObjectIsNull {
      * @return {@code true} if null or empty, otherwise {@code false}
      */
     public static boolean isNullOrEmpty(Object obj) {
-        if (obj == null) return true;
+        if (obj == null)
+            return true;
         return switch (obj) {
             case CharSequence cs -> cs.toString().trim().isEmpty() || "null".equalsIgnoreCase(cs.toString().trim());
-            case Object[] arr    -> arr.length == 0;
+            case Object[] arr -> arr.length == 0;
             case Collection<?> c -> c.isEmpty();
-            case Map<?, ?> m     -> m.isEmpty();
+            case Map<?, ?> m -> m.isEmpty();
             // Number: only NaN is empty; 0/-1 are not considered empty by default
             case Number n -> isNumberEmpty(n);
 

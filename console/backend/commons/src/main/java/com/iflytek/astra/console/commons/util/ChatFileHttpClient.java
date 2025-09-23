@@ -18,7 +18,8 @@ public class ChatFileHttpClient {
 
     /**
      *
-     * @description: This method is specifically for obtaining Xinghuo Knowledge Base service, using hardcoded appid to distinguish plugins
+     * @description: This method is specifically for obtaining Xinghuo Knowledge Base service, using
+     *               hardcoded appid to distinguish plugins
      * @date: 2024/09/25 14:16
      */
     public HashMap<String, String> getSignForXinghuoDs() {

@@ -53,10 +53,10 @@ public class BotAIServiceImpl implements BotAIService {
         String languageCode = I18nUtil.getLanguage();
 
         AiPromptTemplate template = promptTemplateMapper.selectOne(
-                        new LambdaQueryWrapper<AiPromptTemplate>()
-                                        .eq(AiPromptTemplate::getPromptKey, promptKey)
-                                        .eq(AiPromptTemplate::getLanguageCode, languageCode)
-                                        .eq(AiPromptTemplate::getIsActive, 1));
+                new LambdaQueryWrapper<AiPromptTemplate>()
+                        .eq(AiPromptTemplate::getPromptKey, promptKey)
+                        .eq(AiPromptTemplate::getLanguageCode, languageCode)
+                        .eq(AiPromptTemplate::getIsActive, 1));
 
         if (template != null) {
             return template.getPromptContent();
@@ -65,10 +65,10 @@ public class BotAIServiceImpl implements BotAIService {
         // Fallback to English if not found
         if (!"en".equals(languageCode)) {
             template = promptTemplateMapper.selectOne(
-                            new LambdaQueryWrapper<AiPromptTemplate>()
-                                            .eq(AiPromptTemplate::getPromptKey, promptKey)
-                                            .eq(AiPromptTemplate::getLanguageCode, "en")
-                                            .eq(AiPromptTemplate::getIsActive, 1));
+                    new LambdaQueryWrapper<AiPromptTemplate>()
+                            .eq(AiPromptTemplate::getPromptKey, promptKey)
+                            .eq(AiPromptTemplate::getLanguageCode, "en")
+                            .eq(AiPromptTemplate::getIsActive, 1));
             if (template != null) {
                 return template.getPromptContent();
             }
@@ -87,8 +87,8 @@ public class BotAIServiceImpl implements BotAIService {
 
             // Clean and normalize the template
             template = template.trim()
-                            .replace("%n", System.lineSeparator())
-                            .replaceAll("\\s+", " ");
+                    .replace("%n", System.lineSeparator())
+                    .replaceAll("\\s+", " ");
 
             // Use MessageFormat for parameter substitution
             return java.text.MessageFormat.format(template.replace("%s", "{0}"), params);
@@ -215,7 +215,7 @@ public class BotAIServiceImpl implements BotAIService {
             // Ensure HTTPS and add size parameters
             avatarUrl = avatarUrl.replace("http://", "https://");
             avatarUrl = avatarUrl + (avatarUrl.contains("?") ? "&" : "?") +
-                            "width=" + compressedWidth + "&height=" + compressedHeight;
+                    "width=" + compressedWidth + "&height=" + compressedHeight;
 
             log.info("User [{}] avatar generated and uploaded successfully: {}", uid, avatarUrl);
             return avatarUrl;

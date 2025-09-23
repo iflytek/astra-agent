@@ -191,13 +191,16 @@ public class AuthStringUtil {
     private static String md5(String cipherText) {
         try {
             byte[] data = cipherText.getBytes();
-            // Message digest is a secure one-way hash function that takes data of any size and outputs a fixed-length hash value.
+            // Message digest is a secure one-way hash function that takes data of any size and outputs a
+            // fixed-length hash value.
             MessageDigest mdInst = MessageDigest.getInstance("MD5");
 
-            // MessageDigest object processes data by using the update method, updating the digest with the specified byte array
+            // MessageDigest object processes data by using the update method, updating the digest with the
+            // specified byte array
             mdInst.update(data);
 
-            // After the digest is updated, hash calculation is performed by calling digest() to obtain the ciphertext
+            // After the digest is updated, hash calculation is performed by calling digest() to obtain the
+            // ciphertext
             byte[] md = mdInst.digest();
 
             // Convert the ciphertext to hexadecimal string format
