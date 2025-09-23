@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.astra.console.commons.mapper.space.SpaceUserMapper">
+<mapper namespace="com.iflytek.astron.console.commons.mapper.space.SpaceUserMapper">
 
     <select id="countPersonalSpaceUser" resultType="long">
         select count(distinct uid) from agent_space_user
@@ -10,12 +10,12 @@
         )
     </select>
 
-    <select id="getByUidAndSpaceId" resultType="com.iflytek.astra.console.commons.entity.space.SpaceUser">
+    <select id="getByUidAndSpaceId" resultType="com.iflytek.astron.console.commons.entity.space.SpaceUser">
         select u.* from agent_space_user u left join agent_space s on(u.space_id=s.id)
         where u.uid = #{uid} and u.space_id = #{spaceId} and s.deleted = 0
     </select>
 
-    <select id="selectVOPageByParam" resultType="com.iflytek.astra.console.commons.dto.space.SpaceUserVO">
+    <select id="selectVOPageByParam" resultType="com.iflytek.astron.console.commons.dto.space.SpaceUserVO">
         select u.* from agent_space_user u
         <where>
             <if test="spaceId != null">

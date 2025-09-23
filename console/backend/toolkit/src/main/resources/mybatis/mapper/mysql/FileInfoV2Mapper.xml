@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.repo.FileInfoV2Mapper">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.repo.FileInfoV2Mapper">
 
-    <select id="listByIds" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="listByIds" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         select * from file_info_v2
         where id in
         <foreach collection="ids" item="id" separator="," open="(" close=")">#{id}</foreach>
     </select>
 
-    <select id="getFileInfoV2UUIDS" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="getFileInfoV2UUIDS" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         select fiv.* from file_info_v2 fiv left join repo r on r.id = fiv.repo_id
         where r.core_repo_id = #{repoSourceId}
         <if test="sourceIds != null and sourceIds.size()>0">
@@ -17,7 +17,7 @@
         </if>
     </select>
 
-    <select id="getFileInfoV2ByNames" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="getFileInfoV2ByNames" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         select fiv.* from file_info_v2 fiv left join repo r on r.id = fiv.repo_id
         where r.core_repo_id = #{repoSourceId}
         <if test="fileNames != null and fileNames.size()>0">
@@ -26,13 +26,13 @@
     </select>
 
     <!-- 根据 core_repo_id 查询 source 为 AIUI-RAG2 的 FileInfoV2 列表 -->
-    <select id="getFileInfoV2ByRepoId" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="getFileInfoV2ByRepoId" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         SELECT fiv.*
         FROM file_info_v2 fiv
                  LEFT JOIN repo r ON r.id = fiv.repo_id
         WHERE r.id = #{repoId}
     </select>
-    <select id="getFileInfoV2ByCoreRepoId" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="getFileInfoV2ByCoreRepoId" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         SELECT
             fiv.*
         FROM
@@ -44,7 +44,7 @@
           and fiv.status = 5
         and fiv.enabled = 1
     </select>
-    <select id="getFileInfoV2byUserId" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="getFileInfoV2byUserId" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         SELECT
             f1.*
         FROM
@@ -56,7 +56,7 @@
         WHERE
             f1.uid = #{uid} AND f1.status = 5;
     </select>
-    <select id="listFiles" resultType="com.iflytek.astra.console.toolkit.entity.table.repo.FileInfoV2">
+    <select id="listFiles" resultType="com.iflytek.astron.console.toolkit.entity.table.repo.FileInfoV2">
         select fiv.*
         from
         file_info_v2 fiv

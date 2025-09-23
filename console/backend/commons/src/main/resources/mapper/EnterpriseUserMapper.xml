@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.astra.console.commons.mapper.space.EnterpriseUserMapper">
+<mapper namespace="com.iflytek.astron.console.commons.mapper.space.EnterpriseUserMapper">
 
 <select id="selectByUidAndEnterpriseId"
-            resultType="com.iflytek.astra.console.commons.entity.space.EnterpriseUser">
+            resultType="com.iflytek.astron.console.commons.entity.space.EnterpriseUser">
         select u.* from agent_enterprise_user u left join agent_enterprise e on(u.enterprise_id=e.id)
         where u.uid = #{uid} and u.enterprise_id = #{enterpriseId} and e.deleted = 0
     </select>
 
-    <select id="selectVOPageByParam" resultType="com.iflytek.astra.console.commons.dto.space.EnterpriseUserVO">
+    <select id="selectVOPageByParam" resultType="com.iflytek.astron.console.commons.dto.space.EnterpriseUserVO">
         select u.* from agent_enterprise_user u
         <where>
             <if test="enterpriseId != null">

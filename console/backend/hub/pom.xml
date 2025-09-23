@@ -3,22 +3,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.iflytek.astra.console</groupId>
+        <groupId>com.iflytek.astron.console</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>hub</artifactId>
-    <name>astra-console-hub</name>
-    <description>Astra Console Hub Api Server</description>
+    <name>astron-console-hub</name>
+    <description>Astron Console Hub Api Server</description>
 
     <dependencies>
         <dependency>
-            <groupId>com.iflytek.astra.console</groupId>
+            <groupId>com.iflytek.astron.console</groupId>
             <artifactId>commons</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.iflytek.astra.console</groupId>
+            <groupId>com.iflytek.astron.console</groupId>
             <artifactId>toolkit</artifactId>
         </dependency>
 
@@ -145,7 +145,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.iflytek.astra.console.hub.HubApplication</mainClass>
+                    <mainClass>com.iflytek.astron.console.hub.HubApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>

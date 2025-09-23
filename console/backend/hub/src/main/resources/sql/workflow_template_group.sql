@@ -13,6 +13,6 @@ CREATE TABLE `workflow_template_group` (
   `group_name_en` varchar(128) DEFAULT NULL COMMENT 'Group English name',
   PRIMARY KEY (`id`),
   KEY `idx_group_name` (`group_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astra workflow template group (comprehensive management control)';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astron workflow template group (comprehensive management control)';
 
 SET FOREIGN_KEY_CHECKS = 1;

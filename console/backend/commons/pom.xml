@@ -3,14 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.iflytek.astra.console</groupId>
+        <groupId>com.iflytek.astron.console</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>commons</artifactId>
-    <name>astra-console-commons</name>
-    <description>Astra Console Commons</description>
+    <name>astron-console-commons</name>
+    <description>Astron Console Commons</description>
 
     <dependencies>
 

@@ -9,12 +9,12 @@ spring:
   profiles:
     active: dev
   application:
-    name: astra-console-hub
+    name: astron-console-hub
   datasource:
-    url: ${MYSQL_URL:jdbc:mysql://db:3306/astra_console?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    url: ${MYSQL_URL:jdbc:mysql://db:3306/astron_console?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
     driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${MYSQL_USERNAME:astra}
-    password: ${MYSQL_PASSWORD:astra-dev-env-db}
+    username: ${MYSQL_USERNAME:astron}
+    password: ${MYSQL_PASSWORD:astron-dev-env-db}
   data:
     redis:
       host: ${REDIS_HOST:redis}
@@ -51,16 +51,16 @@ mybatis-plus:
     - classpath*:/mapper/**/*.xml
     - classpath*:/mybatis/mapper/**/*.xml
   type-aliases-package:
-    com.iflytek.astra.console.hub.entity,
-    com.iflytek.astra.console.commons.entity,
-    com.iflytek.astra.console.toolkit.entity.table
+    com.iflytek.astron.console.hub.entity,
+    com.iflytek.astron.console.commons.entity,
+    com.iflytek.astron.console.toolkit.entity.table
 
 # S3(MinIO) basic configuration
 s3:
   endpoint: ${S3_ENDPOINT:http://minio:9000}
-  accessKey: ${S3_ACCESS_KEY:astra-uploader}
-  secretKey: ${S3_SECRET_KEY:astra-uploader-secret}
-  bucket: ${S3_BUCKET:astra-agent}
+  accessKey: ${S3_ACCESS_KEY:astron-uploader}
+  secretKey: ${S3_SECRET_KEY:astron-uploader-secret}
+  bucket: ${S3_BUCKET:astron-agent}
   presignExpirySeconds: 600
 
 # Spark LLM configuration
@@ -146,7 +146,7 @@ space:
       space-count: 10000
       user-count: 500
   invite-message-template:
-    url: https://${ASTRA_DOMAIN:localhost:3000}/sharepage?param=
+    url: https://${ASTRON_DOMAIN:localhost:3000}/sharepage?param=
     space-title: Space Invitation Reminder
     space-content: >
       <h3>Space Invitation Reminder</h3>[%s] invited you to join space "%s",

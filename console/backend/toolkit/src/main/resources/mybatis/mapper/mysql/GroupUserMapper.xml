@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.group.GroupUserMapper">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.group.GroupUserMapper">
     <delete id="deleteByTagIdAndUidList">
         delete from group_user
         where uid = #{uid} and tag_id = #{tagId} and user_id in
@@ -19,7 +19,7 @@
         </if>
     </delete>
 
-    <select id="listUserByTagId" resultType="com.iflytek.astra.console.toolkit.entity.vo.group.GroupUserTagVO">
+    <select id="listUserByTagId" resultType="com.iflytek.astron.console.toolkit.entity.vo.group.GroupUserTagVO">
         select t1.user_id as uid, t2.login, t2.nickname , t2.email ,t1.tagIds, t1.tagNames from (
         select gu.user_id, GROUP_CONCAT(gu.tag_id) as tagIds, GROUP_CONCAT(gt.name) as tagNames  from group_user gu  left join group_tag gt on gu.tag_id = gt.id
         where gu.uid  = #{uid}  group by gu.user_id

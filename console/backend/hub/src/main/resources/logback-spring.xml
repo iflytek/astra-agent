@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Logback configuration for astra-console-hub -->
+<!-- Logback configuration for astron-console-hub -->
 <configuration scan="true" scanPeriod="60 seconds">
 
     <!-- Include Spring Boot default configuration -->
@@ -23,7 +23,7 @@
         </root>
 
         <!-- Debug SQL during development -->
-        <logger name="com.iflytek.astra.console.hub.mapper" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astron.console.hub.mapper" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
 
@@ -38,7 +38,7 @@
         </logger>
 
         <!-- Application core logging -->
-        <logger name="com.iflytek.astra.console" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astron.console" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
     </springProfile>
@@ -50,7 +50,7 @@
         </root>
 
         <!-- Application core logging -->
-        <logger name="com.iflytek.astra.console" level="DEBUG" additivity="false">
+        <logger name="com.iflytek.astron.console" level="DEBUG" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
     </springProfile>
@@ -62,7 +62,7 @@
         </root>
 
         <!-- Application core logging -->
-        <logger name="com.iflytek.astra.console" level="INFO" additivity="false">
+        <logger name="com.iflytek.astron.console" level="INFO" additivity="false">
             <appender-ref ref="STDOUT"/>
         </logger>
 

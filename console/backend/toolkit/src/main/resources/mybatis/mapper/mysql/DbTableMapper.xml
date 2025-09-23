@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.database.DbTableMapper">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.database.DbTableMapper">
 
 
     <select id="selectCountsByDbIds"
-            resultType="com.iflytek.astra.console.toolkit.entity.dto.database.DbTableCountDto">
+            resultType="com.iflytek.astron.console.toolkit.entity.dto.database.DbTableCountDto">
         SELECT db_id as dbId,count(*) as count FROM db_table
         <where>
             and db_id in

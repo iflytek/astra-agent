@@ -39,5 +39,5 @@ spring.data.redis.database: ${REDIS_DATABASE:0}
 # Logging configuration
 logging:
   level:
-    com.iflytek.astra.console: DEBUG
+    com.iflytek.astron.console: DEBUG
     org.springframework.transaction: DEBUG

@@ -23,4 +23,4 @@ CREATE TABLE xingchen_prompt_manage (
     KEY idx_status (status),
     KEY idx_latest_version (latest_version),
     KEY idx_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astra Prompt management table';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astron Prompt management table';

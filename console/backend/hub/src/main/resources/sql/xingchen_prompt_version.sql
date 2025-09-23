@@ -21,4 +21,4 @@ CREATE TABLE xingchen_prompt_version (
     KEY idx_commit_user (commit_user),
     KEY idx_commit_time (commit_time),
     KEY idx_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astra Prompt version management table';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Astron Prompt version management table';
