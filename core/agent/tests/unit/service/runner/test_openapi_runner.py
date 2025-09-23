@@ -1,4 +1,4 @@
-"""OpenAPIRunner单元测试模块."""
+"""OpenAPIRunner单元test模块."""
 
 import asyncio
 import time
@@ -9,7 +9,7 @@ import pytest
 
 from api.schemas.agent_response import AgentResponse
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import NodeTrace, Span
 from engine.nodes.chat.chat_runner import ChatRunner
 from engine.nodes.cot.cot_runner import CotRunner
@@ -18,14 +18,14 @@ from service.runner.openapi_runner import OpenAPIRunner
 
 
 class TestOpenAPIRunner:
-    """OpenAPIRunner测试类."""
+    """OpenAPIRunnertest类."""
 
     def setup_method(self) -> None:  # pylint: disable=attribute-defined-outside-init
-        """测试方法初始化."""
-        # 创建Mock对象，指定spec为相应类型但允许自由设置属性
+        """test方法初始化."""
+        # create Mock object, specify spec as appropriate type but allow free attribute setting
         self.mock_chat_runner = Mock()  # pylint: disable=attribute-defined-outside-init
         self.mock_chat_runner.__class__ = ChatRunner  # type: ignore
-        self.mock_chat_runner.question = "测试问题"  # 避免JSON序列化错误
+        self.mock_chat_runner.question = "test question"  # avoid JSON serialization errors
 
         self.mock_cot_runner = Mock()  # pylint: disable=attribute-defined-outside-init
         self.mock_cot_runner.__class__ = CotRunner  # type: ignore
@@ -42,7 +42,7 @@ class TestOpenAPIRunner:
             ]
         )
 
-        # 创建Mock span和node_trace
+        # create Mock span and node_trace
         self.mock_span = Mock(
             spec=Span
         )  # pylint: disable=attribute-defined-outside-init
@@ -52,8 +52,8 @@ class TestOpenAPIRunner:
         )  # pylint: disable=attribute-defined-outside-init
         self.mock_node_trace.trace = []
 
-        # 设置默认的异步生成器mock方法
-        # chat_runner的默认mock（用于无插件情况）
+        # setup default async generator mock method
+        # chat_runner default mock (for no plugin scenario)
         async def default_chat_run(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
@@ -63,7 +63,7 @@ class TestOpenAPIRunner:
 
         self.mock_chat_runner.run = default_chat_run
 
-        # cot_runner的默认mock（用于有插件情况）
+        # cot_runner default mock (for plugin scenario)
         async def default_cot_run(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
@@ -73,7 +73,7 @@ class TestOpenAPIRunner:
 
         self.mock_cot_runner.run = default_cot_run
 
-        # 创建OpenAPIRunner实例，使用model_construct跳过验证
+        # create OpenAPIRunner instance, use model_construct to skip validation
         self.runner = OpenAPIRunner.model_construct(  # pylint: disable=attribute-defined-outside-init
             chat_runner=self.mock_chat_runner,
             cot_runner=self.mock_cot_runner,
@@ -83,10 +83,10 @@ class TestOpenAPIRunner:
 
     @pytest.mark.asyncio
     async def test_run_success_with_streaming(self) -> None:
-        """测试成功执行运行器并流式返回结果."""
+        """test成功execute runner并流式返回结果."""
 
-        # 由于有插件，系统会使用cot_runner，需要创建异步生成器mock
-        # 直接替换run方法为异步生成器函数
+        # due to plugins, system will use cot_runner, need to create async generator mock
+        # directly replace run method with async generator function
         async def mock_cot_run(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
@@ -98,58 +98,58 @@ class TestOpenAPIRunner:
 
         self.mock_cot_runner.run = mock_cot_run
 
-        # 执行运行器
+        # execute runner
         result_stream = self.runner.run(self.mock_span, self.mock_node_trace)
 
-        # 验证返回的是异步生成器
+        # verify return is async generator
         assert hasattr(result_stream, "__aiter__")
 
-        # 收集所有结果
+        # collect all results
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证结果
-        assert len(results) >= 3  # 至少包含聊天流的结果
+        # Verify results
+        assert len(results) >= 3  # at least contains chat stream results
 
-        # 验证cot运行器被正确调用（因为有插件）
-        # 注意：由于我们直接替换了run方法，所以不能用assert_called_once检查
-        # 改为验证结果数量和内容
-        assert len(results) == 4  # 1个知识库元数据 + 3个内容项
+        # verify cot runner is called correctly (because of plugins)
+        # note: since we directly replaced run method, cannot use assert_called_once to check
+        # instead verify result count and content
+        assert len(results) == 4  # 1 knowledge base metadata + 3 content items
 
     @pytest.mark.asyncio
     async def test_run_chat_runner_error(self) -> None:
-        """测试聊天运行器执行错误的处理."""
+        """test聊天运行器execute错误的处理."""
 
-        # 由于有插件，实际使用cot_runner，所以mock cot_runner抛出异常
+        # due to plugins, actually using cot_runner, so mock cot_runner throws exception
         async def error_cot_run(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
             yield AgentResponse(typ="content", content="开始处理", model="test-model")
-            raise ValueError("CoT运行器失败")
+            raise ValueError("CoT运行器failed")
 
         self.mock_cot_runner.run = error_cot_run
 
-        # 执行运行器
+        # execute runner
         result_stream = self.runner.run(self.mock_span, self.mock_node_trace)
 
-        # 验证错误处理 - 应该捕获到异常
+        # verify error handling - should catch exception
         results = []
         try:
             async for item in result_stream:
                 results.append(item)
-            # 如果没有异常，测试失败
+            # if no exception, test failed
             assert False, "应该抛出异常但没有抛出"
         except ValueError as e:
-            # 验证捕获到正确的异常
-            assert "CoT运行器失败" in str(e)
-            # 验证在异常前至少收到了一些结果
-            assert len(results) >= 1  # 应该有知识库元数据返回
+            # verify caught correct exception
+            assert "CoT运行器failed" in str(e)
+            # verify received at least some results before exception
+            assert len(results) >= 1  # should have knowledge base metadata returned
 
     @pytest.mark.asyncio
     async def test_run_with_unicode_content(self) -> None:
-        """测试包含Unicode内容的执行场景."""
-        # 创建包含Unicode的运行器
+        """test包含Unicode内容的execute场景."""
+        # create runner containing Unicode
         unicode_metadata = [
             {"knowledge_id": "中文知识库", "name": "专业知识📚", "type": "技术文档"}
         ]
@@ -161,7 +161,7 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=unicode_metadata,
         )
 
-        # Mock聊天运行器处理Unicode
+        # Mock chat runner handling Unicode
         async def mock_unicode_stream() -> AsyncGenerator[Dict[str, Any], None]:
             yield {"type": "text", "content": "处理中文查询中..."}
             yield {
@@ -172,23 +172,23 @@ class TestOpenAPIRunner:
 
         self.mock_chat_runner.run = Mock(return_value=mock_unicode_stream())
 
-        # 执行
+        # execute
         result_stream = unicode_runner.run(self.mock_span, self.mock_node_trace)
 
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证Unicode内容正确处理
+        # verify Unicode content is handled correctly
         assert len(results) > 0
 
-        # 由于有插件，实际调用cot_runner而不是chat_runner，验证结果即可
-        # 验证至少返回了知识库元数据
+        # due to plugins, actually calling cot_runner not chat_runner, just verify results
+        # verify at least returned knowledge base metadata
         assert len(results) >= 1
 
     @pytest.mark.asyncio
     async def test_run_empty_plugins(self) -> None:
-        """测试空插件列表的执行场景."""
+        """test空插件列表的execute场景."""
         empty_runner = OpenAPIRunner.model_construct(
             chat_runner=self.mock_chat_runner,
             cot_runner=self.mock_cot_runner,
@@ -196,30 +196,30 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=[],
         )
 
-        # Mock聊天运行器 - 由于没有插件，会使用chat_runner
+        # Mock chat runner - due to no plugins, will use chat_runner
         async def mock_empty_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
-            yield AgentResponse(typ="content", content="空插件执行", model="test-model")
+            yield AgentResponse(typ="content", content="空插件execute", model="test-model")
 
         self.mock_chat_runner.run = mock_empty_stream
 
-        # 执行运行器
+        # execute runner
         result_stream = empty_runner.run(self.mock_span, self.mock_node_trace)
 
-        # 验证可以正常执行
+        # verify can execute normally
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证至少有一些基本输出
+        # verify at least some basic output
         assert isinstance(results, list)
         assert len(results) > 0
 
     @pytest.mark.asyncio
     async def test_run_large_metadata_list(self) -> None:
-        """测试大量知识库元数据的执行场景."""
-        # 创建大量元数据
+        """test大量知识库元数据的execute场景."""
+        # create large amount of metadata
         large_metadata = [
             {"knowledge_id": f"kb_{i}", "name": f"知识库_{i}", "type": "general"}
             for i in range(100)
@@ -232,7 +232,7 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=large_metadata,
         )
 
-        # Mock cot运行器处理大数据（因为有插件）
+        # Mock cot runner handling large data (because of plugins)
         async def mock_large_data_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
@@ -248,38 +248,38 @@ class TestOpenAPIRunner:
 
         self.mock_cot_runner.run = mock_large_data_stream
 
-        # 执行
+        # execute
         result_stream = large_runner.run(self.mock_span, self.mock_node_trace)
 
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证大数据正确处理
-        assert len(results) >= 4  # 知识库元数据 + 3个内容项
+        # verify large data is handled correctly
+        assert len(results) >= 4  # knowledge base metadata + 3 content items
 
-        # 由于有插件，实际调用cot_runner而不是chat_runner，验证结果即可
-        # 验证至少返回了知识库元数据
+        # due to plugins, actually calling cot_runner not chat_runner, just verify results
+        # verify at least returned knowledge base metadata
         assert len(results) >= 1
 
     @pytest.mark.asyncio
     async def test_run_concurrent_execution(self) -> None:
-        """测试并发执行场景."""
+        """testconcurrent execution场景."""
 
-        # Mock cot运行器的异步执行（因为有插件）
+        # Mock cot runner async execution (because of plugins)
         async def mock_concurrent_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
-            await asyncio.sleep(0.01)  # 模拟异步处理
-            yield AgentResponse(typ="content", content="并发执行", model="test-model")
-            yield AgentResponse(typ="content", content="执行完成", model="test-model")
+            await asyncio.sleep(0.01)  # simulate async processing
+            yield AgentResponse(typ="content", content="concurrent execution", model="test-model")
+            yield AgentResponse(typ="content", content="execute完成", model="test-model")
 
         self.mock_cot_runner.run = mock_concurrent_stream
 
-        # 执行运行器
+        # execute runner
         result_stream = self.runner.run(self.mock_span, self.mock_node_trace)
 
-        # 记录执行时间
+        # record execution time
         start_time = time.time()
 
         results = []
@@ -289,16 +289,16 @@ class TestOpenAPIRunner:
         end_time = time.time()
         execution_time = end_time - start_time
 
-        # 验证执行时间合理
-        assert execution_time < 1.0  # 合理的执行时间上限
+        # verify execution time is reasonable
+        assert execution_time < 1.0  # reasonable execution time upper limit
 
-        # 由于有插件，实际调用cot_runner而不是chat_runner，验证结果即可
-        # 验证至少返回了知识库元数据
+        # due to plugins, actually calling cot_runner not chat_runner, just verify results
+        # verify at least returned knowledge base metadata
         assert len(results) >= 1
 
     def test_init_with_invalid_parameters(self) -> None:
-        """测试使用无效参数初始化."""
-        # 测试必需参数缺失 - model_construct不会抛出TypeError，改为验证创建成功
+        """test使用无效参数初始化."""
+        # test required parameter missing - model_construct won't throw TypeError, instead verify creation success
         runner = OpenAPIRunner.model_construct(
             chat_runner=Mock(),
             cot_runner=Mock(),
@@ -306,14 +306,14 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=[],
         )
         assert runner is not None
-        # 验证属性设置正确
+        # verify attributes set correctly
         assert runner.plugins == []
         assert runner.knowledge_metadata_list == []
 
-        # 测试无效插件类型 - model_construct跳过验证，所以这个测试需要修改
-        # 直接验证属性赋值而不是抛出异常
+        # test invalid plugin type - model_construct skips validation, so this test needs modification
+        # directly verify attribute assignment instead of throwing exception
         invalid_runner = OpenAPIRunner.model_construct(
-            chat_runner=None,  # 这将被赋值但不验证
+            chat_runner=None,  # this will be assigned but not validated
             cot_runner=self.mock_cot_runner,
             plugins=self.plugins,
             knowledge_metadata_list=[],
@@ -321,7 +321,7 @@ class TestOpenAPIRunner:
         assert invalid_runner.chat_runner is None
 
     def test_attributes_assignment(self) -> None:
-        """测试属性正确赋值."""
+        """test属性正确赋值."""
         assert self.runner.chat_runner == self.mock_chat_runner
         assert self.runner.cot_runner == self.mock_cot_runner
         assert len(self.runner.plugins) == 2
@@ -330,18 +330,18 @@ class TestOpenAPIRunner:
 
     @pytest.mark.asyncio
     async def test_run_stream_interruption(self) -> None:
-        """测试流式执行中断处理."""
+        """test流式execute中断处理."""
 
-        # Mock聊天运行器执行中断
+        # Mock chat runner execution interruption
         async def mock_interrupted_stream() -> AsyncGenerator[Dict[str, str], None]:
-            yield {"type": "text", "content": "开始执行"}
-            yield {"type": "text", "content": "执行中..."}
-            # 模拟中断
-            raise asyncio.CancelledError("执行被中断")
+            yield {"type": "text", "content": "开始execute"}
+            yield {"type": "text", "content": "execute中..."}
+            # simulate interruption
+            raise asyncio.CancelledError("execute被中断")
 
         self.mock_chat_runner.run = Mock(return_value=mock_interrupted_stream())
 
-        # 执行运行器并处理中断
+        # execute runner and handle interruption
         result_stream = self.runner.run(self.mock_span, self.mock_node_trace)
 
         results = []
@@ -349,43 +349,43 @@ class TestOpenAPIRunner:
             async for item in result_stream:
                 results.append(item)
         except asyncio.CancelledError:
-            # 验证中断被正确处理
+            # verify interruption is handled correctly
             pass
 
-        # 验证至少收集到一些结果（中断前的结果）
+        # verify collected at least some results (results before interruption)
         assert len(results) >= 0
 
     @pytest.mark.asyncio
     async def test_run_timeout_handling(self) -> None:
-        """测试执行超时处理."""
+        """testexecute超时处理."""
 
-        # Mock聊天运行器超时
+        # Mock chat runner timeout
         async def mock_timeout_execution() -> AsyncGenerator[Dict[str, str], None]:
-            await asyncio.sleep(10)  # 模拟长时间执行
+            await asyncio.sleep(10)  # simulate long execution
             yield {"type": "result", "content": "不应该返回此结果"}
 
         self.mock_chat_runner.run = Mock(return_value=mock_timeout_execution())
 
-        # 执行运行器（应该有超时机制）
+        # execute runner (should have timeout mechanism)
         result_stream = self.runner.run(self.mock_span, self.mock_node_trace)
 
-        # 使用较短的超时时间测试
+        # test with shorter timeout
         results = []
         try:
-            async with asyncio.timeout(1.0):  # 1秒超时
+            async with asyncio.timeout(1.0):  # 1 second timeout
                 async for item in result_stream:
                     results.append(item)
         except asyncio.TimeoutError:
-            # 超时是期望的行为
+            # timeout is expected behavior
             pass
 
-        # 验证结果
+        # Verify results
         assert isinstance(results, list)
 
     @pytest.mark.asyncio
     async def test_run_with_multiple_plugins(self) -> None:
-        """测试多插件执行场景."""
-        # 创建多个不同类型的插件
+        """test多插件execute场景."""
+        # create multiple different types of plugins
         plugins = [
             Mock(spec=BasePlugin, name="plugin1"),
             Mock(spec=BasePlugin, name="plugin2"),
@@ -399,11 +399,11 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=self.knowledge_metadata_list,
         )
 
-        # Mock cot运行器（因为有插件）
+        # Mock cot runner (because of plugins)
         async def mock_multi_plugin_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
-            yield AgentResponse(typ="content", content="多插件执行", model="test-model")
+            yield AgentResponse(typ="content", content="多插件execute", model="test-model")
             yield AgentResponse(
                 typ="content", content="plugin1完成", model="test-model"
             )
@@ -414,28 +414,28 @@ class TestOpenAPIRunner:
                 typ="content", content="plugin3完成", model="test-model"
             )
             yield AgentResponse(
-                typ="content", content="所有插件执行完成", model="test-model"
+                typ="content", content="所有插件execute完成", model="test-model"
             )
 
         self.mock_cot_runner.run = mock_multi_plugin_stream
 
-        # 执行
+        # execute
         result_stream = multi_plugin_runner.run(self.mock_span, self.mock_node_trace)
 
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证多插件执行结果
-        assert len(results) >= 6  # 知识库元数据 + 5个内容项
+        # verify multi-plugin execution results
+        assert len(results) >= 6  # knowledge base metadata + 5 content items
 
-        # 由于有插件，实际调用cot_runner而不是chat_runner，验证结果即可
-        # 验证至少返回了知识库元数据
+        # due to plugins, actually calling cot_runner not chat_runner, just verify results
+        # verify at least returned knowledge base metadata
         assert len(results) >= 1
 
     def test_runner_configuration_validation(self) -> None:
-        """测试运行器配置验证."""
-        # 验证正常配置
+        """test运行器配置验证."""
+        # verify normal configuration
         runner = OpenAPIRunner.model_construct(
             chat_runner=Mock(),
             cot_runner=Mock(),
@@ -444,13 +444,13 @@ class TestOpenAPIRunner:
         )
         assert runner is not None
 
-        # 验证插件列表可以为空
+        # verify plugin list can be empty
         assert runner.plugins == []
         assert runner.knowledge_metadata_list == []
 
     @pytest.mark.asyncio
     async def test_run_with_complex_metadata(self) -> None:
-        """测试复杂元数据结构的处理."""
+        """test复杂元数据结构的处理."""
         complex_metadata = [
             {
                 "knowledge_id": "complex_kb_1",
@@ -475,20 +475,20 @@ class TestOpenAPIRunner:
             knowledge_metadata_list=complex_metadata,
         )
 
-        # Mock处理复杂元数据
+        # Mock handling complex metadata
         async def mock_complex_stream() -> AsyncGenerator[Dict[str, str], None]:
             yield {"type": "metadata", "content": "解析复杂元数据"}
             yield {"type": "result", "content": "复杂元数据处理完成"}
 
         self.mock_chat_runner.run = Mock(return_value=mock_complex_stream())
 
-        # 执行
+        # execute
         result_stream = complex_runner.run(self.mock_span, self.mock_node_trace)
 
         results = []
         async for item in result_stream:
             results.append(item)
 
-        # 验证复杂元数据正确处理
+        # verify complex metadata is handled correctly
         assert len(results) >= 2
         assert complex_runner.knowledge_metadata_list[0]["metadata"]["version"] == "2.0"

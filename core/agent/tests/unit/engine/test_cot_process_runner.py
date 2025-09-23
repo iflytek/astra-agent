@@ -420,7 +420,7 @@ class TestCotProcessRunner:
             action_input={
                 "nested": {"key": "value"},
                 "array": [1, 2, 3],
-                "unicode": "测试中文",
+                "unicode": "test中文",
             },
             action_output={
                 "status": "success",
@@ -478,7 +478,7 @@ class TestCotProcessRunner:
 
                     # Should contain the complex data properly serialized
                     assert "complex_plugin" in user_message["content"]
-                    assert "测试中文" in user_message["content"]
+                    assert "test中文" in user_message["content"]
                     assert "处理完成" in user_message["content"]
 
     @pytest.mark.unit
@@ -609,7 +609,7 @@ class TestCotProcessRunner:
         unicode_step = CotStep(
             thought="我需要搜索中文信息",
             action="中文插件",
-            action_input={"查询": "测试查询"},
+            action_input={"查询": "test查询"},
             action_output={"结果": "搜索结果"},
         )
         scratchpad.steps = [unicode_step]

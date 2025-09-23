@@ -1,7 +1,7 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import ip
 
 

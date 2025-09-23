@@ -1,4 +1,4 @@
-"""应用认证模块单元测试."""
+"""应用认证模块单元test."""
 
 import base64
 import datetime
@@ -12,11 +12,11 @@ from infra.app_auth import APPAuth, AuthConfig, MaasAuth, hashlib_256, http_date
 
 
 class TestHttpDate:
-    """http_date函数测试类."""
+    """http_date函数test类."""
 
     def test_http_date_format(self) -> None:
-        """测试HTTP日期格式化."""
-        # 创建固定时间
+        """testHTTP日期格式化."""
+        # Create fixed time
         test_date = datetime.datetime(2023, 12, 25, 15, 30, 45)
 
         result = http_date(test_date)
@@ -25,7 +25,7 @@ class TestHttpDate:
         assert result == expected
 
     def test_http_date_different_weekdays(self) -> None:
-        """测试不同星期的日期格式化."""
+        """test不同星期的日期格式化."""
         test_cases = [
             (datetime.datetime(2023, 12, 25, 0, 0, 0), "Mon"),  # Monday
             (datetime.datetime(2023, 12, 26, 0, 0, 0), "Tue"),  # Tuesday
@@ -37,7 +37,7 @@ class TestHttpDate:
             assert result.startswith(expected_weekday)
 
     def test_http_date_all_months(self) -> None:
-        """测试所有月份的格式化."""
+        """test所有月份的格式化."""
         months = [
             "Jan",
             "Feb",
@@ -59,66 +59,66 @@ class TestHttpDate:
             assert expected_month in result
 
     def test_http_date_zero_padding(self) -> None:
-        """测试日期零填充."""
-        # 测试日期、小时、分钟、秒的零填充
+        """test日期零填充."""
+        # Test zero-padding for date, hour, minute, second
         test_date = datetime.datetime(2023, 1, 5, 8, 9, 7)
         result = http_date(test_date)
 
-        assert "05 Jan" in result  # 日期零填充
-        assert "08:09:07" in result  # 时间零填充
+        assert "05 Jan" in result  # Date zero-padding
+        assert "08:09:07" in result  # Time zero-padding
 
     def test_http_date_leap_year(self) -> None:
-        """测试闰年处理."""
+        """test闰年处理."""
         leap_year_date = datetime.datetime(2024, 2, 29, 12, 0, 0)
         result = http_date(leap_year_date)
 
         assert "29 Feb 2024" in result
-        assert "Thu" in result  # 2024年2月29日是星期四
+        assert "Thu" in result  # February 29, 2024 is Thursday
 
     def test_http_date_edge_cases(self) -> None:
-        """测试边缘情况."""
-        # 年初
+        """test边缘情况."""
+        # Beginning of year
         new_year = datetime.datetime(2023, 1, 1, 0, 0, 0)
         result_new_year = http_date(new_year)
         assert "01 Jan 2023 00:00:00 GMT" in result_new_year
 
-        # 年末
+        # End of year
         year_end = datetime.datetime(2023, 12, 31, 23, 59, 59)
         result_year_end = http_date(year_end)
         assert "31 Dec 2023 23:59:59 GMT" in result_year_end
 
 
 class TestHashlib256:
-    """hashlib_256函数测试类."""
+    """hashlib_256函数test类."""
 
     def test_hashlib_256_basic(self) -> None:
-        """测试基本哈希生成."""
+        """test基本哈希生成."""
         test_string = "test_data"
         result = hashlib_256(test_string)
 
-        # 验证返回格式
+        # Verify return format
         assert result.startswith("SHA256=")
-        assert len(result) > 10  # 基本长度验证
+        assert len(result) > 10  # Basic length validation
 
     def test_hashlib_256_empty_string(self) -> None:
-        """测试空字符串哈希."""
+        """test空字符串哈希."""
         result = hashlib_256("")
 
         assert result.startswith("SHA256=")
-        # 空字符串的SHA256应该是固定值
+        # Empty string SHA256 should be fixed value
         expected = "SHA256=47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU="
         assert result == expected
 
     def test_hashlib_256_unicode(self) -> None:
-        """测试Unicode字符串哈希."""
-        unicode_string = "测试中文🚀"
+        """testUnicode字符串哈希."""
+        unicode_string = "test中文🚀"
         result = hashlib_256(unicode_string)
 
         assert result.startswith("SHA256=")
         assert len(result) > 10
 
     def test_hashlib_256_consistency(self) -> None:
-        """测试哈希一致性."""
+        """test哈希一致性."""
         test_string = "consistency_test"
 
         result1 = hashlib_256(test_string)
@@ -127,7 +127,7 @@ class TestHashlib256:
         assert result1 == result2
 
     def test_hashlib_256_different_inputs(self) -> None:
-        """测试不同输入产生不同哈希."""
+        """test不同输入产生不同哈希."""
         input1 = "input1"
         input2 = "input2"
 
@@ -139,41 +139,41 @@ class TestHashlib256:
         assert hash2.startswith("SHA256=")
 
     def test_hashlib_256_base64_format(self) -> None:
-        """测试Base64格式正确性."""
+        """testBase64格式正确性."""
         test_string = "test_base64_format"
         result = hashlib_256(test_string)
 
-        # 移除SHA256=前缀
-        base64_part = result[7:]  # 移除"SHA256="
+        # Remove SHA256= prefix
+        base64_part = result[7:]  # Remove "SHA256="
 
-        # Base64编码的字符串长度应该是4的倍数
+        # Base64 encoded string length should be multiple of 4
         assert len(base64_part) % 4 == 0
 
-        # Base64只包含合法字符
+        # Base64 contains only valid characters
         try:
             decoded = base64.b64decode(base64_part)
-            assert len(decoded) == 32  # SHA256哈希长度为32字节
+            assert len(decoded) == 32  # SHA256 hash length is 32 bytes
         except (ValueError, TypeError):
             pytest.fail("Invalid base64 format")
 
     def test_hashlib_256_json_data(self) -> None:
-        """测试JSON数据哈希."""
+        """testJSON数据哈希."""
         json_data = {"key": "value", "number": 123, "nested": {"a": 1}}
         json_string = json.dumps(json_data, sort_keys=True, ensure_ascii=False)
 
         result = hashlib_256(json_string)
 
         assert result.startswith("SHA256=")
-        # JSON数据应该产生一致的哈希
+        # JSON data should produce consistent hash
         result2 = hashlib_256(json_string)
         assert result == result2
 
 
 class TestAuthConfig:
-    """AuthConfig测试类."""
+    """AuthConfigtest类."""
 
     def test_auth_config_creation(self) -> None:
-        """测试认证配置创建."""
+        """test认证配置创建."""
         config = AuthConfig(
             host="example.com",
             route="/api/auth",
@@ -187,12 +187,12 @@ class TestAuthConfig:
         assert config.prot == "https"
         assert config.api_key == "test_key"
         assert config.secret == "test_secret"
-        assert config.method == "GET"  # 默认值
-        assert config.algorithm == "hmac-sha256"  # 默认值
-        assert config.http_proto == "HTTP/1.1"  # 默认值
+        assert config.method == "GET"  # Default value
+        assert config.algorithm == "hmac-sha256"  # Default value
+        assert config.http_proto == "HTTP/1.1"  # Default value
 
     def test_auth_config_url_property(self) -> None:
-        """测试URL属性生成."""
+        """testURL属性生成."""
         config = AuthConfig(
             host="api.example.com",
             route="/v1/auth",
@@ -205,7 +205,7 @@ class TestAuthConfig:
         assert config.url == expected_url
 
     def test_auth_config_custom_method(self) -> None:
-        """测试自定义HTTP方法."""
+        """test自定义HTTP方法."""
         config = AuthConfig(
             host="example.com",
             route="/auth",
@@ -218,7 +218,7 @@ class TestAuthConfig:
         assert config.method == "POST"
 
     def test_auth_config_custom_algorithm(self) -> None:
-        """测试自定义算法."""
+        """test自定义算法."""
         config = AuthConfig(
             host="example.com",
             route="/auth",
@@ -231,8 +231,8 @@ class TestAuthConfig:
         assert config.algorithm == "hmac-sha512"
 
     def test_auth_config_url_edge_cases(self) -> None:
-        """测试URL边缘情况."""
-        # 没有前导斜杠的路由
+        """testURL边缘情况."""
+        # Route without leading slash
         config1 = AuthConfig(
             host="example.com",
             route="auth",
@@ -242,7 +242,7 @@ class TestAuthConfig:
         )
         assert config1.url == "https://example.comauth"
 
-        # 空路由
+        # Empty route
         config2 = AuthConfig(
             host="example.com", route="", prot="https", api_key="key", secret="secret"
         )
@@ -250,7 +250,7 @@ class TestAuthConfig:
 
 
 class TestAPPAuth:
-    """APPAuth测试类."""
+    """APPAuthtest类."""
 
     def setup_method(self) -> None:
         """Test setup method."""
@@ -267,7 +267,7 @@ class TestAPPAuth:
             self.config = self.app_auth.config
 
     def test_auth_config_initialization(self) -> None:
-        """测试配置初始化."""
+        """test配置初始化."""
         assert self.config.host == "test.host.com"
         assert self.config.route == "/auth"
         assert self.config.prot == "https"
@@ -276,33 +276,33 @@ class TestAPPAuth:
         assert isinstance(self.app_auth.date, str)
 
     def test_date_format_validation(self) -> None:
-        """测试日期格式验证."""
-        # 日期应该符合HTTP日期格式
+        """test日期格式验证."""
+        # Date should conform to HTTP date format
         date_parts = self.app_auth.date.split()
         assert len(date_parts) == 6  # "Mon, 25 Dec 2023 15:30:45 GMT"
         assert date_parts[5] == "GMT"
         assert date_parts[0].endswith(",")
 
     def test_generate_signature(self) -> None:
-        """测试签名生成."""
+        """test签名生成."""
         test_digest = "test_digest_value"
 
-        # Mock固定时间
+        # Mock fixed time
         with patch.object(self.app_auth, "date", "Mon, 25 Dec 2023 15:30:45 GMT"):
             signature = self.app_auth.generate_signature(test_digest)
 
-            # 验证签名不为空且是base64格式
+            # Verify signature is not empty and is base64 format
             assert len(signature) > 0
             assert isinstance(signature, str)
 
-            # 验证Base64格式
+            # Verify Base64 format
             try:
                 base64.b64decode(signature)
             except (ValueError, TypeError):
                 pytest.fail("Invalid base64 signature")
 
     def test_generate_signature_consistency(self) -> None:
-        """测试签名生成一致性."""
+        """test签名生成一致性."""
         test_digest = "consistent_digest"
 
         with patch.object(self.app_auth, "date", "Mon, 25 Dec 2023 15:30:45 GMT"):
@@ -312,7 +312,7 @@ class TestAPPAuth:
             assert signature1 == signature2
 
     def test_generate_signature_different_digests(self) -> None:
-        """测试不同摘要产生不同签名."""
+        """test不同摘要产生不同签名."""
         digest1 = "digest1"
         digest2 = "digest2"
 
@@ -323,12 +323,12 @@ class TestAPPAuth:
             assert signature1 != signature2
 
     def test_init_header(self) -> None:
-        """测试请求头初始化."""
+        """test请求头初始化."""
         test_data = '{"test": "data"}'
 
         headers = self.app_auth.init_header(test_data)
 
-        # 验证必要的请求头
+        # Verify required request headers
         required_headers = [
             "Content-Type",
             "Authorization",
@@ -347,46 +347,46 @@ class TestAPPAuth:
         assert headers["Host"] == "test.host.com"
 
     def test_init_header_digest_format(self) -> None:
-        """测试摘要格式."""
+        """test摘要格式."""
         test_data = '{"key": "value"}'
 
         headers = self.app_auth.init_header(test_data)
 
-        # 验证摘要格式
+        # Verify digest format
         digest = headers["Digest"]
         assert digest.startswith("SHA256=")
 
     def test_init_header_authorization_format(self) -> None:
-        """测试认证头格式."""
+        """test认证头格式."""
         test_data = '{"test": "data"}'
 
         headers = self.app_auth.init_header(test_data)
 
         auth_header = headers["Authorization"]
 
-        # 验证认证头包含必要组件
+        # Verify auth header contains necessary components
         assert 'api_key="test_api_key"' in auth_header
         assert 'algorithm="hmac-sha256"' in auth_header
         assert 'headers="host date request-line digest"' in auth_header
         assert "signature=" in auth_header
 
     def test_init_header_unicode_data(self) -> None:
-        """测试Unicode数据处理."""
-        unicode_data = '{"message": "测试消息🚀", "value": 123}'
+        """testUnicode数据处理."""
+        unicode_data = '{"message": "test消息🚀", "value": 123}'
 
         headers = self.app_auth.init_header(unicode_data)
 
-        # 应该能够正确处理Unicode数据
+        # Should handle Unicode data correctly
         assert "Digest" in headers
         assert headers["Digest"].startswith("SHA256=")
 
     @pytest.mark.asyncio
     async def test_app_detail_success(self) -> None:
-        """测试成功获取应用详情."""
+        """test成功获取应用详情."""
         app_id = "test_app_id"
         expected_response = {"code": 0, "data": "test_data"}
 
-        # Mock响应对象
+        # Mock response object
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.json.return_value = expected_response
@@ -404,16 +404,16 @@ class TestAPPAuth:
             result = await self.app_auth.app_detail(app_id)
 
             assert result == expected_response
-            # 验证请求参数
+            # Verify request parameters
             call_kwargs = mock_session.get.call_args[1]
             assert call_kwargs["params"]["app_ids"] == "test_app_id,"
 
     @pytest.mark.asyncio
     async def test_app_detail_non_200_status(self) -> None:
-        """测试非200状态码处理."""
+        """test非200状态码处理."""
         app_id = "test_app_id"
 
-        # Mock响应对象
+        # Mock response object
         mock_response = AsyncMock()
         mock_response.status = 404
         mock_response.raise_for_status = AsyncMock()
@@ -432,7 +432,7 @@ class TestAPPAuth:
 
     @pytest.mark.asyncio
     async def test_app_detail_request_timeout(self) -> None:
-        """测试请求超时处理."""
+        """test请求超时处理."""
         app_id = "test_app_id"
 
         # Mock aiohttp ClientSession
@@ -447,7 +447,7 @@ class TestAPPAuth:
 
     @pytest.mark.asyncio
     async def test_app_detail_timeout_configuration(self) -> None:
-        """测试超时配置."""
+        """test超时配置."""
         app_id = "test_app_id"
         expected_response = {"code": 0, "data": "test_data"}
 
@@ -470,12 +470,12 @@ class TestAPPAuth:
 
             await self.app_auth.app_detail(app_id)
 
-            # 验证超时设置
+            # Verify timeout settings
             mock_timeout.assert_called_once_with(total=3)
 
     @pytest.mark.asyncio
     async def test_app_detail_raise_for_status(self) -> None:
-        """测试HTTP状态检查."""
+        """testHTTP状态检查."""
         app_id = "test_app_id"
 
         mock_response = AsyncMock()
@@ -495,7 +495,7 @@ class TestAPPAuth:
 
     @pytest.mark.asyncio
     async def test_app_detail_multiple_app_ids(self) -> None:
-        """测试多个应用ID处理."""
+        """test多个应用ID处理."""
         app_id = "app1,app2,app3"
         expected_response = {"code": 0, "data": ["data1", "data2", "data3"]}
 
@@ -515,13 +515,13 @@ class TestAPPAuth:
             result = await self.app_auth.app_detail(app_id)
 
             assert result == expected_response
-            # 验证参数格式
+            # Verify parameter format
             call_kwargs = mock_session.get.call_args[1]
             assert call_kwargs["params"]["app_ids"] == "app1,app2,app3,"
 
 
 class TestMaasAuth:
-    """MaasAuth测试类."""
+    """MaasAuthtest类."""
 
     def setup_method(self) -> None:
         """Test setup method."""
@@ -529,7 +529,7 @@ class TestMaasAuth:
         self.maas_auth = MaasAuth(app_id="test_app_id", model_name="test_model")
 
     def test_maas_auth_initialization(self) -> None:
-        """测试MaasAuth初始化."""
+        """testMaasAuth初始化."""
         assert self.maas_auth.app_id == "test_app_id"
         assert self.maas_auth.model_name == "test_model"
         assert (
@@ -538,7 +538,7 @@ class TestMaasAuth:
         )
 
     def test_maas_auth_custom_error_message(self) -> None:
-        """测试自定义错误消息."""
+        """test自定义错误消息."""
         custom_msg = "自定义错误消息"
         auth = MaasAuth(
             app_id="test_app", model_name="test_model", app_id_not_found_msg=custom_msg
@@ -547,7 +547,7 @@ class TestMaasAuth:
         assert auth.app_id_not_found_msg == custom_msg
 
     def test_maas_auth_unicode_support(self) -> None:
-        """测试Unicode支持."""
+        """testUnicode支持."""
         unicode_auth = MaasAuth(app_id="中文应用ID", model_name="中文模型名称🚀")
 
         assert unicode_auth.app_id == "中文应用ID"
@@ -555,7 +555,7 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_sk_dev_mode_x1_model(self) -> None:
-        """测试开发模式X1模型."""
+        """test开发模式X1模型."""
         mock_span = Mock()
         mock_span.start = Mock()
         mock_span.start.return_value.__enter__ = Mock()
@@ -578,7 +578,7 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_sk_dev_mode_default_model(self) -> None:
-        """测试开发模式默认模型."""
+        """test开发模式默认模型."""
         mock_span = Mock()
         mock_span.start = Mock()
         mock_span.start.return_value.__enter__ = Mock()
@@ -601,7 +601,7 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_sk_production_mode_success(self) -> None:
-        """测试生产模式成功获取SK."""
+        """test生产模式成功获取SK."""
         mock_span = Mock()
         mock_span.start = Mock()
         mock_span.start.return_value.__enter__ = Mock()
@@ -610,7 +610,7 @@ class TestMaasAuth:
         mock_sub_span.add_info_events = Mock()
         mock_span.start.return_value.__enter__.return_value = mock_sub_span
 
-        # Mock应用详情响应
+        # Mock application details response
         app_detail_response = {
             "code": 0,
             "data": [
@@ -632,12 +632,12 @@ class TestMaasAuth:
                 result = await self.maas_auth.sk(mock_span)
 
             assert result == "test_api_key:test_api_secret"
-            # 验证span事件记录
+            # Verify span event recording
             assert mock_sub_span.add_info_events.call_count == 2
 
     @pytest.mark.asyncio
     async def test_sk_production_mode_app_not_found(self) -> None:
-        """测试生产模式应用未找到."""
+        """test生产模式应用未找到."""
         mock_span = Mock()
         mock_span.start = Mock()
         mock_span.start.return_value.__enter__ = Mock()
@@ -658,12 +658,12 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_maas_detail_success(self) -> None:
-        """测试成功获取Maas详情."""
+        """test成功获取Maas详情."""
         api_key = "test_api_key"
         api_secret = "test_api_secret"
         expected_sk = "test_secret_key"
 
-        # Mock响应对象
+        # Mock response object
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.json.return_value = {"code": 0, "data": expected_sk}
@@ -689,7 +689,7 @@ class TestMaasAuth:
 
             assert result == expected_sk
 
-            # 验证请求数据
+            # Verify request data
             call_kwargs = mock_session.post.call_args[1]
             expected_data = {
                 "appId": "test_app_id",
@@ -702,11 +702,11 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_maas_detail_error_response(self) -> None:
-        """测试Maas详情错误响应."""
+        """testMaas详情错误响应."""
         api_key = "test_api_key"
         api_secret = "test_api_secret"
 
-        # Mock响应对象
+        # Mock response object
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.json.return_value = {"code": 1, "message": "Auth failed"}
@@ -735,7 +735,7 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_maas_detail_non_200_status(self) -> None:
-        """测试Maas详情非200状态码."""
+        """testMaas详情非200状态码."""
         api_key = "test_api_key"
         api_secret = "test_api_secret"
 
@@ -763,7 +763,7 @@ class TestMaasAuth:
 
     @pytest.mark.asyncio
     async def test_maas_detail_timeout_configuration(self) -> None:
-        """测试Maas详情超时配置."""
+        """testMaas详情超时配置."""
         api_key = "test_api_key"
         api_secret = "test_api_secret"
 
@@ -790,12 +790,12 @@ class TestMaasAuth:
 
             await self.maas_auth.maas_detail(api_key, api_secret)
 
-            # 验证超时设置
+            # Verify timeout settings
             mock_timeout.assert_called_once_with(total=3)
 
     @pytest.mark.asyncio
     async def test_maas_detail_request_exception(self) -> None:
-        """测试Maas详情请求异常."""
+        """testMaas详情请求异常."""
         api_key = "test_api_key"
         api_secret = "test_api_secret"
 
@@ -814,7 +814,7 @@ class TestMaasAuth:
                 await self.maas_auth.maas_detail(api_key, api_secret)
 
     def test_maas_auth_model_serialization(self) -> None:
-        """测试MaasAuth模型序列化."""
+        """testMaasAuth模型序列化."""
         auth_dict = self.maas_auth.model_dump()
 
         assert isinstance(auth_dict, dict)
@@ -826,13 +826,13 @@ class TestMaasAuth:
         )
 
     def test_maas_auth_field_validation(self) -> None:
-        """测试MaasAuth字段验证."""
-        # 测试必填字段
+        """testMaasAuth字段验证."""
+        # Test required fields
         auth = MaasAuth(app_id="", model_name="")
         assert auth.app_id == ""
         assert auth.model_name == ""
 
-        # 测试字段类型
+        # Test field types
         auth = MaasAuth(app_id="test", model_name="model")
         assert isinstance(auth.app_id, str)
         assert isinstance(auth.model_name, str)

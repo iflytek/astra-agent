@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from api.schemas.agent_response import AgentResponse, CotStep
 from api.schemas.llm_message import LLMMessage
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import Node, NodeData, NodeDataUsage, NodeTrace, Span
 from domain.models.base import BaseLLMModel
 
@@ -42,7 +42,7 @@ class RunnerBase(BaseModel):
 
             thinks = ""
             answers = ""
-            # node赋值
+            # node assignment
             node_id = ""
             node_sid = span.sid
             node_node_id = span.sid

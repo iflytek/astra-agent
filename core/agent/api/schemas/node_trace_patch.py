@@ -3,7 +3,7 @@ from typing import Generic, TypeVar
 
 from pydantic import ConfigDict, Field
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import NodeLog, NodeTraceLog
 
 T = TypeVar("T", bound=NodeLog)
@@ -16,20 +16,20 @@ class NodeTracePatch(NodeTraceLog, Generic[T]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def record_start(self):
-        """记录开始时间"""
+        """Record start time"""
         self.start_time = int(time.time() * 1000)
 
     def record_end(self):
-        """记录结束时间并计算持续时间"""
-        self.set_end()  # 使用父类的 set_end 方法
+        """Record end time and calculate duration"""
+        self.set_end()  # Use parent class set_end method
 
     def upload(self, status, log_caller: str, span):
         """
-        上传node trace日志
-        为了兼容原有代码，提供此方法
+        Upload node trace logs
+        Provided for compatibility with existing code
         """
-        # 设置状态
+        # Set status
         self.set_status(status.code, status.message)
 
-        # 返回序列化的数据
+        # Return serialized data
         return self.model_dump()

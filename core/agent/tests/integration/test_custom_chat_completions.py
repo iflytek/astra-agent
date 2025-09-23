@@ -1,15 +1,15 @@
 """
-Custom Chat Completions API功能测试
+Custom Chat Completions API功能test
 
-测试 /agent/v1/custom/chat/completions 接口的各种场景，包括：
+test /agent/v1/custom/chat/completions 接口的各种场景，包括：
 - 智能体运行用户模式
 - 自定义配置参数
 - 插件和工具集成
-- 工作流执行
+- 工作流execute
 
 重要说明：
 1. API返回的HTTP状态码通常为200，真正的业务状态需要查看响应JSON中的code字段
-2. 使用固定测试参数:
+2. 使用固定test参数:
    - X-Consumer-Username: xxx
    - app_id: xxx
    - uid: 123456
@@ -24,7 +24,7 @@ import httpx
 
 
 class CustomChatCompletionsTestClient:
-    """Custom Chat Completions API测试客户端"""
+    """Custom Chat Completions APItest客户端"""
 
     def __init__(self, base_url: str = "http://127.0.0.1:17870"):
         self.base_url = base_url
@@ -39,18 +39,18 @@ class CustomChatCompletionsTestClient:
         try:
             response_text = response.text.strip()
 
-            # 处理流式响应：多行JSON格式
+            # handle streaming response: multi-line JSON format
             if "\n" in response_text:
                 lines = response_text.split("\n")
-                # 获取第一行作为主要响应数据
+                # get first line as main response data
                 first_line = lines[0].strip()
                 if first_line.startswith("data: "):
-                    first_line = first_line[6:]  # 移除 "data: " 前缀
+                    first_line = first_line[6:]  # remove "data: " prefix
 
                 if first_line:
                     data = json.loads(first_line)
                 else:
-                    # 如果第一行为空，尝试下一行
+                    # if first line is empty, try next line
                     for line in lines[1:]:
                         line = line.strip()
                         if line.startswith("data: "):
@@ -65,7 +65,7 @@ class CustomChatCompletionsTestClient:
                             {"stream": True, "lines_count": len(lines)},
                         )
             else:
-                # 非流式响应
+                # non-streaming response
                 data = response.json()
 
             business_code = data.get("code", 0)
@@ -80,7 +80,7 @@ class CustomChatCompletionsTestClient:
         """发送Custom Chat Completions请求"""
         request_headers = headers or self.default_headers
 
-        # 强制使用非流式模式避免连接问题
+        # force non-streaming mode to avoid connection issues
         request_data_safe = request_data.copy()
         request_data_safe["stream"] = False
 
@@ -90,13 +90,13 @@ class CustomChatCompletionsTestClient:
 
 
 class TestCustomChatCompletions:
-    """Custom Chat Completions API测试套件"""
+    """Custom Chat Completions APItest套件"""
 
     client: CustomChatCompletionsTestClient
 
     @classmethod
     def setup_class(cls) -> None:
-        """测试类初始化"""
+        """test类初始化"""
         cls.client = CustomChatCompletionsTestClient()
 
     def _create_basic_request_data(self, user_message: str) -> Dict[str, Any]:
@@ -119,11 +119,11 @@ class TestCustomChatCompletions:
             },
             "meta_data": {"caller": "workflow-agent-node", "caller_sid": ""},
             "max_loop_count": 10,
-            "stream": False,  # 默认使用非流式模式避免连接问题
+            "stream": False,  # default to non-streaming mode to avoid connection issues
         }
 
     def test_basic_custom_chat(self) -> None:
-        """测试基础自定义聊天功能"""
+        """test基础自定义聊天功能"""
         request_data = self._create_basic_request_data("Hello, 请介绍一下你自己")
 
         response = self.client.send_request(request_data)
@@ -144,10 +144,10 @@ class TestCustomChatCompletions:
             print(f"⚠️ 业务状态码: {business_code}, 消息: {business_message}")
 
     def test_custom_chat_with_knowledge(self) -> None:
-        """测试包含知识库的自定义聊天"""
+        """test包含知识库的自定义聊天"""
         request_data = self._create_basic_request_data("你好，小米汽车咋样")
 
-        # 添加知识库配置
+        # add knowledge base configuration
         request_data["plugin"]["knowledge"] = [
             {
                 "name": "小米汽车车评",
@@ -172,10 +172,10 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_with_tools(self) -> None:
-        """测试包含工具的自定义聊天"""
+        """test包含工具的自定义聊天"""
         request_data = self._create_basic_request_data("帮我搜索相关信息")
 
-        # 添加工具配置
+        # add tool configuration
         request_data["plugin"]["tools"] = ["tool@664882907021000"]
 
         response = self.client.send_request(request_data)
@@ -189,10 +189,10 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_with_workflow(self) -> None:
-        """测试包含工作流的自定义聊天"""
-        request_data = self._create_basic_request_data("执行数据分析工作流")
+        """test包含工作流的自定义聊天"""
+        request_data = self._create_basic_request_data("execute数据分析工作流")
 
-        # 添加工作流配置
+        # add workflow configuration
         request_data["plugin"]["workflow_ids"] = ["data_analysis_workflow"]
         request_data["max_loop_count"] = 5
 
@@ -207,10 +207,10 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_with_mcp_servers(self) -> None:
-        """测试包含MCP服务器的自定义聊天"""
+        """test包含MCP服务器的自定义聊天"""
         request_data = self._create_basic_request_data("使用外部服务处理这个请求")
 
-        # 添加MCP服务器配置
+        # add MCP server configuration
         request_data["plugin"]["mcp_server_ids"] = ["mcp_server_001"]
         request_data["plugin"]["mcp_server_urls"] = ["http://localhost:3000"]
 
@@ -225,10 +225,10 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_multi_turn_conversation(self) -> None:
-        """测试自定义多轮对话"""
+        """test自定义多轮对话"""
         request_data = self._create_basic_request_data("请开始数据分析")
 
-        # 多轮对话消息
+        # multi-turn conversation messages
         request_data["messages"] = [
             {"role": "user", "content": "我需要分析销售数据"},
             {
@@ -249,7 +249,7 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_stream_mode(self) -> None:
-        """测试自定义聊天流式模式"""
+        """test自定义聊天流式模式"""
         request_data = self._create_basic_request_data("请详细解释人工智能的发展历史")
         request_data["stream"] = True
 
@@ -264,10 +264,10 @@ class TestCustomChatCompletions:
         )
 
     def test_custom_chat_with_custom_model_config(self) -> None:
-        """测试自定义模型配置"""
-        request_data = self._create_basic_request_data("使用自定义模型配置处理请求")
+        """testcustom model configuration"""
+        request_data = self._create_basic_request_data("使用custom model configuration处理请求")
 
-        # 自定义模型配置
+        # custom model configuration
         request_data["model_config"] = {
             "domain": "custom_model_v2",
             "api": "https://custom-api.example.com/v1",
@@ -281,34 +281,34 @@ class TestCustomChatCompletions:
 
         business_code, business_message, _ = self.client.parse_response(response)
         print(
-            f"自定义模型配置 - Business code: {business_code}, "
+            f"custom model configuration - Business code: {business_code}, "
             f"message: {business_message}"
         )
 
     def test_missing_required_headers(self) -> None:
-        """测试缺少必需headers的验证"""
-        request_data = self._create_basic_request_data("测试缺少headers")
+        """test缺少必需headers的验证"""
+        request_data = self._create_basic_request_data("test缺少headers")
 
-        # 移除必需的headers
+        # remove required headers
         incomplete_headers = {"Content-Type": "application/json"}
 
         response = self.client.send_request(request_data, headers=incomplete_headers)
 
-        print(f"缺少Headers测试 - HTTP状态码: {response.status_code}")
+        print(f"缺少Headerstest - HTTP状态码: {response.status_code}")
 
         if response.status_code == 422:
             print("✅ Headers验证正常工作")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"Headers验证测试 - Business code: "
+                f"Headers验证test - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_invalid_request_data(self) -> None:
-        """测试无效的请求数据验证"""
-        # 故意发送无效的请求数据
-        invalid_data = {"invalid_field": "test", "messages": []}  # 空消息数组
+        """test无效的请求数据验证"""
+        # intentionally send invalid request data
+        invalid_data = {"invalid_field": "test", "messages": []}  # empty message array
 
         response = self.client.send_request(invalid_data)
 
@@ -324,7 +324,7 @@ class TestCustomChatCompletions:
             print("✅ 输入验证正常工作")
 
     def test_custom_chat_non_stream_mode(self) -> None:
-        """测试自定义聊天非流式模式"""
+        """test自定义聊天非流式模式"""
         request_data = self._create_basic_request_data("请简单介绍Python编程语言")
         request_data["stream"] = False
 
@@ -339,11 +339,11 @@ class TestCustomChatCompletions:
         )
 
     def test_concurrent_custom_requests(self) -> None:
-        """测试自定义聊天并发请求"""
+        """test自定义聊天并发请求"""
 
         def send_single_custom_request(thread_id: int) -> Tuple[int, int, float, int]:
             """发送单个自定义请求"""
-            request_data = self._create_basic_request_data(f"并发测试请求 {thread_id}")
+            request_data = self._create_basic_request_data(f"并发test请求 {thread_id}")
             request_data["meta_data"]["caller_sid"] = f"concurrent_test_{thread_id}"
 
             start_time = time.time()
@@ -359,7 +359,7 @@ class TestCustomChatCompletions:
                 business_code,
             )
 
-        # 并发发送3个请求（自定义模式可能响应较慢）
+        # send 3 requests concurrently (custom mode may respond slower)
         max_workers = 3
         results = []
 
@@ -384,7 +384,7 @@ class TestCustomChatCompletions:
                 except (ValueError, RuntimeError, TypeError) as exc:
                     print(f"并发请求失败: {exc}")
 
-        # 验证结果
+        # Verify results
         http_success_count = sum(
             1 for _, http_status, _, _ in results if http_status == 200
         )
@@ -393,7 +393,7 @@ class TestCustomChatCompletions:
         )
 
         print(
-            f"自定义聊天并发测试 - HTTP成功: {http_success_count}/{max_workers}, "
+            f"自定义聊天并发test - HTTP成功: {http_success_count}/{max_workers}, "
             f"业务成功: {business_success_count}/{max_workers}"
         )
 
@@ -403,14 +403,14 @@ class TestCustomChatCompletions:
 
 
 if __name__ == "__main__":
-    # 直接运行测试
+    # run tests directly
     test_instance = TestCustomChatCompletions()
     test_instance.setup_class()
 
-    print("🚀 开始Custom Chat Completions API功能测试...")
+    print("🚀 开始Custom Chat Completions API功能test...")
     print("=" * 70)
 
-    # 测试用例列表
+    # test case list
     test_methods = [
         ("基础自定义聊天", test_instance.test_basic_custom_chat),
         ("知识库集成聊天", test_instance.test_custom_chat_with_knowledge),
@@ -420,7 +420,7 @@ if __name__ == "__main__":
         ("多轮对话", test_instance.test_custom_chat_multi_turn_conversation),
         ("流式模式", test_instance.test_custom_chat_stream_mode),
         ("非流式模式", test_instance.test_custom_chat_non_stream_mode),
-        ("自定义模型配置", test_instance.test_custom_chat_with_custom_model_config),
+        ("custom model configuration", test_instance.test_custom_chat_with_custom_model_config),
         ("Headers验证", test_instance.test_missing_required_headers),
         ("输入验证", test_instance.test_invalid_request_data),
         ("并发请求", test_instance.test_concurrent_custom_requests),
@@ -431,17 +431,17 @@ if __name__ == "__main__":
 
     for test_name, test_method in test_methods:
         try:
-            print(f"\n🧪 {test_name}测试:")
+            print(f"\n🧪 {test_name}test:")
             test_method()
-            print(f"✅ {test_name}测试完成")
+            print(f"✅ {test_name}test完成")
             tests_passed += 1
         except (AssertionError, ValueError, RuntimeError) as e:
-            print(f"❌ {test_name}测试失败: {e}")
+            print(f"❌ {test_name}test失败: {e}")
             tests_failed += 1
 
     print("\n" + "=" * 70)
     print(
-        f"📊 Custom Chat Completions测试完成！"
+        f"📊 Custom Chat Completionstest完成！"
         f"通过: {tests_passed}, 失败: {tests_failed}, "
         f"总计: {tests_passed + tests_failed}"
     )

@@ -11,7 +11,7 @@ from api.v1.bot_config_mgr_api import bot_config_mgr_router
 from api.v1.openapi import openapi_router
 from api.v1.workflow_agent import workflow_agent_router
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import initialize_services, logger, sid_generator2
 from infra.config import agent_config
 

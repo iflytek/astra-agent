@@ -15,7 +15,7 @@ from api.schemas.completion_chunk import (
 )
 from api.schemas.node_trace_patch import NodeTracePatch
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import BaseExc, Meter, NodeTrace, Span, TraceStatus
 from exceptions.agent_exc import AgentInternalExc, AgentNormalExc
 from infra import agent_config
@@ -47,7 +47,7 @@ class CompletionBase(BaseModel, ABC):
     async def build_node_trace(self, bot_id: str, span: Span) -> NodeTracePatch:
         with span.start("BuildNodeTrace") as sp:
             node_trace: NodeTracePatch = NodeTracePatch(
-                service_id=bot_id,  # 使用 bot_id 作为 service_id
+                service_id=bot_id,  # Use bot_id as service_id
                 sid=sp.sid,
                 app_id=self.app_id,
                 uid=self.inputs.uid,

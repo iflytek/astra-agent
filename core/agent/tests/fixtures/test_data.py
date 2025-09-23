@@ -11,9 +11,9 @@ fake = Faker("zh_CN")
 
 
 class TestDataFactory:
-    """测试数据工厂类.
+    """test数据工厂类.
 
-    提供各种测试数据的生成方法，支持Bot配置、聊天消息、工作流等数据的创建。
+    提供各种test数据的生成方法，支持Bot配置、聊天消息、工作流等数据的创建。
     """
 
     @staticmethod

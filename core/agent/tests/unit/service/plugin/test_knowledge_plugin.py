@@ -368,7 +368,7 @@ class TestKnowledgePluginFactory:
         """Test retrieve with unicode query."""
         # Arrange
         factory = KnowledgePluginFactory(
-            query="测试中文查询",
+            query="test中文查询",
             top_k=5,
             repo_ids=["中文repo"],
             doc_ids=["中文doc"],
@@ -417,7 +417,7 @@ class TestKnowledgePluginFactory:
                 # Verify unicode content is handled correctly
                 call_args = mock_session.post.call_args
                 request_data = call_args[1]["json"]
-                assert request_data["query"] == "测试中文查询"
+                assert request_data["query"] == "test中文查询"
 
     @pytest.mark.unit
     @pytest.mark.asyncio

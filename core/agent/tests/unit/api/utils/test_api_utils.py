@@ -1,4 +1,4 @@
-"""API工具类单元测试模块."""
+"""API工具类单元test模块."""
 
 import re
 import threading
@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 
 
 class MockAPIUtils:
-    """模拟API工具类，用于测试."""
+    """模拟API工具类，用于test."""
 
     @staticmethod
     def validate_request_data(data: Any) -> bool:
@@ -34,7 +34,7 @@ class MockAPIUtils:
         """清理输入字符串."""
         if not isinstance(input_str, str):
             return ""
-        # 移除危险字符
+        # Remove dangerous characters
         dangerous_chars = ["<", ">", '"', "'", "&"]
         result = input_str
         for char in dangerous_chars:
@@ -48,7 +48,7 @@ class MockAPIUtils:
             page = params.get("page", 1)
             size = params.get("size", 20)
 
-            # 处理无穷大和特殊值
+            # Handle infinity and special values
             if (
                 not isinstance(page, (int, float))
                 or page == float("inf")
@@ -68,7 +68,7 @@ class MockAPIUtils:
             page = 1
             size = 20
 
-        # 限制范围
+        # Limit range
         page = max(1, page)
         size = max(1, min(100, size))
 
@@ -91,19 +91,19 @@ class MockAPIUtils:
             "api_key": None,
         }
 
-        # 提取用户ID
+        # Extract user ID
         if "X-User-ID" in headers:
             user_info["user_id"] = headers["X-User-ID"]
 
-        # 提取会话ID
+        # Extract session ID
         if "X-Session-ID" in headers:
             user_info["session_id"] = headers["X-Session-ID"]
 
-        # 提取客户端类型
+        # Extract client type
         if "User-Agent" in headers:
             user_info["client_type"] = headers["User-Agent"]
 
-        # 提取API密钥
+        # Extract API key
         if "Authorization" in headers:
             auth_header = headers["Authorization"]
             if auth_header.startswith("Bearer "):
@@ -113,19 +113,19 @@ class MockAPIUtils:
 
 
 class TestAPIUtils:  # pylint: disable=too-many-public-methods
-    """API工具类测试."""
+    """API工具类test."""
 
     def __init__(self) -> None:
-        """初始化测试类."""
+        """初始化test类."""
         self.api_utils = MockAPIUtils()
 
     def setup_method(self) -> None:
-        """测试方法初始化."""
+        """test方法初始化."""
         # Reset API utils instance for each test
         self.api_utils = MockAPIUtils()
 
     def test_validate_request_data_valid(self) -> None:
-        """测试有效请求数据验证."""
+        """test有效请求数据验证."""
         valid_data_sets = [
             {"key": "value"},
             {"user": "test", "action": "create"},
@@ -138,7 +138,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert result is True
 
     def test_validate_request_data_invalid(self) -> None:
-        """测试无效请求数据验证."""
+        """test无效请求数据验证."""
         invalid_data_sets: List[Any] = [None, {}, [], "", 123, "string_data"]
 
         for data in invalid_data_sets:
@@ -146,7 +146,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert result is False
 
     def test_format_response_success(self) -> None:
-        """测试成功响应格式化."""
+        """test成功响应格式化."""
         test_data = {"result": "success", "message": "操作完成"}
 
         response = self.api_utils.format_response(test_data)
@@ -158,7 +158,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert isinstance(response["timestamp"], float)
 
     def test_format_response_error(self) -> None:
-        """测试错误响应格式化."""
+        """test错误响应格式化."""
         error_data = {"error": "ValidationError", "details": "字段缺失"}
 
         response = self.api_utils.format_response(error_data, 400)
@@ -168,7 +168,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert response["data"] == error_data
 
     def test_format_response_unicode_data(self) -> None:
-        """测试Unicode数据响应格式化."""
+        """testUnicode数据响应格式化."""
         unicode_data = {
             "message": "中文消息🚀",
             "content": "特殊字符①②③",
@@ -182,7 +182,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert "特殊字符①②③" in response["data"]["content"]
 
     def test_sanitize_input_clean_text(self) -> None:
-        """测试清理干净文本."""
+        """test清理干净文本."""
         clean_inputs = [
             "normal text",
             "中文文本",
@@ -195,7 +195,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert result == input_text
 
     def test_sanitize_input_dangerous_characters(self) -> None:
-        """测试清理危险字符."""
+        """test清理危险字符."""
         dangerous_inputs = [
             "<script>alert('xss')</script>",
             'SELECT * FROM users WHERE id = "1"',
@@ -206,7 +206,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
 
         for input_text in dangerous_inputs:
             result = self.api_utils.sanitize_input(input_text)
-            # 验证危险字符被移除
+            # Verify dangerous characters are removed
             assert "<" not in result
             assert ">" not in result
             assert '"' not in result
@@ -214,7 +214,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert "&" not in result
 
     def test_sanitize_input_invalid_types(self) -> None:
-        """测试清理无效类型输入."""
+        """test清理无效类型输入."""
         invalid_inputs: List[Any] = [None, 123, [], {}, True]
 
         for invalid_input in invalid_inputs:
@@ -222,27 +222,27 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert result == ""
 
     def test_sanitize_input_unicode_content(self) -> None:
-        """测试清理Unicode内容."""
+        """test清理Unicode内容."""
         unicode_inputs = [
             "中文内容🚀",
             "特殊字符①②③④⑤",
-            "emoji测试😀😁😂🤣",
+            "emojitest😀😁😂🤣",
             "混合内容: English + 中文 + 🎉",
         ]
 
         for input_text in unicode_inputs:
             result = self.api_utils.sanitize_input(input_text)
-            # Unicode字符应该保留
+            # Unicode characters should be preserved
             assert len(result) > 0
             assert "中文" in result if "中文" in input_text else True
 
     def test_parse_pagination_params_valid(self) -> None:
-        """测试解析有效分页参数."""
+        """test解析有效分页参数."""
         valid_params_sets = [
             {"page": 1, "size": 20},
             {"page": 2, "size": 10},
             {"page": 5, "size": 50},
-            {"page": "3", "size": "15"},  # 字符串数字
+            {"page": "3", "size": "15"},  # String numbers
         ]
 
         for params in valid_params_sets:
@@ -259,7 +259,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             assert result["limit"] == result["size"]
 
     def test_parse_pagination_params_defaults(self) -> None:
-        """测试解析默认分页参数."""
+        """test解析默认分页参数."""
         empty_params: Dict[str, Any] = {}
         result = self.api_utils.parse_pagination_params(empty_params)
 
@@ -269,27 +269,27 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert result["limit"] == 20
 
     def test_parse_pagination_params_boundary_values(self) -> None:
-        """测试解析边界值分页参数."""
+        """test解析边界值分页参数."""
         boundary_params_sets = [
-            {"page": 0, "size": 0},  # 最小值以下
-            {"page": -1, "size": -5},  # 负数
-            {"page": 1, "size": 200},  # 超过最大限制
-            {"page": 1000, "size": 1},  # 极大页码
+            {"page": 0, "size": 0},  # Below minimum value
+            {"page": -1, "size": -5},  # Negative numbers
+            {"page": 1, "size": 200},  # Exceeds maximum limit
+            {"page": 1000, "size": 1},  # Very large page number
         ]
 
         for params in boundary_params_sets:
             result = self.api_utils.parse_pagination_params(params)
 
-            # 验证边界限制
+            # Verify boundary limits
             assert result["page"] >= 1
             assert result["size"] >= 1
             assert result["size"] <= 100
 
     def test_generate_request_id_uniqueness(self) -> None:
-        """测试生成请求ID唯一性."""
+        """test生成请求ID唯一性."""
         request_ids = set()
 
-        # 生成多个ID验证唯一性
+        # Generate multiple IDs to verify uniqueness
         for _ in range(100):
             request_id = self.api_utils.generate_request_id()
             assert isinstance(request_id, str)
@@ -298,15 +298,15 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             request_ids.add(request_id)
 
     def test_generate_request_id_format(self) -> None:
-        """测试生成请求ID格式."""
+        """test生成请求ID格式."""
         request_id = self.api_utils.generate_request_id()
 
-        # 验证UUID格式 (假设使用UUID4)
+        # Verify UUID format (assuming UUID4)
         uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
         assert re.match(uuid_pattern, request_id, re.IGNORECASE)
 
     def test_extract_user_info_complete_headers(self) -> None:
-        """测试提取完整用户信息."""
+        """test提取完整用户信息."""
         complete_headers = {
             "X-User-ID": "user-123",
             "X-Session-ID": "session-456",
@@ -322,7 +322,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert user_info["api_key"] == "sk-test-api-key-789"
 
     def test_extract_user_info_partial_headers(self) -> None:
-        """测试提取部分用户信息."""
+        """test提取部分用户信息."""
         partial_headers = {"X-User-ID": "user-456", "Content-Type": "application/json"}
 
         user_info = self.api_utils.extract_user_info(partial_headers)
@@ -333,7 +333,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert user_info["api_key"] is None
 
     def test_extract_user_info_empty_headers(self) -> None:
-        """测试提取空头部用户信息."""
+        """test提取空头部用户信息."""
         empty_headers: Dict[str, str] = {}
 
         user_info = self.api_utils.extract_user_info(empty_headers)
@@ -344,7 +344,7 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert user_info["api_key"] is None
 
     def test_extract_user_info_unicode_headers(self) -> None:
-        """测试提取Unicode头部用户信息."""
+        """test提取Unicode头部用户信息."""
         unicode_headers = {
             "X-User-ID": "中文用户_123",
             "X-Session-ID": "会话_456",
@@ -361,25 +361,25 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         assert "🚀" in str(user_info["client_type"])
 
     def test_extract_user_info_malformed_auth(self) -> None:
-        """测试提取格式错误的认证信息."""
+        """test提取格式错误的认证信息."""
         malformed_headers = {
-            "Authorization": "Basic username:password",  # 不是Bearer
+            "Authorization": "Basic username:password",  # Not Bearer
             "X-User-ID": "user-789",
         }
 
         user_info = self.api_utils.extract_user_info(malformed_headers)
 
         assert user_info["user_id"] == "user-789"
-        assert user_info["api_key"] is None  # Bearer格式不匹配
+        assert user_info["api_key"] is None  # Bearer format doesn't match
 
     def test_api_utils_performance(self) -> None:
-        """测试API工具性能."""
-        # 测试大量数据处理性能
+        """testAPI工具性能."""
+        # Test large data processing performance
         large_data = {"items": list(range(1000)), "metadata": {"count": 1000}}
 
         start_time = time.time()
 
-        # 执行多个操作
+        # Execute multiple operations
         for _ in range(100):
             self.api_utils.validate_request_data(large_data)
             self.api_utils.format_response(large_data)
@@ -388,28 +388,28 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
         end_time = time.time()
         execution_time = end_time - start_time
 
-        # 验证性能合理（100次操作应该在1秒内完成）
+        # Verify reasonable performance (100 operations should complete within 1 second)
         assert execution_time < 1.0
 
     def test_api_utils_concurrent_safety(self) -> None:
-        """测试API工具并发安全性."""
+        """testAPI工具并发安全性."""
         results: List[Dict[str, Any]] = []
 
         def concurrent_operations(thread_id: int) -> None:
             try:
-                # 执行各种操作
+                # Execute various operations
                 data = {"thread_id": thread_id, "data": f"thread_{thread_id}_data"}
 
-                # 验证请求
+                # Verify request
                 valid = self.api_utils.validate_request_data(data)
 
-                # 格式化响应
+                # Format response
                 response = self.api_utils.format_response(data)
 
-                # 生成ID
+                # Generate ID
                 request_id = self.api_utils.generate_request_id()
 
-                # 解析分页
+                # Parse pagination
                 pagination = self.api_utils.parse_pagination_params(
                     {"page": thread_id + 1}
                 )
@@ -427,43 +427,43 @@ class TestAPIUtils:  # pylint: disable=too-many-public-methods
             except (ValueError, TypeError, AttributeError) as e:
                 results.append({"thread_id": thread_id, "error": str(e)})
 
-        # 创建多个线程
+        # Create multiple threads
         threads = []
         for i in range(10):
             thread = threading.Thread(target=concurrent_operations, args=(i,))
             threads.append(thread)
             thread.start()
 
-        # 等待所有线程完成
+        # Wait for all threads to complete
         for thread in threads:
             thread.join()
 
-        # 验证结果
+        # Verify results
         assert len(results) == 10
 
-        # 验证所有操作都成功
+        # Verify all operations succeeded
         successful_results = [r for r in results if "error" not in r]
         assert len(successful_results) == 10
 
-        # 验证请求ID唯一性
+        # Verify requestID uniqueness
         request_ids = [r["request_id"] for r in successful_results]
-        assert len(set(request_ids)) == 10  # 所有ID应该唯一
+        assert len(set(request_ids)) == 10  # All IDs should be unique
 
     def test_api_utils_edge_cases(self) -> None:
-        """测试API工具边界情况."""
-        # 测试极大数据
+        """testAPI工具边界情况."""
+        # Test very large data
         huge_data = {"content": "x" * 100000}
         assert self.api_utils.validate_request_data(huge_data) is True
 
-        # 测试嵌套深度数据
+        # Test nested deep data
         nested_data = {"level1": {"level2": {"level3": {"level4": "deep"}}}}
         assert self.api_utils.validate_request_data(nested_data) is True
 
-        # 测试空字符串清理
+        # Test empty string cleanup
         empty_result = self.api_utils.sanitize_input("   ")
         assert empty_result == ""
 
-        # 测试极端分页参数
+        # Test extreme pagination parameters
         extreme_pagination = self.api_utils.parse_pagination_params(
             {"page": float("inf"), "size": float("inf")}
         )

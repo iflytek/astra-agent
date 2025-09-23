@@ -69,7 +69,7 @@ class LinkPluginRunner(BaseModel):
         for parameter_name, parameter_detail in body_properties.items():
             parameter_type = parameter_detail.get("type")
             if parameter_type == "object":
-                # 递归
+                # recursive
                 _properties = self.assemble_body(
                     parameter_detail, action_input, business_input
                 )
@@ -311,7 +311,7 @@ class LinkPluginFactory(BaseModel):
             parameter_type = parameter_detail.get("type")
             parameter_x_from = parameter_detail.get("x-from")
             if parameter_type == "object":
-                # 递归
+                # recursive
                 self.recursive_parse_request_body_schema(
                     parameter_detail, properties, required_set
                 )

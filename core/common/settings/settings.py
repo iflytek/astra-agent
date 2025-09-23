@@ -46,12 +46,15 @@ class ProjectSettings(BaseSettings):
             self.do_sync_env_file_to_environ()
 
     def sync_fields_to_environ(self):
+        env_keys = os.environ.keys()
         for field, field_info in self.model_fields.items():
             env_key, env_value = self.dump_field_and_value(field, field_info)
+            if env_key in env_keys:
+                continue
             os.environ[env_key] = str(env_value)
 
     def do_sync_env_file_to_environ(self):
-        load_dotenv(self.__reload_env_file)
+        load_dotenv(self.__reload_env_file, override=False)
 
     def dump_field_and_value(self, field: str, field_info: FieldInfo):
         value = getattr(self, field)

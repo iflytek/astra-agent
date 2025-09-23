@@ -55,7 +55,7 @@ class Polaris(BaseModel):
 
     @staticmethod
     def set_env(configs_content: str):
-        load_dotenv(stream=StringIO(configs_content), override=True)
+        load_dotenv(stream=StringIO(configs_content), override=False)
 
     def pull(
         self,
@@ -72,7 +72,6 @@ class Polaris(BaseModel):
                     response = session.get(url, cookies={"JSESSIONID": self.cookie})
                     response.raise_for_status()
                     content = response.json()["data"]["content"]
-                    print("set env:::", set_env)
                     if set_env:
                         self.set_env(content)
                     if verbose:

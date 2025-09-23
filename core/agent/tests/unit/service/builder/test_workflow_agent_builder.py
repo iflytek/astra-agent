@@ -1,4 +1,4 @@
-"""WorkflowAgentRunnerBuilder单元测试模块."""
+"""WorkflowAgentRunnerBuilder单元test模块."""
 
 from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, patch
@@ -22,11 +22,11 @@ from service.builder.workflow_agent_builder import (
 
 
 class TestWorkflowAgentRunnerBuilder:
-    """WorkflowAgentRunnerBuilder测试类."""
+    """WorkflowAgentRunnerBuildertest类."""
 
     def setup_method(self) -> None:
-        """测试方法初始化."""
-        # 创建真实的输入数据
+        """test方法初始化."""
+        # create real input data
         model_config_inputs = CustomCompletionModelConfigInputs(
             domain="test-domain", api="http://test-api", api_key="test-key"
         )
@@ -59,7 +59,7 @@ class TestWorkflowAgentRunnerBuilder:
             max_loop_count=5,
         )
 
-        # 创建builder实例
+        # create builder instance
         mock_span = Mock(spec=Span)
         self.builder = WorkflowAgentRunnerBuilder(
             app_id="test_app_id",
@@ -110,8 +110,8 @@ class TestWorkflowAgentRunnerBuilder:
         _mock_create_model: Mock,
         mock_runner_class: Mock,
     ) -> None:
-        """测试成功构建WorkflowAgentRunner."""
-        # Mock所有依赖方法的返回值
+        """test成功构建WorkflowAgentRunner."""
+        # Mock all dependent method return values
         mock_model = Mock()
         _mock_create_model.return_value = mock_model
 
@@ -138,13 +138,13 @@ class TestWorkflowAgentRunnerBuilder:
         mock_runner = Mock()
         mock_runner_class.return_value = mock_runner
 
-        # 执行构建
+        # execute build
         result = await self.builder.build()
 
-        # 验证结果
+        # Verify results
         assert result == mock_runner
 
-        # 验证方法调用
+        # verify method calls
         _mock_create_model.assert_called_once()
         mock_build_plugins.assert_called_once()
         mock_query_knowledge.assert_called_once()
@@ -157,32 +157,32 @@ class TestWorkflowAgentRunnerBuilder:
     async def test_query_knowledge_by_workflow_empty_knowledge(self) -> None:
         """Test query_knowledge_by_workflow with empty knowledge list."""
 
-        # 创建支持上下文管理器的Mock span
+        # create Mock span supporting context manager
         mock_context = Mock()
         mock_span = Mock()
         mock_span.__enter__ = Mock(return_value=mock_context)
         mock_span.__exit__ = Mock(return_value=None)
 
-        # 空知识库列表
+        # empty knowledge base list
         mock_span_param = Mock()
         mock_span_param.start = Mock(return_value=mock_span)
         result = await self.builder.query_knowledge_by_workflow([], mock_span_param)
 
-        # 验证返回空结果
+        # verify returns empty result
         assert result == ([], "")
 
     @pytest.mark.asyncio
     async def test_query_knowledge_by_workflow_with_knowledge(self) -> None:
         """Test query_knowledge_by_workflow with knowledge data."""
 
-        # 创建模拟知识库输入
+        # create simulated knowledge base input
         mock_knowledge = Mock()
         mock_knowledge.match = Mock()
         mock_knowledge.match.repo_ids = ["repo1"]
         mock_knowledge.query = "test query"
         knowledge_list = [mock_knowledge]
 
-        # 创建支持上下文管理器的Mock span
+        # create Mock span supporting context manager
         mock_context = Mock()
         mock_span = Mock()
         mock_span.__enter__ = Mock(return_value=mock_context)
@@ -203,14 +203,14 @@ class TestWorkflowAgentRunnerBuilder:
             patch("asyncio.gather") as mock_gather,
         ):
 
-            # Mock方法返回值
+            # Mock method return values
             async def mock_async_task() -> Any:
                 return "mocked_result"
 
-            # 设置正确的Mock返回值
+            # set correct Mock return values
             mock_create_tasks.return_value = [mock_async_task()]
 
-            # mock_gather需要返回一个协程，因为它会被await
+            # mock_gather needs to return a coroutine because it will be awaited
             async def mock_gather_coro(*_: Any) -> Any:
                 return ["result1", "result2"]
 
@@ -218,20 +218,20 @@ class TestWorkflowAgentRunnerBuilder:
             mock_process_results.return_value = ([], {})
             mock_extract_backgrounds.return_value = ""
 
-            # 执行测试
+            # execute test
             result = await self.builder.query_knowledge_by_workflow(
                 cast(list[CustomCompletionPluginKnowledgeInputs], knowledge_list),
                 mock_span_param,
             )
 
-            # 验证调用和结果
+            # verify calls and results
             mock_create_tasks.assert_called_once()
             mock_process_results.assert_called_once()
             mock_extract_backgrounds.assert_called_once()
             assert result == ([], "")
 
     def test_create_knowledge_tasks_empty_list(self) -> None:
-        """测试空知识库列表创建任务."""
+        """testempty knowledge base list创建任务."""
         tasks = self.builder._create_knowledge_tasks([], Mock())
         assert not tasks
 
@@ -240,8 +240,8 @@ class TestWorkflowAgentRunnerBuilder:
         "WorkflowAgentRunnerBuilder.exec_query_knowledge"
     )
     def test_create_knowledge_tasks_with_knowledge(self, mock_exec: Mock) -> None:
-        """测试包含知识库的任务创建."""
-        # 创建模拟知识库
+        """test包含知识库的任务创建."""
+        # create simulated knowledge base
         mock_knowledge = Mock()
         mock_match = Mock()
         mock_match.repo_ids = ["repo1"]
@@ -257,12 +257,12 @@ class TestWorkflowAgentRunnerBuilder:
             cast(list[CustomCompletionPluginKnowledgeInputs], knowledge_list), Mock()
         )
 
-        # 验证任务创建
+        # verify task creation
         assert len(tasks) == 1
         mock_exec.assert_called_once()
 
     def test_process_knowledge_results_empty(self) -> None:
-        """测试空结果的处理."""
+        """test空结果的处理."""
         results: list[Any] = []
         metadata_list, metadata_map = self.builder._process_knowledge_results(results)
 
@@ -270,15 +270,15 @@ class TestWorkflowAgentRunnerBuilder:
         assert not metadata_map
 
     def test_process_knowledge_results_with_data(self) -> None:
-        """测试包含数据的结果处理."""
+        """test包含数据的结果处理."""
         results = [
             {
                 "data": {
                     "results": [
                         {
-                            "title": "测试标题",
+                            "title": "test标题",
                             "docId": "doc1",
-                            "content": "测试内容",
+                            "content": "test内容",
                             "references": {},
                         }
                     ]
@@ -291,13 +291,13 @@ class TestWorkflowAgentRunnerBuilder:
 
             metadata_list, _ = self.builder._process_knowledge_results(results)
 
-            # 验证结果
+            # Verify results
             assert len(metadata_list) == 1
             assert metadata_list[0]["source_id"] == "doc1"
             assert len(metadata_list[0]["chunk"]) == 1
 
     def test_process_content_references_image(self) -> None:
-        """测试图片引用处理."""
+        """test图片引用处理."""
         content = "这是一个图片 <ref1> 示例"
         references = {
             "ref1": {"format": "image", "link": "http://example.com/image.jpg"}
@@ -309,7 +309,7 @@ class TestWorkflowAgentRunnerBuilder:
         assert "<ref1>" not in result
 
     def test_process_content_references_table(self) -> None:
-        """测试表格引用处理."""
+        """test表格引用处理."""
         content = "这是一个表格 <table1> 示例"
         references = {"table1": {"format": "table", "content": "表格内容"}}
 
@@ -319,14 +319,14 @@ class TestWorkflowAgentRunnerBuilder:
         assert "<table1>" not in result
 
     def test_extract_backgrounds_empty(self) -> None:
-        """测试空元数据提取背景."""
+        """test空元数据提取背景."""
         metadata_list: list[Any] = []
         backgrounds = self.builder._extract_backgrounds(metadata_list)
 
         assert not backgrounds
 
     def test_extract_backgrounds_with_data(self) -> None:
-        """测试包含数据的背景提取."""
+        """test包含数据的背景提取."""
         metadata_list = [
             {"chunk": [{"chunk_context": "背景1"}, {"chunk_context": "背景2"}]},
             {"chunk": [{"chunk_context": "背景3"}]},
@@ -337,7 +337,7 @@ class TestWorkflowAgentRunnerBuilder:
         assert "背景1" in backgrounds
         assert "背景2" in backgrounds
         assert "背景3" in backgrounds
-        assert backgrounds.count("\n") == 2  # 3个背景用2个换行符分隔
+        assert backgrounds.count("\n") == 2  # 3 backgrounds separated by 2 newlines
 
     @pytest.mark.asyncio
     async def test_exec_query_knowledge(self) -> None:
@@ -358,7 +358,7 @@ class TestWorkflowAgentRunnerBuilder:
             mock_plugin.run = AsyncMock(return_value={"data": {"results": []}})
             mock_factory.return_value.gen.return_value = mock_plugin
 
-            # 创建支持上下文管理器的Mock span
+            # create Mock span supporting context manager
             mock_span_param = Mock()
             mock_context = Mock()
             mock_span = Mock()
@@ -368,13 +368,13 @@ class TestWorkflowAgentRunnerBuilder:
 
             result = await self.builder.exec_query_knowledge(params, mock_span_param)
 
-            # 验证结果
+            # Verify results
             assert isinstance(result, dict)
             mock_plugin.run.assert_called_once()
 
     def test_attributes_validation(self) -> None:
-        """测试属性验证."""
-        # 验证builder有必要的属性
+        """test属性验证."""
+        # verify builder has necessary attributes
         assert hasattr(self.builder, "inputs")
         assert hasattr(self.builder, "app_id")
         assert hasattr(self.builder, "span")
@@ -387,17 +387,17 @@ class TestWorkflowAgentRunnerBuilder:
     async def test_build_model_creation_error(self, mock_create_model: Any) -> None:
         """Test build method with model creation error."""
 
-        # Mock create_model抛出异常
+        # Mock create_model throws exception
         mock_create_model.side_effect = Exception("模型创建失败")
 
-        # Mock span上下文管理器
+        # Mock span context manager
         mock_context = Mock()
         mock_span = Mock()
         mock_span.__enter__ = Mock(return_value=mock_context)
         mock_span.__exit__ = Mock(return_value=None)
 
         with patch.object(self.builder.span, "start", return_value=mock_span):
-            # 验证异常传播
+            # Verify exception propagation
             with pytest.raises(Exception, match="模型创建失败"):
                 await self.builder.build()
 
@@ -422,27 +422,27 @@ class TestWorkflowAgentRunnerBuilder:
     ) -> None:
         """Test build method with plugins creation error."""
 
-        # Mock span上下文管理器
+        # Mock span context manager
         mock_context = Mock()
         mock_span = Mock()
         mock_span.__enter__ = Mock(return_value=mock_context)
         mock_span.__exit__ = Mock(return_value=None)
 
         with patch.object(self.builder.span, "start", return_value=mock_span):
-            # Mock正常的模型创建
+            # Mock normal model creation
             mock_create_model.return_value = Mock()
-            # Mock build_plugins抛出异常
+            # Mock build_plugins throws exception
             mock_build_plugins.side_effect = Exception("插件构建失败")
-            # Mock query_knowledge_by_workflow返回值
+            # Mock query_knowledge_by_workflow return value
             mock_query_knowledge.return_value = ([], "")
 
-            # 验证异常传播
+            # Verify exception propagation
             try:
                 await self.builder.build()
-                # 如果没有抛出异常，测试应该失败
+                # if no exception is thrown, test should fail
                 pytest.fail("Expected Exception was not raised")
             except Exception as e:
-                # 验证异常消息
+                # verify exception message
                 assert "插件构建失败" in str(e)
 
     @pytest.mark.asyncio
@@ -483,19 +483,19 @@ class TestWorkflowAgentRunnerBuilder:
     ) -> None:
         """Test build method with unicode content."""
 
-        # 设置Unicode输入
+        # setup Unicode input
         self.mock_inputs.messages = [
             Mock(content="中文消息🚀"),
             Mock(content="特殊字符：①②③"),
         ]
 
-        # Mock span上下文管理器
+        # Mock span context manager
         mock_context = Mock()
         mock_span = Mock()
         mock_span.__enter__ = Mock(return_value=mock_context)
         mock_span.__exit__ = Mock(return_value=None)
 
-        # 设置所有mock的返回值
+        # set all mock return values
         mock_create_model.return_value = Mock()
         mock_build_plugins.return_value = []
         mock_query_knowledge.return_value = ([], "")
@@ -508,17 +508,17 @@ class TestWorkflowAgentRunnerBuilder:
         mock_runner_class.return_value = mock_runner
 
         with patch.object(self.builder.span, "start", return_value=mock_span):
-            # 执行构建
+            # execute build
             result = await self.builder.build()
 
-            # 验证Unicode内容被正确处理
+            # Verify Unicode content is handled correctly
             assert "🚀" in self.mock_inputs.messages[0].content
             assert "①②③" in self.mock_inputs.messages[1].content
 
-            # 验证结果
+            # Verify results
             assert result == mock_runner
 
-            # 验证所有构建步骤被调用
+            # verify all build steps are called
             mock_create_model.assert_called_once()
             mock_build_plugins.assert_called_once()
             mock_query_knowledge.assert_called_once()

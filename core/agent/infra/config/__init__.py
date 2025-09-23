@@ -9,7 +9,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import ConfigFilter, DevelopmentEnv, Polaris, ProductionEnv
 from infra.config.fast_uvi import UvicornConfig
 from infra.config.middleware import MiddlewareConfig

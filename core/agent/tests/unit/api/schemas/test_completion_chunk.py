@@ -1,4 +1,4 @@
-"""CompletionChunk Schema单元测试模块."""
+"""CompletionChunk Schema单元test模块."""
 
 import json
 from typing import Any, Dict, List
@@ -15,10 +15,10 @@ from api.schemas.completion_chunk import (
 
 
 class TestReasonChoiceDeltaToolCallFunction:
-    """ReasonChoiceDeltaToolCallFunction测试类."""
+    """ReasonChoiceDeltaToolCallFunctiontest类."""
 
     def test_tool_call_function_creation(self) -> None:
-        """测试工具调用函数创建."""
+        """test工具调用函数创建."""
         function_data: Dict[str, Any] = {
             "name": "test_function",
             "arguments": '{"param1": "value1", "param2": "value2"}',
@@ -26,12 +26,12 @@ class TestReasonChoiceDeltaToolCallFunction:
 
         tool_function = ReasonChoiceDeltaToolCallFunction(**function_data)
         assert tool_function.name == "test_function"
-        # 处理可能为None的arguments
+        # handle possibly None arguments
         if tool_function.arguments is not None:
             assert "param1" in tool_function.arguments
 
     def test_tool_call_function_unicode_support(self) -> None:
-        """测试工具调用函数Unicode支持."""
+        """test工具调用函数Unicode支持."""
         unicode_data: Dict[str, Any] = {
             "name": "中文函数名",
             "arguments": '{"query": "中文查询🔍", "context": "特殊字符①②③"}',
@@ -43,27 +43,27 @@ class TestReasonChoiceDeltaToolCallFunction:
             assert "中文查询🔍" in tool_function.arguments
 
     def test_tool_call_function_validation(self) -> None:
-        """测试工具调用函数验证."""
-        # 测试无效数据
+        """test工具调用函数验证."""
+        # Test invalid data
         invalid_data_sets: List[Dict[str, Any]] = [
-            {"name": "", "arguments": "{}"},  # 空函数名
-            {"name": "test", "arguments": "invalid_json"},  # 无效JSON
+            {"name": "", "arguments": "{}"},  # empty function name
+            {"name": "test", "arguments": "invalid_json"},  # invalid JSON
         ]
 
         for invalid_data in invalid_data_sets:
             try:
                 ReasonChoiceDeltaToolCallFunction(**invalid_data)
-                # 某些验证可能在运行时进行
+                # some validations may occur at runtime
             except (ValidationError, ValueError):
-                # 验证错误是预期的
+                # Verify error is expected
                 pass
 
 
 class TestReasonChoiceDeltaToolCall:
-    """ReasonChoiceDeltaToolCall测试类."""
+    """ReasonChoiceDeltaToolCalltest类."""
 
     def test_tool_call_creation(self) -> None:
-        """测试工具调用创建."""
+        """test工具调用创建."""
         function_data: Dict[str, Any] = {
             "name": "search_function",
             "arguments": '{"query": "test search"}',
@@ -72,20 +72,20 @@ class TestReasonChoiceDeltaToolCall:
         tool_call_data: Dict[str, Any] = {
             "index": 0,
             "type": "tool",
-            "reason": "执行工具调用",
+            "reason": "execute工具调用",
             "function": ReasonChoiceDeltaToolCallFunction(**function_data),
         }
 
         tool_call = ReasonChoiceDeltaToolCall(**tool_call_data)
         assert tool_call.index == 0
         assert tool_call.type == "tool"
-        assert tool_call.reason == "执行工具调用"
+        assert tool_call.reason == "execute工具调用"
         assert isinstance(
             tool_call.function, ReasonChoiceDeltaToolCallFunction
         ) or hasattr(tool_call.function, "name")
 
     def test_tool_call_without_function(self) -> None:
-        """测试没有function的工具调用."""
+        """test没有function的工具调用."""
         tool_call_data: Dict[str, Any] = {
             "index": 0,
             "type": "tool",
@@ -94,18 +94,18 @@ class TestReasonChoiceDeltaToolCall:
 
         try:
             tool_call = ReasonChoiceDeltaToolCall(**tool_call_data)
-            # 验证可选字段处理
+            # verify optional field handling
             assert tool_call.index == 0
             assert tool_call.type == "tool"
             assert tool_call.reason == "无function的工具调用"
         except ValidationError:
-            # 如果function是必需的
+            # if function is required
             pass
 
     def test_tool_call_unicode_content(self) -> None:
-        """测试工具调用Unicode内容."""
+        """test工具调用Unicode内容."""
         unicode_function = ReasonChoiceDeltaToolCallFunction(
-            name="中文搜索", arguments='{"查询": "测试内容🔍"}'
+            name="中文搜索", arguments='{"查询": "test内容🔍"}'
         )
 
         tool_call_data: Dict[str, Any] = {
@@ -120,24 +120,24 @@ class TestReasonChoiceDeltaToolCall:
 
 
 class TestReasonChoiceDelta:
-    """ReasonChoiceDelta测试类."""
+    """ReasonChoiceDeltatest类."""
 
     def test_choice_delta_creation(self) -> None:
-        """测试选择增量创建."""
-        delta_data: Dict[str, Any] = {"content": "这是测试内容", "role": "assistant"}
+        """test选择增量创建."""
+        delta_data: Dict[str, Any] = {"content": "这是test内容", "role": "assistant"}
 
         choice_delta = ReasonChoiceDelta(**delta_data)
         if hasattr(choice_delta, "content"):
-            assert choice_delta.content == "这是测试内容"
+            assert choice_delta.content == "这是test内容"
         if hasattr(choice_delta, "role"):
             assert choice_delta.role == "assistant"
 
     def test_choice_delta_with_tool_calls(self) -> None:
-        """测试包含工具调用的选择增量."""
+        """test包含工具调用的选择增量."""
         tool_call = ReasonChoiceDeltaToolCall(
             index=0,
             type="tool",
-            reason="测试工具调用",
+            reason="test工具调用",
             function=ReasonChoiceDeltaToolCallFunction(
                 name="test_tool", arguments="{}"
             ),
@@ -153,13 +153,13 @@ class TestReasonChoiceDelta:
             if hasattr(choice_delta, "tool_calls") and choice_delta.tool_calls:
                 assert len(choice_delta.tool_calls) == 1
         except (ValidationError, TypeError):
-            # tool_calls可能有特定的验证规则
+            # tool_calls may have specific validation rules
             pass
 
     def test_choice_delta_unicode_content(self) -> None:
-        """测试选择增量Unicode内容."""
+        """test选择增量Unicode内容."""
         unicode_data: Dict[str, Any] = {
-            "content": "中文内容测试🚀特殊字符①②③",
+            "content": "中文内容test🚀特殊字符①②③",
             "role": "assistant",
         }
 
@@ -177,7 +177,7 @@ class TestReasonChoiceDelta:
             )  # pylint: disable=unsupported-membership-test
 
     def test_choice_delta_empty_content(self) -> None:
-        """测试空内容的选择增量."""
+        """test空内容的选择增量."""
         empty_data: Dict[str, Any] = {"content": "", "role": "assistant"}
 
         choice_delta = ReasonChoiceDelta(**empty_data)
@@ -185,7 +185,7 @@ class TestReasonChoiceDelta:
             assert choice_delta.content == ""
 
     def test_choice_delta_none_fields(self) -> None:
-        """测试None字段的选择增量."""
+        """testNone字段的选择增量."""
         none_data: Dict[str, Any] = {"content": None, "role": "assistant"}
 
         try:
@@ -193,15 +193,15 @@ class TestReasonChoiceDelta:
             if hasattr(choice_delta, "content"):
                 assert choice_delta.content is None
         except ValidationError:
-            # content可能不允许None
+            # content may not allow None
             pass
 
 
 class TestReasonChoice:
-    """ReasonChoice测试类."""
+    """ReasonChoicetest类."""
 
     def test_reason_choice_creation(self) -> None:
-        """测试推理选择创建."""
+        """test推理选择创建."""
         delta = ReasonChoiceDelta(content="推理过程中...", role="assistant")
 
         choice_data: Dict[str, Any] = {
@@ -216,7 +216,7 @@ class TestReasonChoice:
             assert reason_choice.finish_reason is None
 
     def test_reason_choice_with_finish_reason(self) -> None:
-        """测试包含完成原因的推理选择."""
+        """test包含完成原因的推理选择."""
         delta = ReasonChoiceDelta(content="推理完成", role="assistant")
 
         choice_data: Dict[str, Any] = {
@@ -230,7 +230,7 @@ class TestReasonChoice:
             assert reason_choice.finish_reason == "stop"
 
     def test_reason_choice_multiple_indices(self) -> None:
-        """测试多个索引的推理选择."""
+        """test多个索引的推理选择."""
         for i in range(5):
             delta = ReasonChoiceDelta(content=f"选择{i}", role="assistant")
             choice_data: Dict[str, Any] = {
@@ -243,7 +243,7 @@ class TestReasonChoice:
             assert reason_choice.index == i
 
     def test_reason_choice_unicode_delta(self) -> None:
-        """测试Unicode增量的推理选择."""
+        """testUnicode增量的推理选择."""
         unicode_delta = ReasonChoiceDelta(
             content="中文推理内容🧠特殊字符①②③", role="assistant"
         )
@@ -260,10 +260,10 @@ class TestReasonChoice:
 
 
 class TestReasonChatCompletionChunk:
-    """ReasonChatCompletionChunk测试类."""
+    """ReasonChatCompletionChunktest类."""
 
     def test_completion_chunk_creation(self) -> None:
-        """测试完成块创建."""
+        """test完成块创建."""
         delta = ReasonChoiceDelta(content="Hello", role="assistant")
         choice = ReasonChoice(index=0, delta=delta, finish_reason=None)
 
@@ -281,7 +281,7 @@ class TestReasonChatCompletionChunk:
         assert len(completion_chunk.choices) == 1
 
     def test_completion_chunk_multiple_choices(self) -> None:
-        """测试多选择完成块."""
+        """test多选择完成块."""
         choices: List[ReasonChoice] = []
         for i in range(3):
             delta = ReasonChoiceDelta(content=f"选择{i}", role="assistant")
@@ -300,7 +300,7 @@ class TestReasonChatCompletionChunk:
         assert len(completion_chunk.choices) == 3
 
     def test_completion_chunk_unicode_content(self) -> None:
-        """测试Unicode内容完成块."""
+        """testUnicode内容完成块."""
         unicode_delta = ReasonChoiceDelta(
             content="中文回复🤖特殊字符①②③", role="assistant"
         )
@@ -318,8 +318,8 @@ class TestReasonChatCompletionChunk:
         assert "中文完成块" in completion_chunk.id
 
     def test_completion_chunk_serialization(self) -> None:
-        """测试完成块序列化."""
-        delta = ReasonChoiceDelta(content="序列化测试", role="assistant")
+        """test完成块序列化."""
+        delta = ReasonChoiceDelta(content="序列化test", role="assistant")
         choice = ReasonChoice(index=0, delta=delta, finish_reason=None)
 
         chunk_data: Dict[str, Any] = {
@@ -332,7 +332,7 @@ class TestReasonChatCompletionChunk:
 
         completion_chunk = ReasonChatCompletionChunk(**chunk_data)
 
-        # 测试JSON序列化
+        # Test JSON serialization
         if hasattr(completion_chunk, "json"):
             json_str = completion_chunk.model_dump_json()
             assert isinstance(json_str, str)
@@ -340,23 +340,23 @@ class TestReasonChatCompletionChunk:
             assert parsed_data["id"] == "serialize-test"
 
     def test_completion_chunk_validation_errors(self) -> None:
-        """测试完成块验证错误."""
-        # 测试无效数据
+        """test完成块验证错误."""
+        # Test invalid data
         invalid_data_sets: List[Dict[str, Any]] = [
-            {"id": "", "choices": []},  # 空ID
+            {"id": "", "choices": []},  # empty ID
             {"id": "test", "choices": None},  # None choices
-            {"id": "test", "object": "invalid", "choices": []},  # 无效object
+            {"id": "test", "object": "invalid", "choices": []},  # invalid object
         ]
 
         for invalid_data in invalid_data_sets:
             try:
                 ReasonChatCompletionChunk(**invalid_data)
             except (ValidationError, TypeError):
-                # 验证错误是预期的
+                # Verify error is expected
                 pass
 
     def test_completion_chunk_large_content(self) -> None:
-        """测试大内容完成块."""
+        """test大内容完成块."""
         large_content = "大量内容 " * 1000
         delta = ReasonChoiceDelta(content=large_content, role="assistant")
         choice = ReasonChoice(index=0, delta=delta, finish_reason=None)
@@ -371,7 +371,7 @@ class TestReasonChatCompletionChunk:
 
         completion_chunk = ReasonChatCompletionChunk(**chunk_data)
         assert len(completion_chunk.choices) == 1
-        # 验证大内容被正确处理
+        # verify large content is handled correctly
         if (
             hasattr(completion_chunk.choices[0].delta, "content")
             and completion_chunk.choices[0].delta.content
@@ -379,11 +379,11 @@ class TestReasonChatCompletionChunk:
             assert len(completion_chunk.choices[0].delta.content) > 1000
 
     def test_completion_chunk_streaming_scenario(self) -> None:
-        """测试流式场景完成块."""
-        # 模拟流式响应的多个chunk
+        """test流式场景完成块."""
+        # simulate multiple chunks for streaming response
         chunks: List[ReasonChatCompletionChunk] = []
 
-        # 第一个chunk - 开始
+        # first chunk - start
         start_delta = ReasonChoiceDelta(content="开始", role="assistant")
         start_choice = ReasonChoice(index=0, delta=start_delta, finish_reason=None)
         start_chunk_data: Dict[str, Any] = {
@@ -395,7 +395,7 @@ class TestReasonChatCompletionChunk:
         }
         chunks.append(ReasonChatCompletionChunk(**start_chunk_data))
 
-        # 中间chunks - 内容
+        # middle chunks - content
         for i in range(3):
             content_delta = ReasonChoiceDelta(content=f"内容{i}", role="assistant")
             content_choice = ReasonChoice(
@@ -410,7 +410,7 @@ class TestReasonChatCompletionChunk:
             }
             chunks.append(ReasonChatCompletionChunk(**content_chunk_data))
 
-        # 最后一个chunk - 结束
+        # last chunk - end
         end_delta = ReasonChoiceDelta(content="", role="assistant")
         end_choice = ReasonChoice(index=0, delta=end_delta, finish_reason="stop")
         end_chunk_data: Dict[str, Any] = {
@@ -422,7 +422,7 @@ class TestReasonChatCompletionChunk:
         }
         chunks.append(ReasonChatCompletionChunk(**end_chunk_data))
 
-        # 验证流式chunks
+        # verify streaming chunks
         assert len(chunks) == 5
         assert chunks[0].choices[0].finish_reason is None
         if hasattr(chunks[-1].choices[0], "finish_reason"):

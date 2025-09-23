@@ -1,7 +1,7 @@
 """
-测试Mock对象和工具.
+testMock对象和工具.
 
-提供各种Mock类和工具函数，用于单元测试和集成测试。
+提供各种Mock类和工具函数，用于单元test和集成test。
 包含MySQL客户端、Redis客户端、OpenAI客户端等Mock实现。
 """
 

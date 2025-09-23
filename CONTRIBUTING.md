@@ -1,6 +1,6 @@
-# Contributing to Astra Agent
+# Contributing to Astron Agent
 
-Thank you for your interest in contributing to Astra Agent! We welcome contributions from the community and appreciate your help in making this project better.
+Thank you for your interest in contributing to Astron Agent! We welcome contributions from the community and appreciate your help in making this project better.
 
 ## Table of Contents
 
@@ -43,12 +43,12 @@ Before contributing, ensure you have the following installed:
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/your-username/astra-agent.git
-   cd astra-agent
+   git clone https://github.com/your-username/astron-agent.git
+   cd astron-agent
    ```
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/iflytek/astra-agent.git
+   git remote add upstream https://github.com/iflytek/astron-agent.git
    ```
 
 ## Development Environment Setup
@@ -84,10 +84,10 @@ make hooks-install
 
 ## Project Structure
 
-Astra Agent is a microservices-based platform with the following structure:
+Astron Agent is a microservices-based platform with the following structure:
 
 ```
-astra-agent/
+astron-agent/
 ├── console/                    # Console subsystem
 │   ├── backend/               # Java Spring Boot services
 │   │   ├── auth/              # Authentication service
@@ -161,7 +161,7 @@ make safe-push
 
 ### Multi-language Support
 
-Astra Agent supports multiple programming languages with unified quality standards:
+Astron Agent supports multiple programming languages with unified quality standards:
 
 | Language | Formatting | Quality Tools | Standards |
 |----------|------------|---------------|-----------|
@@ -405,4 +405,4 @@ If you have questions about contributing, please:
 3. Create a new issue with the "question" label
 4. Contact the maintainers
 
-Thank you for contributing to Astra Agent! 🚀
+Thank you for contributing to Astron Agent! 🚀

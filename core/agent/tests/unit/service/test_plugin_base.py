@@ -95,14 +95,14 @@ class TestPluginResponse:
 
         response = PluginResponse(
             code=0,
-            sid="unicode_session_测试",
+            sid="unicode_session_test",
             result=unicode_result,
             log=["开始处理", "处理完成 ✅"],
         )
 
         assert "🎉" in response.result["message"]
         assert "中文数据" in response.result["data"]
-        assert "测试" in response.sid
+        assert "test" in response.sid
         assert "✅" in response.log[1]
 
     @pytest.mark.unit
