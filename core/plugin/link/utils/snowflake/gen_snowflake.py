@@ -64,10 +64,10 @@ class Snowflake:
             self.last_timestamp = timestamp
 
             return (
-                ((timestamp - self.epoch) << 22) |
-                (self.datacenter_id << 17) |
-                (self.worker_id << 12) |
-                self.sequence
+                ((timestamp - self.epoch) << 22)
+                | (self.datacenter_id << 17)
+                | (self.worker_id << 12)
+                | self.sequence
             )
 
 

@@ -302,8 +302,8 @@ class OpenapiSchemaParser:
             ),
             "body": (
                 schemas["request_body_schema"]
-                if schemas["request_body_schema"] and
-                schemas["request_body_schema"].get("properties", {})
+                if schemas["request_body_schema"]
+                and schemas["request_body_schema"].get("properties", {})
                 else {}
             ),
             "security": schemas["security_info"],

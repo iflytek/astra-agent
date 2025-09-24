@@ -31,9 +31,9 @@ class AudioConverter:
         if audio_data.startswith(b"RIFF") and b"WAVE" in audio_data[:12]:
             return "wav"
         elif (
-            audio_data.startswith(b"ID3") or
-            audio_data.startswith(b"\xff\xfb") or
-            audio_data.startswith(b"\xff\xf3")
+            audio_data.startswith(b"ID3")
+            or audio_data.startswith(b"\xff\xfb")
+            or audio_data.startswith(b"\xff\xf3")
         ):
             return "mp3"
         elif audio_data.startswith(b"OggS"):
@@ -103,9 +103,9 @@ class AudioConverter:
                 # 检查WAV格式参数
                 audio = AudioSegment.from_wav(io.BytesIO(audio_data))
                 if (
-                    audio.frame_rate == 16000 and
-                    audio.sample_width == 2 and
-                    audio.channels == 1
+                    audio.frame_rate == 16000
+                    and audio.sample_width == 2
+                    and audio.channels == 1
                 ):
                     return audio_data, original_properties  # 已经符合要求，直接返回
 
@@ -146,9 +146,9 @@ class AudioConverter:
             if format_type == "wav":
                 audio = AudioSegment.from_wav(io.BytesIO(audio_data))
                 if (
-                    audio.frame_rate == 16000 and
-                    audio.sample_width == 2 and
-                    audio.channels == 1
+                    audio.frame_rate == 16000
+                    and audio.sample_width == 2
+                    and audio.channels == 1
                 ):
                     return True, "音频格式符合要求"
                 else:
