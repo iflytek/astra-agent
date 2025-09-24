@@ -12,21 +12,16 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from loguru import logger
-
-
-
+from plugin.aitools.api.route import app
+from plugin.aitools.const.const import SERVICE_APP_KEY, SERVICE_PORT_KEY
 
 from common.initialize.initialize import initialize_services
-from plugin.aitools.api.route import app
-from plugin.aitools.const.const import (
-    SERVICE_PORT_KEY,
-    SERVICE_APP_KEY
-)
+
 
 class AIToolsServer:
 
     def start(self):
-        #self.set_env()
+        # self.set_env()
         self.setup_server()
         self.start_uvicorn()
 
@@ -48,10 +43,15 @@ class AIToolsServer:
     def setup_server():
         """初始化服务套件"""
 
-        os.environ["CONFIG_ENV_PATH"] = (
-            "./plugin/aitools/config.env"
-        )
-        need_init_services = ["settings_service", "oss_service", "kafka_producer_service",  "otlp_sid_service", "otlp_span_service", "otlp_metric_service"]
+        os.environ["CONFIG_ENV_PATH"] = "./plugin/aitools/config.env"
+        need_init_services = [
+            "settings_service",
+            "oss_service",
+            "kafka_producer_service",
+            "otlp_sid_service",
+            "otlp_span_service",
+            "otlp_metric_service",
+        ]
         initialize_services(services=need_init_services)
 
     @staticmethod
@@ -59,7 +59,7 @@ class AIToolsServer:
         uvicorn_config = uvicorn.Config(
             app=os.getenv(SERVICE_APP_KEY),
             host="0.0.0.0",
-            port=int(os.getenv( SERVICE_PORT_KEY)),
+            port=int(os.getenv(SERVICE_PORT_KEY)),
             workers=20,
             reload=False,
             ws_ping_interval=None,

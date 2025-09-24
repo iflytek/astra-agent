@@ -6,10 +6,10 @@ import logging
 from urllib.parse import urlencode
 
 import requests
-
-from const.err_code.code import CodeEnum
 from plugin.aitools.service.ase_sdk.exception.CustomException import CustomException
 from plugin.aitools.service.ase_sdk.util.hmac_auth import HMACAuth
+
+from const.err_code.code import CodeEnum
 
 
 class OSSClient:

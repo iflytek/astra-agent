@@ -10,10 +10,10 @@ import os
 import time
 
 from loguru import logger
+from plugin.link.consts import const
 from plugin.link.utils.otlp.metric import metric
 from plugin.link.utils.otlp.metric.atomic_int import AtomicCounter
 from plugin.link.utils.sid.sid_generator2 import get_host_ip
-from plugin.link.consts import const
 
 counter = AtomicCounter()
 

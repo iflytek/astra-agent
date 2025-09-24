@@ -1,7 +1,8 @@
 """Tool update test script using numbered prefix for test execution order."""
 
-import requests
 import json
+
+import requests
 
 HOST_LOC = "http://localhost:18888"
 HOST_DEV = "http://10.1.87.65:18888"
@@ -19,8 +20,8 @@ URL = f"{HOST_LOC}{PATH}"
 # ********************
 
 if __name__ == "__main__":
-    import os
     import base64
+    import os
 
     file = os.path.join(os.path.dirname(__file__), "0_search.json")
     READ_CONTENT = ""

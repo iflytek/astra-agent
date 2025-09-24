@@ -18,7 +18,10 @@ class ErrCode(Enum):
 
     JSON_PROTOCOL_PARSER_ERR = (30200, "JSON protocol parsing failed")
     JSON_SCHEMA_VALIDATE_ERR = (30201, "Protocol validation failed")
-    RESPONSE_SCHEMA_VALIDATE_ERR = (30202, "Response type does not match tool configuration")
+    RESPONSE_SCHEMA_VALIDATE_ERR = (
+        30202,
+        "Response type does not match tool configuration",
+    )
     SERVER_VALIDATE_ERR = (30203, "Tool request hostname is blacklisted")
     APP_ID_VALIDATE_ERR = (30204, "App ID validation failed")
 

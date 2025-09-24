@@ -5,8 +5,9 @@ This module demonstrates how to retrieve available tools from MCP
 API endpoint to discover what tools are available from registered MCP servers.
 """
 
-import requests
 import json
+
+import requests
 
 URL = "http://localhost:18888/api/v1/mcp/tool_list"  # localhost url
 # URL = "http://10.1.87.65:18888/api/v1/mcp/tool_list" # dev url

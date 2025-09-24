@@ -10,11 +10,10 @@ and including various sub-routers for different functionalities including:
 """
 
 from fastapi import APIRouter
-from plugin.link.api.v1.community.tools.http.management import management_router
-from plugin.link.api.v1.community.tools.http.execution import execution_router
-from plugin.link.api.v1.community.tools.mcp.mcp_tools import mcp_router
-
 from plugin.link.api.v1.community.deprecated.management import deprecated_router
+from plugin.link.api.v1.community.tools.http.execution import execution_router
+from plugin.link.api.v1.community.tools.http.management import management_router
+from plugin.link.api.v1.community.tools.mcp.mcp_tools import mcp_router
 from plugin.link.api.v1.enterprise.extension import extension_router
 
 # root

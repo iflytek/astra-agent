@@ -1,8 +1,9 @@
 import os
 from typing import Optional
-from plugin.link.domain.models.utils import DatabaseService, RedisService
-from plugin.link.domain.entity.tool_schema import Tools
+
 from plugin.link.consts import const
+from plugin.link.domain.entity.tool_schema import Tools
+from plugin.link.domain.models.utils import DatabaseService, RedisService
 
 data_base_singleton: Optional[DatabaseService] = None
 redis_singleton: Optional[RedisService] = None
@@ -32,7 +33,7 @@ def init_data_base():
     addr = os.getenv(const.REDIS_CLUSTER_ADDR_KEY)
     if not addr:
         addr = redis_addr = os.getenv(const.REDIS_ADDR_KEY)
-    
+
     password = os.getenv(const.REDIS_PASSWORD_KEY)
     redis_singleton = RedisService(cluster_addr=addr, password=password)
 

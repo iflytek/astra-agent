@@ -6,27 +6,27 @@ utilities including MD5 token generation, HMAC signature creation, URL parsing,
 WebSocket auth URL assembly, and timestamp generation functions.
 """
 
-import pytest
-import hashlib
 import base64
+import hashlib
 import json
 import os
 import time
 from datetime import datetime
 from unittest.mock import patch
 
-from plugin.link.infra.tool_exector.http_auth import (
-    generate_13_digit_timestamp,
-    md5_encode,
-    public_query_url,
-    get_query_url,
-    parse_url,
-    assemble_ws_auth_url,
-    hashlib_256,
-    Url,
-    AssembleHeaderException
-)
+import pytest
 from plugin.link.consts import const
+from plugin.link.infra.tool_exector.http_auth import (
+    AssembleHeaderException,
+    Url,
+    assemble_ws_auth_url,
+    generate_13_digit_timestamp,
+    get_query_url,
+    hashlib_256,
+    md5_encode,
+    parse_url,
+    public_query_url,
+)
 
 
 class TestTimestampGeneration:
@@ -87,7 +87,7 @@ class TestMD5Encoding:
 
         # Should return 32-character hex string
         assert len(result) == 32
-        assert all(c in '0123456789abcdef' for c in result)
+        assert all(c in "0123456789abcdef" for c in result)
 
         # Should match expected MD5 hash
         expected = hashlib.md5(text.encode()).hexdigest()
@@ -140,11 +140,14 @@ class TestMD5Encoding:
 class TestPublicQueryUrl:
     """Test suite for public_query_url function."""
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_public_query_url_basic(self, mock_timestamp):
         """Test public_query_url with basic parameters."""
         mock_timestamp.return_value = "1234567890123"
@@ -163,11 +166,14 @@ class TestPublicQueryUrl:
         expected_token = md5_encode(expected_md5_input)
         assert f"token={expected_token}" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "app123",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "key456"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "app123",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "key456",
+        },
+    )
     def test_public_query_url_different_credentials(self, mock_timestamp):
         """Test public_query_url with different credentials."""
         mock_timestamp.return_value = "9876543210987"
@@ -182,11 +188,14 @@ class TestPublicQueryUrl:
         expected_token = md5_encode(expected_md5_input)
         assert f"token={expected_token}" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_key",
+        },
+    )
     def test_public_query_url_unused_parameters(self, mock_timestamp):
         """Test public_query_url ignores unused app_id and app_key parameters."""
         mock_timestamp.return_value = "1111111111111"
@@ -201,11 +210,11 @@ class TestPublicQueryUrl:
         expected_token = md5_encode(expected_md5_input)
         assert f"token={expected_token}" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: ""
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {const.HTTP_AUTH_QU_APP_ID_KEY: "", const.HTTP_AUTH_QU_APP_KEY_KEY: ""},
+    )
     def test_public_query_url_empty_credentials(self, mock_timestamp):
         """Test public_query_url with empty credentials."""
         mock_timestamp.return_value = "1234567890123"
@@ -223,11 +232,14 @@ class TestPublicQueryUrl:
 class TestGetQueryUrl:
     """Test suite for get_query_url function."""
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_basic(self, mock_timestamp):
         """Test get_query_url with basic parameters."""
         mock_timestamp.return_value = "1234567890123"
@@ -240,11 +252,14 @@ class TestGetQueryUrl:
         assert "timestamp=1234567890123" in result
         assert "token=" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_with_public_data(self, mock_timestamp):
         """Test get_query_url with public_data parameters."""
         mock_timestamp.return_value = "1234567890123"
@@ -258,11 +273,14 @@ class TestGetQueryUrl:
         assert "param2=value2" in result
         assert "appId=test_app_id" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_with_query_data(self, mock_timestamp):
         """Test get_query_url with query_data parameters."""
         mock_timestamp.return_value = "1234567890123"
@@ -275,11 +293,14 @@ class TestGetQueryUrl:
         assert "search=test" in result
         assert "limit=10" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_with_both_data_types(self, mock_timestamp):
         """Test get_query_url with both public_data and query_data."""
         mock_timestamp.return_value = "1234567890123"
@@ -294,11 +315,14 @@ class TestGetQueryUrl:
         assert "query_param=query_value" in result
         assert "appId=test_app_id" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_empty_data_dicts(self, mock_timestamp):
         """Test get_query_url with empty data dictionaries."""
         mock_timestamp.return_value = "1234567890123"
@@ -310,11 +334,14 @@ class TestGetQueryUrl:
         assert "appId=test_app_id" in result
         assert "timestamp=1234567890123" in result
 
-    @patch('infra.tool_exector.http_auth.generate_13_digit_timestamp')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key"
-    })
+    @patch("infra.tool_exector.http_auth.generate_13_digit_timestamp")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_QU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_QU_APP_KEY_KEY: "test_app_key",
+        },
+    )
     def test_get_query_url_none_data_dicts(self, mock_timestamp):
         """Test get_query_url with None data dictionaries."""
         mock_timestamp.return_value = "1234567890123"
@@ -442,9 +469,9 @@ class TestUrlClass:
         url = Url("test.com", "/test", "http://")
 
         # Should be able to access all attributes
-        assert hasattr(url, 'host')
-        assert hasattr(url, 'path')
-        assert hasattr(url, 'schema')
+        assert hasattr(url, "host")
+        assert hasattr(url, "path")
+        assert hasattr(url, "schema")
 
     def test_url_class_with_none_values(self):
         """Test Url class creation with None values."""
@@ -494,13 +521,10 @@ class TestHashlib256:
         data = {
             "user": {
                 "name": "test",
-                "preferences": {
-                    "theme": "dark",
-                    "language": "en"
-                }
+                "preferences": {"theme": "dark", "language": "en"},
             },
             "items": [1, 2, 3],
-            "timestamp": 1234567890
+            "timestamp": 1234567890,
         }
         result = hashlib_256(data)
 
@@ -550,12 +574,15 @@ class TestHashlib256:
 class TestAssembleWsAuthUrl:
     """Test suite for assemble_ws_auth_url function."""
 
-    @patch('infra.tool_exector.http_auth.datetime')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
-        const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret"
-    })
+    @patch("infra.tool_exector.http_auth.datetime")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
+            const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret",
+        },
+    )
     def test_assemble_ws_auth_url_basic(self, mock_datetime):
         """Test assemble_ws_auth_url with basic parameters."""
         # Mock datetime
@@ -564,7 +591,11 @@ class TestAssembleWsAuthUrl:
 
         url = "https://api.example.com/websocket"
         method = "GET"
-        auth_config = {"authorization_input_part": "api_key", "is_digest": False, "is_url_join": False}
+        auth_config = {
+            "authorization_input_part": "api_key",
+            "is_digest": False,
+            "is_url_join": False,
+        }
 
         result_url, headers = assemble_ws_auth_url(url, method, auth_config)
 
@@ -576,12 +607,15 @@ class TestAssembleWsAuthUrl:
         assert "app_id" in headers
         assert headers["app_id"] == "test_app_id"
 
-    @patch('infra.tool_exector.http_auth.datetime')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
-        const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret"
-    })
+    @patch("infra.tool_exector.http_auth.datetime")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
+            const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret",
+        },
+    )
     def test_assemble_ws_auth_url_with_digest(self, mock_datetime):
         """Test assemble_ws_auth_url with digest authentication."""
         mock_now = datetime(2023, 1, 1, 12, 0, 0)
@@ -592,7 +626,7 @@ class TestAssembleWsAuthUrl:
         auth_config = {
             "authorization_input_part": "api_key",
             "is_digest": True,
-            "is_url_join": False
+            "is_url_join": False,
         }
         body = {"data": "test"}
 
@@ -602,12 +636,15 @@ class TestAssembleWsAuthUrl:
         assert "Digest" in headers
         assert headers["Digest"].startswith("SHA-256=")
 
-    @patch('infra.tool_exector.http_auth.datetime')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
-        const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret"
-    })
+    @patch("infra.tool_exector.http_auth.datetime")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
+            const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret",
+        },
+    )
     def test_assemble_ws_auth_url_with_url_join(self, mock_datetime):
         """Test assemble_ws_auth_url with URL join option."""
         mock_now = datetime(2023, 1, 1, 12, 0, 0)
@@ -618,7 +655,7 @@ class TestAssembleWsAuthUrl:
         auth_config = {
             "authorization_input_part": "api_key",
             "is_digest": False,
-            "is_url_join": True
+            "is_url_join": True,
         }
 
         result_url, headers = assemble_ws_auth_url(url, method, auth_config)
@@ -629,12 +666,15 @@ class TestAssembleWsAuthUrl:
         assert "date=" in result_url
         assert "authorization=" in result_url
 
-    @patch('infra.tool_exector.http_auth.datetime')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
-        const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
-        const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret"
-    })
+    @patch("infra.tool_exector.http_auth.datetime")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_AWAU_APP_ID_KEY: "test_app_id",
+            const.HTTP_AUTH_AWAU_API_KEY_KEY: "test_api_key",
+            const.HTTP_AUTH_AWAU_API_SECRET_KEY: "test_secret",
+        },
+    )
     def test_assemble_ws_auth_url_signature_generation(self, mock_datetime):
         """Test assemble_ws_auth_url generates valid HMAC signature."""
         mock_now = datetime(2023, 1, 1, 12, 0, 0)
@@ -642,7 +682,11 @@ class TestAssembleWsAuthUrl:
 
         url = "https://api.example.com/test"
         method = "GET"
-        auth_config = {"authorization_input_part": "api_key", "is_digest": False, "is_url_join": False}
+        auth_config = {
+            "authorization_input_part": "api_key",
+            "is_digest": False,
+            "is_url_join": False,
+        }
 
         result_url, headers = assemble_ws_auth_url(url, method, auth_config)
 
@@ -651,12 +695,15 @@ class TestAssembleWsAuthUrl:
         assert "host" in headers
         assert headers["host"] == "api.example.com"
 
-    @patch('infra.tool_exector.http_auth.datetime')
-    @patch.dict(os.environ, {
-        const.HTTP_AUTH_AWAU_APP_ID_KEY: "",
-        const.HTTP_AUTH_AWAU_API_KEY_KEY: "",
-        const.HTTP_AUTH_AWAU_API_SECRET_KEY: ""
-    })
+    @patch("infra.tool_exector.http_auth.datetime")
+    @patch.dict(
+        os.environ,
+        {
+            const.HTTP_AUTH_AWAU_APP_ID_KEY: "",
+            const.HTTP_AUTH_AWAU_API_KEY_KEY: "",
+            const.HTTP_AUTH_AWAU_API_SECRET_KEY: "",
+        },
+    )
     def test_assemble_ws_auth_url_empty_credentials(self, mock_datetime):
         """Test assemble_ws_auth_url with empty credentials."""
         mock_now = datetime(2023, 1, 1, 12, 0, 0)
@@ -664,7 +711,11 @@ class TestAssembleWsAuthUrl:
 
         url = "https://api.example.com/test"
         method = "GET"
-        auth_config = {"authorization_input_part": "api_key", "is_digest": False, "is_url_join": False}
+        auth_config = {
+            "authorization_input_part": "api_key",
+            "is_digest": False,
+            "is_url_join": False,
+        }
 
         result_url, headers = assemble_ws_auth_url(url, method, auth_config)
 
@@ -692,7 +743,7 @@ class TestHttpAuthEdgeCases:
         result = md5_encode(large_string)
 
         assert len(result) == 32
-        assert all(c in '0123456789abcdef' for c in result)
+        assert all(c in "0123456789abcdef" for c in result)
 
     @patch.dict(os.environ, {}, clear=True)
     def test_public_query_url_missing_env_vars(self):
@@ -713,7 +764,7 @@ class TestHttpAuthEdgeCases:
         test_cases = [
             ("ws://websocket.example.com/socket", "ws://"),
             ("wss://secure.websocket.com/socket", "wss://"),
-            ("custom://custom.protocol.com/endpoint", "custom://")
+            ("custom://custom.protocol.com/endpoint", "custom://"),
         ]
 
         for url, expected_schema in test_cases:
@@ -725,10 +776,10 @@ class TestHttpAuthEdgeCases:
         # Test with data that might cause JSON serialization issues
         data_with_special_chars = {
             "backslash": "\\",
-            "quote": "\"",
+            "quote": '"',
             "newline": "\n",
             "tab": "\t",
-            "unicode": "🎉"
+            "unicode": "🎉",
         }
 
         result = hashlib_256(data_with_special_chars)
@@ -738,7 +789,7 @@ class TestHttpAuthEdgeCases:
         result2 = hashlib_256(data_with_special_chars)
         assert result == result2
 
-    @patch('infra.tool_exector.http_auth.time.time')
+    @patch("infra.tool_exector.http_auth.time.time")
     def test_generate_13_digit_timestamp_boundary_conditions(self, mock_time):
         """Test generate_13_digit_timestamp at boundary conditions."""
         # Test at exact second boundary

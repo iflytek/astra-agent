@@ -6,14 +6,14 @@ including authentication methods, security validations, blacklist checking,
 and HTTP request execution with proper error handling scenarios.
 """
 
-import pytest
 import os
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
-from plugin.link.infra.tool_exector.process import HttpRun
-from plugin.link.exceptions.sparklink_exceptions import CallThirdApiException
-from plugin.link.utils.errors.code import ErrCode
+import pytest
 from plugin.link.consts import const
+from plugin.link.exceptions.sparklink_exceptions import CallThirdApiException
+from plugin.link.infra.tool_exector.process import HttpRun
+from plugin.link.utils.errors.code import ErrCode
 
 
 class TestHttpRunInit:
@@ -47,7 +47,7 @@ class TestHttpRunInit:
                             {
                                 "in": "header",
                                 "name": "Authorization",
-                                "schema": {"default": "MD5"}
+                                "schema": {"default": "MD5"},
                             }
                         ]
                     }
@@ -56,24 +56,29 @@ class TestHttpRunInit:
         }
 
         http_run = HttpRun(
-            "https://api.example.com", "GET", {}, {}, {}, {},
-            open_api_schema=openapi_schema
+            "https://api.example.com",
+            "GET",
+            {},
+            {},
+            {},
+            {},
+            open_api_schema=openapi_schema,
         )
 
         assert http_run._is_authorization_md5 is True
 
     def test_init_with_openapi_schema_official_api(self):
         """Test HttpRun initialization with official API marking."""
-        openapi_schema = {
-            "info": {
-                "title": "Official API",
-                "x-is-official": True
-            }
-        }
+        openapi_schema = {"info": {"title": "Official API", "x-is-official": True}}
 
         http_run = HttpRun(
-            "https://api.example.com", "GET", {}, {}, {}, {},
-            open_api_schema=openapi_schema
+            "https://api.example.com",
+            "GET",
+            {},
+            {},
+            {},
+            {},
+            open_api_schema=openapi_schema,
         )
 
         assert http_run._is_official is True
@@ -84,8 +89,13 @@ class TestHttpRunInit:
         invalid_schema = "invalid_json"
 
         http_run = HttpRun(
-            "https://api.example.com", "GET", {}, {}, {}, {},
-            open_api_schema=invalid_schema
+            "https://api.example.com",
+            "GET",
+            {},
+            {},
+            {},
+            {},
+            open_api_schema=invalid_schema,
         )
 
         # Should default to False when exceptions occur
@@ -98,7 +108,9 @@ class TestHttpRunInit:
 class TestHttpRunDoCall:
     """Test suite for HttpRun do_call method."""
 
-    def setup_aiohttp_mock(self, mock_session_class, response_text='{"result": "success"}', status=200):
+    def setup_aiohttp_mock(
+        self, mock_session_class, response_text='{"result": "success"}', status=200
+    ):
         """Helper method to set up aiohttp mocks with proper async context managers."""
         # Create mock response
         mock_response = AsyncMock()
@@ -165,13 +177,13 @@ class TestHttpRunDoCall:
             path={},
             query={},
             header={},
-            body={}
+            body={},
         )
 
     @pytest.mark.asyncio
     async def test_do_call_success(self, basic_http_run, mock_span):
         """Test successful HTTP call execution."""
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             self.setup_aiohttp_mock(mock_session_class, '{"result": "success"}', 200)
             result = await basic_http_run.do_call(mock_span)
             assert result == '{"result": "success"}'
@@ -185,7 +197,7 @@ class TestHttpRunDoCall:
             path={},
             query={},
             header={},
-            body={}
+            body={},
         )
         # Force blacklist status
         http_run._is_in_blacklist = True
@@ -205,11 +217,13 @@ class TestHttpRunDoCall:
             path={"endpoint": "/users/123"},
             query={},
             header={},
-            body={}
+            body={},
         )
 
-        with patch('aiohttp.ClientSession') as mock_session_class:
-            mock_session = self.setup_aiohttp_mock(mock_session_class, '{"user": "data"}', 200)
+        with patch("aiohttp.ClientSession") as mock_session_class:
+            mock_session = self.setup_aiohttp_mock(
+                mock_session_class, '{"user": "data"}', 200
+            )
 
             _ = await http_run.do_call(mock_span)
 
@@ -227,15 +241,18 @@ class TestHttpRunDoCall:
             path={},
             query={"param": "value"},
             header={},
-            body={}
+            body={},
         )
         http_run._is_authorization_md5 = True
 
-        with patch('infra.tool_exector.process.public_query_url') as mock_public_query, \
-             patch('aiohttp.ClientSession') as mock_session_class:
+        with patch(
+            "infra.tool_exector.process.public_query_url"
+        ) as mock_public_query, patch("aiohttp.ClientSession") as mock_session_class:
 
             mock_public_query.return_value = "https://api.example.com?auth=md5"
-            _ = self.setup_aiohttp_mock(mock_session_class, '{"authenticated": true}', 200)
+            _ = self.setup_aiohttp_mock(
+                mock_session_class, '{"authenticated": true}', 200
+            )
 
             result = await http_run.do_call(mock_span)
 
@@ -250,17 +267,23 @@ class TestHttpRunDoCall:
             method="POST",
             path={},
             query={},
-            header={"Authorization": "HMAC: {\"key\": \"value\"}"},
-            body={"data": "test"}
+            header={"Authorization": 'HMAC: {"key": "value"}'},
+            body={"data": "test"},
         )
         http_run._is_auth_hmac = True
         http_run.auth_con_js = {"key": "value"}
 
-        with patch('infra.tool_exector.process.assemble_ws_auth_url') as mock_assemble_auth, \
-             patch('aiohttp.ClientSession') as mock_session_class:
+        with patch(
+            "infra.tool_exector.process.assemble_ws_auth_url"
+        ) as mock_assemble_auth, patch("aiohttp.ClientSession") as mock_session_class:
 
-            mock_assemble_auth.return_value = ("https://api.example.com?hmac=auth", {"Auth": "hmac"})
-            _ = self.setup_aiohttp_mock(mock_session_class, '{"hmac_authenticated": true}', 200)
+            mock_assemble_auth.return_value = (
+                "https://api.example.com?hmac=auth",
+                {"Auth": "hmac"},
+            )
+            _ = self.setup_aiohttp_mock(
+                mock_session_class, '{"hmac_authenticated": true}', 200
+            )
 
             result = await http_run.do_call(mock_span)
 
@@ -276,11 +299,13 @@ class TestHttpRunDoCall:
             path={},
             query={"search": "test", "limit": "10"},
             header={},
-            body={}
+            body={},
         )
 
-        with patch('aiohttp.ClientSession') as mock_session_class:
-            mock_session = self.setup_aiohttp_mock(mock_session_class, '{"results": []}', 200)
+        with patch("aiohttp.ClientSession") as mock_session_class:
+            mock_session = self.setup_aiohttp_mock(
+                mock_session_class, '{"results": []}', 200
+            )
 
             _ = await http_run.do_call(mock_span)
 
@@ -293,8 +318,8 @@ class TestHttpRunDoCall:
     @pytest.mark.asyncio
     async def test_do_call_http_error_non_official(self, basic_http_run, mock_span):
         """Test do_call HTTP error handling for non-official API."""
-        with patch('aiohttp.ClientSession') as mock_session_class:
-            self.setup_aiohttp_mock(mock_session_class, 'Internal Server Error', 500)
+        with patch("aiohttp.ClientSession") as mock_session_class:
+            self.setup_aiohttp_mock(mock_session_class, "Internal Server Error", 500)
 
             with pytest.raises(CallThirdApiException) as exc_info:
                 await basic_http_run.do_call(mock_span)
@@ -311,19 +336,23 @@ class TestHttpRunDoCall:
             path={},
             query={},
             header={},
-            body={}
+            body={},
         )
         http_run._is_official = True
 
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             mock_session = AsyncMock()
             mock_response = AsyncMock()
-            mock_response.text.return_value = 'Official API Error'
+            mock_response.text.return_value = "Official API Error"
             mock_response.status = 400
 
-            mock_session.request.return_value.__aenter__ = AsyncMock(return_value=mock_response)
+            mock_session.request.return_value.__aenter__ = AsyncMock(
+                return_value=mock_response
+            )
             mock_session.request.return_value.__aexit__ = AsyncMock(return_value=None)
-            mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+            mock_session_class.return_value.__aenter__ = AsyncMock(
+                return_value=mock_session
+            )
             mock_session_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
             with pytest.raises(CallThirdApiException) as exc_info:
@@ -332,12 +361,16 @@ class TestHttpRunDoCall:
             assert exc_info.value.code == ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.code
 
     @pytest.mark.asyncio
-    async def test_do_call_network_exception_non_official(self, basic_http_run, mock_span):
+    async def test_do_call_network_exception_non_official(
+        self, basic_http_run, mock_span
+    ):
         """Test do_call network exception handling for non-official API."""
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             mock_session = AsyncMock()
             mock_session.request.side_effect = Exception("Connection timeout")
-            mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+            mock_session_class.return_value.__aenter__ = AsyncMock(
+                return_value=mock_session
+            )
             mock_session_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
             with pytest.raises(CallThirdApiException) as exc_info:
@@ -355,14 +388,16 @@ class TestHttpRunDoCall:
             path={},
             query={},
             header={},
-            body={}
+            body={},
         )
         http_run._is_official = True
 
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             mock_session = AsyncMock()
             mock_session.request.side_effect = Exception("Official API timeout")
-            mock_session_class.return_value.__aenter__ = AsyncMock(return_value=mock_session)
+            mock_session_class.return_value.__aenter__ = AsyncMock(
+                return_value=mock_session
+            )
             mock_session_class.return_value.__aexit__ = AsyncMock(return_value=None)
 
             with pytest.raises(CallThirdApiException) as exc_info:
@@ -379,10 +414,10 @@ class TestHttpRunDoCall:
             path={},
             query={},
             header={"@type": "application/json", "Authorization": "Bearer token"},
-            body={}
+            body={},
         )
 
-        with patch('aiohttp.ClientSession') as mock_session_class:
+        with patch("aiohttp.ClientSession") as mock_session_class:
             self.setup_aiohttp_mock(mock_session_class, '{"clean_headers": true}', 200)
 
             await http_run.do_call(mock_span)
@@ -405,7 +440,7 @@ class TestHttpRunStaticMethods:
                             {
                                 "in": "header",
                                 "name": "Authorization",
-                                "schema": {"default": "MD5"}
+                                "schema": {"default": "MD5"},
                             }
                         ]
                     }
@@ -426,7 +461,7 @@ class TestHttpRunStaticMethods:
                             {
                                 "in": "header",
                                 "name": "Authorization",
-                                "schema": {"default": "Bearer"}
+                                "schema": {"default": "Bearer"},
                             }
                         ]
                     }
@@ -449,9 +484,7 @@ class TestHttpRunStaticMethods:
 
     def test_is_authorization_hmac_true(self):
         """Test is_authorization_hmac returns True for HMAC auth."""
-        header = {
-            "Authorization": "HMAC: {\"key\": \"value\", \"secret\": \"test\"}"
-        }
+        header = {"Authorization": 'HMAC: {"key": "value", "secret": "test"}'}
 
         is_hmac, auth_config = HttpRun.is_authorization_hmac(header)
 
@@ -461,9 +494,7 @@ class TestHttpRunStaticMethods:
 
     def test_is_authorization_hmac_false_no_hmac(self):
         """Test is_authorization_hmac returns False for non-HMAC auth."""
-        header = {
-            "Authorization": "Bearer token123"
-        }
+        header = {"Authorization": "Bearer token123"}
 
         is_hmac, auth_config = HttpRun.is_authorization_hmac(header)
 
@@ -487,11 +518,7 @@ class TestHttpRunStaticMethods:
     def test_is_official_true(self):
         """Test is_official returns True for official API."""
         schema = {
-            "info": {
-                "title": "Official API",
-                "version": "1.0.0",
-                "x-is-official": True
-            }
+            "info": {"title": "Official API", "version": "1.0.0", "x-is-official": True}
         }
 
         result = HttpRun.is_official(schema)
@@ -503,7 +530,7 @@ class TestHttpRunStaticMethods:
             "info": {
                 "title": "Third Party API",
                 "version": "1.0.0",
-                "x-is-official": False
+                "x-is-official": False,
             }
         }
 
@@ -512,12 +539,7 @@ class TestHttpRunStaticMethods:
 
     def test_is_official_false_no_flag(self):
         """Test is_official returns False when no official flag."""
-        schema = {
-            "info": {
-                "title": "Regular API",
-                "version": "1.0.0"
-            }
-        }
+        schema = {"info": {"title": "Regular API", "version": "1.0.0"}}
 
         result = HttpRun.is_official(schema)
         assert result is False
@@ -571,95 +593,119 @@ class TestHttpRunBlacklistMethods:
         result = HttpRun.is_in_black_domain(url)
         assert result is True
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100",
+        },
+    )
     def test_is_in_blacklist_domain_check(self):
         """Test is_in_blacklist performs domain blacklist check first."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=True):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=True):
             url = "https://evil.com/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is True
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100",
+        },
+    )
     def test_is_in_blacklist_ip_blacklist(self):
         """Test is_in_blacklist checks IP blacklist."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://127.0.0.1:8080/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is True
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100",
+        },
+    )
     def test_is_in_blacklist_network_segment(self):
         """Test is_in_blacklist checks network segment blacklist."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://192.168.1.50:8080/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is True
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24,10.0.0.0/8",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1,192.168.1.100",
+        },
+    )
     def test_is_in_blacklist_false_safe_ip(self):
         """Test is_in_blacklist returns False for safe IP."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://8.8.8.8:443/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is False
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1",
+        },
+    )
     def test_is_in_blacklist_with_port(self):
         """Test is_in_blacklist handles URLs with ports correctly."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://127.0.0.1:8080/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is True
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1",
+        },
+    )
     def test_is_in_blacklist_invalid_ip_format(self):
         """Test is_in_blacklist handles invalid IP format gracefully."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://not-an-ip/api/test"
 
             result = HttpRun.is_in_blacklist(url)
             assert result is False
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1",
+        },
+    )
     def test_is_in_blacklist_empty_url(self):
         """Test is_in_blacklist handles empty URL."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             result = HttpRun.is_in_blacklist("")
             assert result is False
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "192.168.1.0/24",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1",
+        },
+    )
     def test_is_in_blacklist_malformed_url(self):
         """Test is_in_blacklist handles malformed URL."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "not-a-valid-url"
 
             result = HttpRun.is_in_blacklist(url)
@@ -671,9 +717,7 @@ class TestHttpRunEdgeCases:
 
     def test_is_authorization_hmac_malformed_json(self):
         """Test is_authorization_hmac handles malformed JSON gracefully."""
-        header = {
-            "Authorization": "HMAC: invalid-json-format"
-        }
+        header = {"Authorization": "HMAC: invalid-json-format"}
 
         # This should handle the exception gracefully
         is_hmac, auth_config = HttpRun.is_authorization_hmac(header)
@@ -684,9 +728,7 @@ class TestHttpRunEdgeCases:
 
     def test_is_authorization_hmac_missing_colon(self):
         """Test is_authorization_hmac handles missing colon separator."""
-        header = {
-            "Authorization": "HMAC-no-colon"
-        }
+        header = {"Authorization": "HMAC-no-colon"}
 
         # This should handle the exception gracefully
         try:
@@ -698,22 +740,23 @@ class TestHttpRunEdgeCases:
 
     def test_is_authorization_hmac_empty_authorization(self):
         """Test is_authorization_hmac handles empty authorization value."""
-        header = {
-            "Authorization": ""
-        }
+        header = {"Authorization": ""}
 
         is_hmac, auth_config = HttpRun.is_authorization_hmac(header)
 
         assert is_hmac is False
         assert auth_config == object
 
-    @patch.dict(os.environ, {
-        const.SEGMENT_BLACK_LIST_KEY: "invalid-network-format",
-        const.IP_BLACK_LIST_KEY: "127.0.0.1"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            const.SEGMENT_BLACK_LIST_KEY: "invalid-network-format",
+            const.IP_BLACK_LIST_KEY: "127.0.0.1",
+        },
+    )
     def test_is_in_blacklist_invalid_network_format(self):
         """Test is_in_blacklist handles invalid network format in env var."""
-        with patch.object(HttpRun, 'is_in_black_domain', return_value=False):
+        with patch.object(HttpRun, "is_in_black_domain", return_value=False):
             url = "https://8.8.8.8/api/test"
 
             # Should handle invalid network format gracefully
@@ -727,6 +770,7 @@ class TestHttpRunEdgeCases:
 
     def test_init_with_complex_nested_exceptions(self):
         """Test HttpRun init handles complex nested exceptions."""
+
         # Create scenario that might cause nested exceptions
         class ExceptionRaisingDict(dict):
             def get(self, key, default=None):
@@ -736,8 +780,13 @@ class TestHttpRunEdgeCases:
 
         # Should not crash despite nested exceptions
         http_run = HttpRun(
-            "https://api.example.com", "GET", {}, {}, {}, {},
-            open_api_schema=complex_schema
+            "https://api.example.com",
+            "GET",
+            {},
+            {},
+            {},
+            {},
+            open_api_schema=complex_schema,
         )
 
         # All flags should default to False

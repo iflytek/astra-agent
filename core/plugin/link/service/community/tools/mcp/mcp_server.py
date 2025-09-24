@@ -6,46 +6,40 @@ error handling, observability tracing, and security validations.
 """
 
 import os
-from typing import Tuple
 import time
-from plugin.link.consts import const
+from typing import Tuple
 
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service
 from fastapi import Body
 from loguru import logger
 from mcp import ClientSession
 from mcp.client.sse import sse_client
-from opentelemetry.trace import Status as OTelStatus, StatusCode
-
-
+from opentelemetry.trace import Status as OTelStatus
+from opentelemetry.trace import StatusCode
 from plugin.link.api.schemas.community.tools.mcp.mcp_tools_schema import (
-    MCPToolListRequest,
-    MCPToolListResponse,
-    MCPItemInfo,
-    MCPInfo,
-    MCPToolListData,
+    MCPCallToolData,
     MCPCallToolRequest,
     MCPCallToolResponse,
-    MCPCallToolData,
-    MCPTextResponse,
     MCPImageResponse,
+    MCPInfo,
+    MCPItemInfo,
+    MCPTextResponse,
+    MCPToolListData,
+    MCPToolListRequest,
+    MCPToolListResponse,
 )
+from plugin.link.consts import const
 from plugin.link.domain.models.manager import get_db_engine
 from plugin.link.infra.tool_crud.process import ToolCrudOperation
 from plugin.link.utils.errors.code import ErrCode
-from plugin.link.utils.sid.sid_generator2 import new_sid
 from plugin.link.utils.security.access_interceptor import is_in_blacklist, is_local_url
-from common.otlp.trace.span import Span
-from common.otlp.metrics.meter import Meter
-from common.otlp.log_trace.node_trace_log import (
-    NodeTraceLog,
-    Status
-)
-from common.service import get_kafka_producer_service
+from plugin.link.utils.sid.sid_generator2 import new_sid
 
 
-async def _process_mcp_server_by_id(
-    mcp_server_id: str, span_context
-) -> MCPItemInfo:
+async def _process_mcp_server_by_id(mcp_server_id: str, span_context) -> MCPItemInfo:
     """Process a single MCP server by ID and return its tools."""
     err, url = get_mcp_server_url(mcp_server_id=mcp_server_id, span=span_context)
     if err is not ErrCode.SUCCESSES:
@@ -98,9 +92,7 @@ async def _connect_and_get_tools(
     try:
         async with sse_client(url=url) as (read, write):
             try:
-                async with ClientSession(
-                    read, write, logging_callback=None
-                ) as session:
+                async with ClientSession(read, write, logging_callback=None) as session:
                     try:
                         await session.initialize()
                     except Exception:
@@ -231,13 +223,14 @@ async def tool_list(list_info: MCPToolListRequest = Body()) -> MCPToolListRespon
             )
             kafka_service = get_kafka_producer_service()
             node_trace.start_time = int(round(time.time() * 1000))
-            kafka_service.send(os.getenv(const.KAFKA_TOPIC_SPARKLINK_LOG_TRACE_KEY), node_trace.to_json())
+            kafka_service.send(
+                os.getenv(const.KAFKA_TOPIC_SPARKLINK_LOG_TRACE_KEY),
+                node_trace.to_json(),
+            )
         return result
 
 
-def _create_error_response(
-    err: ErrCode, session_id: str
-) -> MCPCallToolResponse:
+def _create_error_response(err: ErrCode, session_id: str) -> MCPCallToolResponse:
     """Create a standardized error response for MCP call tool failures."""
     return MCPCallToolResponse(
         code=err.code,
@@ -262,14 +255,17 @@ def _log_error_to_kafka(
         kafka_service = get_kafka_producer_service()
         node_trace.start_time = int(round(time.time() * 1000))
         kafka_service.send(
-            os.getenv(const.KAFKA_TOPIC_SPARKLINK_LOG_TRACE_KEY),
-            node_trace.to_json()
+            os.getenv(const.KAFKA_TOPIC_SPARKLINK_LOG_TRACE_KEY), node_trace.to_json()
         )
 
 
 async def _initialize_session(
-    session, session_id: str, span_context, node_trace: NodeTraceLog,
-    mcp_server_id: str, m: Meter
+    session,
+    session_id: str,
+    span_context,
+    node_trace: NodeTraceLog,
+    mcp_server_id: str,
+    m: Meter,
 ):
     """Initialize MCP session with error handling."""
     try:
@@ -284,8 +280,14 @@ async def _initialize_session(
 
 
 async def _execute_tool_call(
-    session, tool_name: str, tool_args: dict, session_id: str,
-    span_context, node_trace: NodeTraceLog, mcp_server_id: str, m: Meter
+    session,
+    tool_name: str,
+    tool_args: dict,
+    session_id: str,
+    span_context,
+    node_trace: NodeTraceLog,
+    mcp_server_id: str,
+    m: Meter,
 ):
     """Execute the actual tool call and process response."""
     try:
@@ -299,9 +301,7 @@ async def _execute_tool_call(
                 text = MCPTextResponse(text=data["text"])
                 content.append(text)
             elif data["type"] == "image":
-                image = MCPImageResponse(
-                    data=data["data"], mineType=data["mineType"]
-                )
+                image = MCPImageResponse(data=data["data"], mineType=data["mineType"])
                 content.append(image)
 
         return is_error, content
@@ -314,28 +314,37 @@ async def _execute_tool_call(
 
 
 async def _call_mcp_tool(
-    url: str, tool_name: str, tool_args: dict, session_id: str,
-    span_context, node_trace: NodeTraceLog, mcp_server_id: str, m: Meter
+    url: str,
+    tool_name: str,
+    tool_args: dict,
+    session_id: str,
+    span_context,
+    node_trace: NodeTraceLog,
+    mcp_server_id: str,
+    m: Meter,
 ) -> MCPCallToolResponse:
     """Execute the actual MCP tool call with proper error handling."""
     try:
         async with sse_client(url=url) as (read, write):
             try:
-                async with ClientSession(
-                    read, write, logging_callback=None
-                ) as session:
+                async with ClientSession(read, write, logging_callback=None) as session:
                     # Initialize session
                     init_result = await _initialize_session(
-                        session, session_id, span_context, node_trace,
-                        mcp_server_id, m
+                        session, session_id, span_context, node_trace, mcp_server_id, m
                     )
                     if init_result:
                         return init_result
 
                     # Execute tool call
                     call_result = await _execute_tool_call(
-                        session, tool_name, tool_args, session_id,
-                        span_context, node_trace, mcp_server_id, m
+                        session,
+                        tool_name,
+                        tool_args,
+                        session_id,
+                        span_context,
+                        node_trace,
+                        mcp_server_id,
+                        m,
                     )
 
                     if isinstance(call_result[0], MCPCallToolResponse):
@@ -441,8 +450,14 @@ async def call_tool(call_info: MCPCallToolRequest = Body()) -> MCPCallToolRespon
 
         # Call the MCP tool
         result = await _call_mcp_tool(
-            url, tool_name, tool_args, session_id,
-            span_context, node_trace, mcp_server_id, m
+            url,
+            tool_name,
+            tool_args,
+            session_id,
+            span_context,
+            node_trace,
+            mcp_server_id,
+            m,
         )
 
         # Log success if the call succeeded
@@ -460,7 +475,7 @@ async def call_tool(call_info: MCPCallToolRequest = Body()) -> MCPCallToolRespon
                 node_trace.start_time = int(round(time.time() * 1000))
                 kafka_service.send(
                     os.getenv(const.KAFKA_TOPIC_SPARKLINK_LOG_TRACE_KEY),
-                    node_trace.to_json()
+                    node_trace.to_json(),
                 )
 
         return result

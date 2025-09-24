@@ -17,6 +17,8 @@ class AbilityFactory:
 
             return OcrLLMClientMultithreading(url, method)
         else:
-            from plugin.aitools.service.ase_sdk.ability.common.client import CommonClient
+            from plugin.aitools.service.ase_sdk.ability.common.client import (
+                CommonClient,
+            )
 
             return CommonClient(url, method)

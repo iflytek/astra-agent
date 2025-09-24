@@ -4,9 +4,10 @@ Implements Twitter's Snowflake algorithm to generate unique 64-bit IDs
 across distributed systems using timestamp, datacenter, worker, and sequence.
 """
 
-import time
-import threading
 import os
+import threading
+import time
+
 from plugin.link.consts import const
 
 

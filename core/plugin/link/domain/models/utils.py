@@ -15,12 +15,11 @@ from typing import TYPE_CHECKING, Dict
 import redis
 import sqlalchemy as sa
 from loguru import logger
+from plugin.link.consts import const
 from rediscluster import RedisCluster
 from sqlalchemy import inspect
 from sqlalchemy.exc import OperationalError
-from sqlmodel import SQLModel, Session, create_engine
-
-from plugin.link.consts import const
+from sqlmodel import Session, SQLModel, create_engine
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Engine

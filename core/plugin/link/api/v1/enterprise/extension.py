@@ -5,7 +5,10 @@ including MCP tool registration and other advanced functionality.
 """
 
 from fastapi import APIRouter, Body
-from plugin.link.api.schemas.enterprise.extension_schema import MCPManagerRequest, MCPManagerResponse
+from plugin.link.api.schemas.enterprise.extension_schema import (
+    MCPManagerRequest,
+    MCPManagerResponse,
+)
 from plugin.link.service.enterprise.extension import register_mcp
 
 # Enterprise extension features

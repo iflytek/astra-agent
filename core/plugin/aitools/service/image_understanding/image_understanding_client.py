@@ -142,4 +142,3 @@ class ImageUnderstandingClient:
         )
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
         return self.answer, self.sid, self.error_message
-    

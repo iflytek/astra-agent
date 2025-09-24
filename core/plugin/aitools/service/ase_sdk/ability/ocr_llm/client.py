@@ -14,7 +14,9 @@ from plugin.aitools.service.ase_sdk.__base.entities.req_data import ReqData
 from plugin.aitools.service.ase_sdk.__base.entities.result import Result
 from plugin.aitools.service.ase_sdk.__base.power import Power
 from plugin.aitools.service.ase_sdk.ability.ocr_llm.entities.ocr_result import OcrResult
-from plugin.aitools.service.ase_sdk.ability.ocr_llm.entities.req_data import OcrLLMReqSourceData
+from plugin.aitools.service.ase_sdk.ability.ocr_llm.entities.req_data import (
+    OcrLLMReqSourceData,
+)
 from plugin.aitools.service.ase_sdk.const.data_status import DataStatusEnum
 from plugin.aitools.service.ase_sdk.exception.CustomException import CustomException
 from plugin.aitools.service.ase_sdk.util.hmac_auth import HMACAuth

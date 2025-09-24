@@ -7,16 +7,15 @@ the SparkLink plugin system.
 """
 
 import pytest
-
 from plugin.link.exceptions.sparklink_exceptions import (
-    SparkLinkBaseException,
     CallThirdApiException,
-    ToolNotExistsException,
-    SparkLinkOpenapiSchemaException,
-    SparkLinkJsonSchemaException,
+    SparkLinkAppIdException,
+    SparkLinkBaseException,
     SparkLinkFunctionCallException,
+    SparkLinkJsonSchemaException,
     SparkLinkLLMException,
-    SparkLinkAppIdException
+    SparkLinkOpenapiSchemaException,
+    ToolNotExistsException,
 )
 from plugin.link.utils.errors.code import ErrCode
 
@@ -118,7 +117,7 @@ class TestCallThirdApiException:
         exception = CallThirdApiException(
             code=408,
             err_pre="REQUEST_TIMEOUT",
-            err="Connection timeout after 30 seconds"
+            err="Connection timeout after 30 seconds",
         )
 
         assert exception.code == 408
@@ -129,7 +128,7 @@ class TestCallThirdApiException:
         exception = CallThirdApiException(
             code=503,
             err_pre="NETWORK_ERROR",
-            err="DNS resolution failed for api.example.com"
+            err="DNS resolution failed for api.example.com",
         )
 
         assert "DNS resolution" in exception.message
@@ -155,7 +154,7 @@ class TestToolNotExistsException:
         exception = ToolNotExistsException(
             code=404,
             err_pre="TOOL_NOT_FOUND",
-            err="tool@123456789abcdef does not exist in registry"
+            err="tool@123456789abcdef does not exist in registry",
         )
 
         assert "tool@123456789abcdef" in exception.message
@@ -166,7 +165,7 @@ class TestToolNotExistsException:
         exception = ToolNotExistsException(
             code=404,
             err_pre="TOOL_VERSION_NOT_FOUND",
-            err="Tool 'search_tool' version '2.0.0' not available"
+            err="Tool 'search_tool' version '2.0.0' not available",
         )
 
         assert "search_tool" in exception.message
@@ -197,11 +196,11 @@ class TestSparkLinkOpenapiSchemaException:
 
     def test_openapi_schema_exception_with_validation_details(self):
         """Test SparkLinkOpenapiSchemaException with validation details."""
-        validation_error = "$.paths./users.get.responses.200: missing required property 'description'"
+        validation_error = (
+            "$.paths./users.get.responses.200: missing required property 'description'"
+        )
         exception = SparkLinkOpenapiSchemaException(
-            code=400,
-            err_pre="SCHEMA_VALIDATION_ERROR",
-            err=validation_error
+            code=400, err_pre="SCHEMA_VALIDATION_ERROR", err=validation_error
         )
 
         assert "$.paths" in exception.message
@@ -212,7 +211,7 @@ class TestSparkLinkOpenapiSchemaException:
         exception = SparkLinkOpenapiSchemaException(
             code=400,
             err_pre="UNSUPPORTED_OPENAPI_VERSION",
-            err="OpenAPI version '2.0' is not supported, use version 3.0.0 or higher"
+            err="OpenAPI version '2.0' is not supported, use version 3.0.0 or higher",
         )
 
         assert "2.0" in exception.message
@@ -246,7 +245,7 @@ class TestSparkLinkJsonSchemaException:
         exception = SparkLinkJsonSchemaException(
             code=400,
             err_pre="JSON_VALIDATION_ERROR",
-            err="Field 'payload.tools[0].schema' must be a valid JSON string"
+            err="Field 'payload.tools[0].schema' must be a valid JSON string",
         )
 
         assert "payload.tools[0].schema" in exception.message
@@ -257,7 +256,7 @@ class TestSparkLinkJsonSchemaException:
         exception = SparkLinkJsonSchemaException(
             code=400,
             err_pre="TYPE_VALIDATION_ERROR",
-            err="Expected 'integer' but got 'string' for field 'count'"
+            err="Expected 'integer' but got 'string' for field 'count'",
         )
 
         assert "integer" in exception.message
@@ -284,9 +283,7 @@ class TestSparkLinkFunctionCallException:
         """Test SparkLinkFunctionCallException with stack trace information."""
         stack_trace = "Traceback (most recent call last):\n  File 'test.py', line 42, in calculate\n    result = x / y\nZeroDivisionError: division by zero"
         exception = SparkLinkFunctionCallException(
-            code=500,
-            err_pre="RUNTIME_ERROR",
-            err=stack_trace
+            code=500, err_pre="RUNTIME_ERROR", err=stack_trace
         )
 
         assert "Traceback" in exception.message
@@ -297,7 +294,7 @@ class TestSparkLinkFunctionCallException:
         exception = SparkLinkFunctionCallException(
             code=400,
             err_pre="INVALID_PARAMETERS",
-            err="Function 'search' called with invalid parameter: 'limit' must be positive integer, got -5"
+            err="Function 'search' called with invalid parameter: 'limit' must be positive integer, got -5",
         )
 
         assert "search" in exception.message
@@ -325,7 +322,7 @@ class TestSparkLinkLLMException:
         exception = SparkLinkLLMException(
             code=400,
             err_pre="MODEL_NOT_AVAILABLE",
-            err="Model 'gpt-4-turbo' is not available in region 'us-east-1'"
+            err="Model 'gpt-4-turbo' is not available in region 'us-east-1'",
         )
 
         assert "gpt-4-turbo" in exception.message
@@ -336,7 +333,7 @@ class TestSparkLinkLLMException:
         exception = SparkLinkLLMException(
             code=413,
             err_pre="TOKEN_LIMIT_EXCEEDED",
-            err="Input token count (8192) exceeds model maximum (4096)"
+            err="Input token count (8192) exceeds model maximum (4096)",
         )
 
         assert "8192" in exception.message
@@ -347,7 +344,7 @@ class TestSparkLinkLLMException:
         exception = SparkLinkLLMException(
             code=502,
             err_pre="RESPONSE_PARSING_ERROR",
-            err="Failed to parse LLM response as JSON: Expecting ',' delimiter at line 3 column 15"
+            err="Failed to parse LLM response as JSON: Expecting ',' delimiter at line 3 column 15",
         )
 
         assert "JSON" in exception.message
@@ -374,7 +371,7 @@ class TestSparkLinkAppIdException:
         exception = SparkLinkAppIdException(
             code=400,
             err_pre="APP_ID_VALIDATION_ERROR",
-            err="Application ID must be 8 digits, got '123abc'"
+            err="Application ID must be 8 digits, got '123abc'",
         )
 
         assert "8 digits" in exception.message
@@ -385,7 +382,7 @@ class TestSparkLinkAppIdException:
         exception = SparkLinkAppIdException(
             code=401,
             err_pre="APP_ID_EXPIRED",
-            err="Application ID '87654321' expired on 2023-12-31"
+            err="Application ID '87654321' expired on 2023-12-31",
         )
 
         assert "87654321" in exception.message
@@ -397,7 +394,7 @@ class TestSparkLinkAppIdException:
         exception = SparkLinkAppIdException(
             code=429,
             err_pre="RATE_LIMIT_EXCEEDED",
-            err="Application ID '11111111' has exceeded rate limit: 100 requests/hour"
+            err="Application ID '11111111' has exceeded rate limit: 100 requests/hour",
         )
 
         assert "11111111" in exception.message
@@ -417,7 +414,7 @@ class TestExceptionInheritanceAndBehavior:
             SparkLinkJsonSchemaException,
             SparkLinkFunctionCallException,
             SparkLinkLLMException,
-            SparkLinkAppIdException
+            SparkLinkAppIdException,
         ]
 
         for exc_class in exception_classes:
@@ -434,7 +431,7 @@ class TestExceptionInheritanceAndBehavior:
             SparkLinkJsonSchemaException(400, "JSON_ERROR", "Invalid JSON"),
             SparkLinkFunctionCallException(500, "FUNCTION_ERROR", "Function failed"),
             SparkLinkLLMException(502, "LLM_ERROR", "LLM unavailable"),
-            SparkLinkAppIdException(401, "AUTH_ERROR", "Unauthorized")
+            SparkLinkAppIdException(401, "AUTH_ERROR", "Unauthorized"),
         ]
 
         # Should be able to catch all with base exception
@@ -456,7 +453,7 @@ class TestExceptionInheritanceAndBehavior:
                 raise CallThirdApiException(
                     code=500,
                     err_pre="WRAPPED_ERROR",
-                    err="API call failed due to internal error"
+                    err="API call failed due to internal error",
                 ) from e
         except CallThirdApiException as caught:
             assert caught.code == 500
@@ -466,6 +463,7 @@ class TestExceptionInheritanceAndBehavior:
 
     def test_exception_in_try_except_blocks(self):
         """Test exception behavior in nested try-except blocks."""
+
         def raise_nested_exception():
             try:
                 raise ToolNotExistsException(404, "TOOL_ERROR", "Inner error")
@@ -486,14 +484,12 @@ class TestExceptionInheritanceAndBehavior:
             "expected": "valid JSON string",
             "actual": "malformed JSON",
             "line": 15,
-            "column": 23
+            "column": 23,
         }
 
         error_message = f"Validation failed: {complex_error}"
         exception = SparkLinkJsonSchemaException(
-            code=400,
-            err_pre="COMPLEX_VALIDATION_ERROR",
-            err=error_message
+            code=400, err_pre="COMPLEX_VALIDATION_ERROR", err=error_message
         )
 
         assert "ValidationError" in exception.message

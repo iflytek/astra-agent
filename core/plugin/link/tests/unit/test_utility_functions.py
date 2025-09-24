@@ -6,19 +6,19 @@ including UID generation, Snowflake ID generation, OpenAPI schema validation,
 and various edge cases and boundary conditions.
 """
 
-import pytest
-import hashlib
-import os
-import time
-import json
 import base64
+import hashlib
+import json
+import os
 import threading
+import time
 from unittest.mock import Mock, patch
 
-from plugin.link.utils.uid.generate_uid import new_uid
-from plugin.link.utils.snowflake.gen_snowflake import Snowflake, gen_id
-from plugin.link.utils.open_api_schema.schema_validate import OpenapiSchemaValidator
+import pytest
 from plugin.link.consts import const
+from plugin.link.utils.open_api_schema.schema_validate import OpenapiSchemaValidator
+from plugin.link.utils.snowflake.gen_snowflake import Snowflake, gen_id
+from plugin.link.utils.uid.generate_uid import new_uid
 
 
 class TestUIDGeneration:
@@ -30,7 +30,7 @@ class TestUIDGeneration:
 
         assert isinstance(uid, str)
         assert len(uid) == 8
-        assert all(c in '0123456789abcdef' for c in uid)
+        assert all(c in "0123456789abcdef" for c in uid)
 
     def test_new_uid_uniqueness(self):
         """Test new_uid generates unique identifiers."""
@@ -64,39 +64,39 @@ class TestUIDGeneration:
             # Should be valid hex string
             int(uid, 16)
 
-    @patch('utils.uid.generate_uid.os.urandom')
+    @patch("utils.uid.generate_uid.os.urandom")
     def test_new_uid_uses_os_urandom(self, mock_urandom):
         """Test new_uid uses os.urandom for randomness."""
         # Mock consistent bytes for testing
-        mock_urandom.return_value = b'0123456789abcdef'
+        mock_urandom.return_value = b"0123456789abcdef"
 
         uid = new_uid()
 
         mock_urandom.assert_called_once_with(16)
         # Should be first 8 chars of SHA256 hash of mock bytes
-        expected_hash = hashlib.sha256(b'0123456789abcdef').hexdigest()
+        expected_hash = hashlib.sha256(b"0123456789abcdef").hexdigest()
         assert uid == expected_hash[:8]
 
-    @patch('utils.uid.generate_uid.os.urandom')
+    @patch("utils.uid.generate_uid.os.urandom")
     def test_new_uid_edge_case_all_zeros(self, mock_urandom):
         """Test new_uid with edge case of all zero bytes."""
-        mock_urandom.return_value = b'\x00' * 16
+        mock_urandom.return_value = b"\x00" * 16
 
         uid = new_uid()
 
         assert len(uid) == 8
-        expected_hash = hashlib.sha256(b'\x00' * 16).hexdigest()
+        expected_hash = hashlib.sha256(b"\x00" * 16).hexdigest()
         assert uid == expected_hash[:8]
 
-    @patch('utils.uid.generate_uid.os.urandom')
+    @patch("utils.uid.generate_uid.os.urandom")
     def test_new_uid_edge_case_all_ones(self, mock_urandom):
         """Test new_uid with edge case of all 0xFF bytes."""
-        mock_urandom.return_value = b'\xFF' * 16
+        mock_urandom.return_value = b"\xff" * 16
 
         uid = new_uid()
 
         assert len(uid) == 8
-        expected_hash = hashlib.sha256(b'\xFF' * 16).hexdigest()
+        expected_hash = hashlib.sha256(b"\xff" * 16).hexdigest()
         assert uid == expected_hash[:8]
 
 
@@ -159,7 +159,7 @@ class TestSnowflakeIDGeneration:
         snowflake = Snowflake(1, 2)
 
         # Mock timestamp to stay constant
-        with patch.object(snowflake, '_get_timestamp', return_value=1234567890000):
+        with patch.object(snowflake, "_get_timestamp", return_value=1234567890000):
             # Generate IDs until sequence overflows
             last_id = None
             for i in range(4096):  # Max sequence is 4095 (0xFFF)
@@ -170,7 +170,9 @@ class TestSnowflakeIDGeneration:
                 last_id = current_id
 
             # Next ID should wait for next millisecond
-            with patch.object(snowflake, '_wait_for_next_millisecond', return_value=1234567890001):
+            with patch.object(
+                snowflake, "_wait_for_next_millisecond", return_value=1234567890001
+            ):
                 next_id = snowflake.get_id()
                 assert next_id > last_id
 
@@ -182,7 +184,9 @@ class TestSnowflakeIDGeneration:
         snowflake.get_id()
 
         # Mock clock moving backwards
-        with patch.object(snowflake, '_get_timestamp', return_value=snowflake.last_timestamp - 1000):
+        with patch.object(
+            snowflake, "_get_timestamp", return_value=snowflake.last_timestamp - 1000
+        ):
             with pytest.raises(Exception) as exc_info:
                 snowflake.get_id()
 
@@ -200,7 +204,7 @@ class TestSnowflakeIDGeneration:
     def test_snowflake_id_bit_structure(self):
         """Test Snowflake ID bit structure is correct."""
         datacenter_id = 15  # 5 bits: 0b01111
-        worker_id = 31     # 5 bits: 0b11111
+        worker_id = 31  # 5 bits: 0b11111
         snowflake = Snowflake(datacenter_id, worker_id)
 
         id_value = snowflake.get_id()
@@ -244,10 +248,7 @@ class TestSnowflakeIDGeneration:
         # Should have 1000 unique IDs
         assert len(set(ids)) == 1000
 
-    @patch.dict(os.environ, {
-        const.DATACENTER_ID_KEY: "5",
-        const.WORKER_ID_KEY: "10"
-    })
+    @patch.dict(os.environ, {const.DATACENTER_ID_KEY: "5", const.WORKER_ID_KEY: "10"})
     def test_gen_id_function(self):
         """Test gen_id function uses environment variables."""
         generated_id = gen_id()
@@ -255,10 +256,7 @@ class TestSnowflakeIDGeneration:
         assert isinstance(generated_id, int)
         assert generated_id > 0
 
-    @patch.dict(os.environ, {
-        const.DATACENTER_ID_KEY: "0",
-        const.WORKER_ID_KEY: "0"
-    })
+    @patch.dict(os.environ, {const.DATACENTER_ID_KEY: "0", const.WORKER_ID_KEY: "0"})
     def test_gen_id_with_zero_ids(self):
         """Test gen_id with zero datacenter and worker IDs."""
         generated_id = gen_id()
@@ -281,22 +279,15 @@ class TestOpenapiSchemaValidator:
         """Valid OpenAPI schema for testing."""
         return {
             "openapi": "3.0.0",
-            "info": {
-                "title": "Test API",
-                "version": "1.0.0"
-            },
+            "info": {"title": "Test API", "version": "1.0.0"},
             "paths": {
                 "/test": {
                     "get": {
                         "operationId": "test_operation",
-                        "responses": {
-                            "200": {
-                                "description": "Success"
-                            }
-                        }
+                        "responses": {"200": {"description": "Success"}},
                     }
                 }
-            }
+            },
         }
 
     @pytest.fixture
@@ -319,6 +310,7 @@ class TestOpenapiSchemaValidator:
     def test_openapi_validator_init_yaml_schema(self, valid_openapi_schema):
         """Test OpenapiSchemaValidator initialization with YAML schema."""
         import yaml
+
         schema_yaml = yaml.dump(valid_openapi_schema)
         validator = OpenapiSchemaValidator(schema_yaml, schema_type=1)
 
@@ -350,6 +342,7 @@ class TestOpenapiSchemaValidator:
     def test_openapi_validator_pre_yaml_success(self, valid_openapi_schema, mock_span):
         """Test pre method with valid YAML schema."""
         import yaml
+
         schema_yaml = yaml.dump(valid_openapi_schema)
         schema_b64 = base64.b64encode(schema_yaml.encode()).decode()
         validator = OpenapiSchemaValidator(schema_b64, schema_type=1, span=mock_span)
@@ -393,13 +386,15 @@ class TestOpenapiSchemaValidator:
         # The actual error is about base64 decoding since it tries to decode the dict
         assert "无效的base64" in result[0]["error_message"]
 
-    def test_openapi_validator_schema_validate_success(self, valid_openapi_schema, mock_span):
+    def test_openapi_validator_schema_validate_success(
+        self, valid_openapi_schema, mock_span
+    ):
         """Test schema_validate method with valid schema."""
         schema_json = json.dumps(valid_openapi_schema)
         schema_b64 = base64.b64encode(schema_json.encode()).decode()
         validator = OpenapiSchemaValidator(schema_b64, schema_type=0, span=mock_span)
 
-        with patch('utils.open_api_schema.schema_validate.validate') as mock_validate:
+        with patch("utils.open_api_schema.schema_validate.validate") as mock_validate:
             mock_validate.return_value = None  # Valid schema
 
             _ = validator.schema_validate()
@@ -426,7 +421,7 @@ class TestOpenapiSchemaValidator:
             def json_path(self):
                 return self._json_path
 
-        with patch('utils.open_api_schema.schema_validate.validate') as mock_validate:
+        with patch("utils.open_api_schema.schema_validate.validate") as mock_validate:
             mock_error = MockOpenAPIValidationError("Validation failed", "$.paths")
             mock_validate.side_effect = mock_error
 
@@ -461,7 +456,9 @@ class TestOpenapiSchemaValidator:
         assert len(result) == 1
         assert "版本格式不对" in result[0]["error_message"]
 
-    def test_openapi_validator_common_validate_version_unsupported_version(self, mock_span):
+    def test_openapi_validator_common_validate_version_unsupported_version(
+        self, mock_span
+    ):
         """Test _common_validate_version with unsupported version."""
         schema = {"openapi": "2.0.0"}
         validator = OpenapiSchemaValidator("", schema_type=0, span=mock_span)
@@ -514,7 +511,7 @@ class TestOpenapiSchemaValidator:
                 "/test": {
                     "get": {
                         "operationId": "",
-                        "responses": {"200": {"description": "OK"}}
+                        "responses": {"200": {"description": "OK"}},
                     }
                 }
             }
@@ -535,7 +532,7 @@ class TestOpenapiSchemaValidator:
                 "/test": {
                     "get": {
                         "operationId": "valid_operation",
-                        "responses": {"200": {"description": "OK"}}
+                        "responses": {"200": {"description": "OK"}},
                     }
                 }
             }
@@ -554,12 +551,12 @@ class TestUtilityEdgeCases:
     def test_new_uid_consistent_hash_algorithm(self):
         """Test new_uid uses consistent hash algorithm."""
         # Test that the same input produces same output
-        test_bytes = b'test_input_bytes'
+        test_bytes = b"test_input_bytes"
 
-        with patch('utils.uid.generate_uid.os.urandom', return_value=test_bytes):
+        with patch("utils.uid.generate_uid.os.urandom", return_value=test_bytes):
             uid1 = new_uid()
 
-        with patch('utils.uid.generate_uid.os.urandom', return_value=test_bytes):
+        with patch("utils.uid.generate_uid.os.urandom", return_value=test_bytes):
             uid2 = new_uid()
 
         assert uid1 == uid2
@@ -619,7 +616,7 @@ class TestUtilityEdgeCases:
                                 "name": "id",
                                 "in": "path",
                                 "required": True,
-                                "schema": {"type": "integer"}
+                                "schema": {"type": "integer"},
                             }
                         ],
                         "responses": {
@@ -638,21 +635,23 @@ class TestUtilityEdgeCases:
                                                             "nested": {
                                                                 "type": "object",
                                                                 "properties": {
-                                                                    "deep": {"type": "string"}
-                                                                }
+                                                                    "deep": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
                                                             }
-                                                        }
-                                                    }
+                                                        },
+                                                    },
                                                 }
-                                            }
+                                            },
                                         }
                                     }
-                                }
+                                },
                             }
-                        }
+                        },
                     }
                 }
-            }
+            },
         }
 
         schema_json = json.dumps(complex_schema)
@@ -670,23 +669,21 @@ class TestUtilityEdgeCases:
             "info": {
                 "title": "Unicode API 🌟",
                 "version": "1.0.0",
-                "description": "支持中文的API"
+                "description": "支持中文的API",
             },
             "paths": {
                 "/测试": {
                     "get": {
                         "operationId": "unicode_test",
                         "summary": "测试Unicode支持",
-                        "responses": {
-                            "200": {"description": "成功"}
-                        }
+                        "responses": {"200": {"description": "成功"}},
                     }
                 }
-            }
+            },
         }
 
         schema_json = json.dumps(unicode_schema, ensure_ascii=False)
-        schema_b64 = base64.b64encode(schema_json.encode('utf-8')).decode()
+        schema_b64 = base64.b64encode(schema_json.encode("utf-8")).decode()
 
         # Create mock span for the test
         mock_span = Mock()
@@ -700,7 +697,7 @@ class TestUtilityEdgeCases:
         assert result is None
         assert validator.schema == unicode_schema
 
-    @patch('utils.snowflake.gen_snowflake.time.time')
+    @patch("utils.snowflake.gen_snowflake.time.time")
     def test_snowflake_timestamp_precision_edge_cases(self, mock_time):
         """Test Snowflake timestamp precision at edge cases."""
         # Test at millisecond boundaries
@@ -731,22 +728,15 @@ class TestUtilityEdgeCases:
         """Test OpenAPI validator methods without span (None span)."""
         valid_openapi_schema = {
             "openapi": "3.0.0",
-            "info": {
-                "title": "Test API",
-                "version": "1.0.0"
-            },
+            "info": {"title": "Test API", "version": "1.0.0"},
             "paths": {
                 "/test": {
                     "get": {
                         "operationId": "test_operation",
-                        "responses": {
-                            "200": {
-                                "description": "Success"
-                            }
-                        }
+                        "responses": {"200": {"description": "Success"}},
                     }
                 }
-            }
+            },
         }
         schema_json = json.dumps(valid_openapi_schema)
         validator = OpenapiSchemaValidator(schema_json, schema_type=0, span=None)

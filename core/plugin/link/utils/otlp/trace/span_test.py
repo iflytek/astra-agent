@@ -7,11 +7,11 @@ functionality.
 
 import time
 
-from opentelemetry.trace import Status as OTelStatus, StatusCode
-
-from plugin.link.utils.sid.sid_generator2 import init_sid
+from opentelemetry.trace import Status as OTelStatus
+from opentelemetry.trace import StatusCode
 from plugin.link.utils.otlp.trace.span import Span
 from plugin.link.utils.otlp.trace.trace import init_trace
+from plugin.link.utils.sid.sid_generator2 import init_sid
 
 
 def do_work1():

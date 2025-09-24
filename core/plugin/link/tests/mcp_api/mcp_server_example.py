@@ -6,9 +6,9 @@ using FastMCP and FastAPI. It demonstrates how to create mathematical calculatio
 interactions.
 """
 
-from mcp.server.fastmcp import FastMCP
-from fastapi import FastAPI
 import uvicorn
+from fastapi import FastAPI
+from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("calculator")
 app = FastAPI()

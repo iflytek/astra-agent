@@ -6,9 +6,9 @@ extracting parameters, request bodies, and other schema information.
 
 import json
 
-from plugin.link.utils.open_api_schema.types.schema_parser_types import ParamsConfig
 from plugin.link.exceptions.sparklink_exceptions import SparkLinkOpenapiSchemaException
 from plugin.link.utils.errors.code import ErrCode
+from plugin.link.utils.open_api_schema.types.schema_parser_types import ParamsConfig
 from plugin.link.utils.otlp.trace.span import Span
 
 
@@ -192,11 +192,13 @@ class OpenapiSchemaParser:
         for path, path_item in openapi["paths"].items():
             for method in methods:
                 if method in path_item:
-                    interfaces.append({
-                        "path": path,
-                        "method": method,
-                        "operation": path_item[method],
-                    })
+                    interfaces.append(
+                        {
+                            "path": path,
+                            "method": method,
+                            "operation": path_item[method],
+                        }
+                    )
         return interfaces
 
     def _process_request_body_refs(self, interface: dict, openapi: dict) -> None:
@@ -215,7 +217,9 @@ class OpenapiSchemaParser:
                     "schema"
                 ] = root
 
-    def _process_interface_schemas(self, interface: dict, api_key_info: dict, openapi: dict, span_context) -> dict:
+    def _process_interface_schemas(
+        self, interface: dict, api_key_info: dict, openapi: dict, span_context
+    ) -> dict:
         """Process all schemas for a single interface."""
         path_schema = None
         query_schema = None
@@ -232,10 +236,8 @@ class OpenapiSchemaParser:
 
         # Process parameters
         if "parameters" in interface["operation"]:
-            path_schema, query_schema, header_schema = (
-                self.schema_params_parser(
-                    interface["operation"]["parameters"], span=span_context
-                )
+            path_schema, query_schema, header_schema = self.schema_params_parser(
+                interface["operation"]["parameters"], span=span_context
             )
 
         # Process request body
@@ -262,7 +264,9 @@ class OpenapiSchemaParser:
             "security_type": security_type,
         }
 
-    def _build_operation_bundle(self, interface: dict, schemas: dict, server_url: str) -> tuple:
+    def _build_operation_bundle(
+        self, interface: dict, schemas: dict, server_url: str
+    ) -> tuple:
         """Build operation bundle for a single interface."""
         path = interface["path"]
         method = interface["method"]

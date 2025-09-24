@@ -5,24 +5,26 @@ Speech synthesis module providing text-to-speech and voice cloning functionality
 import json
 import logging
 import os
-import uuid
 import time
-
-from common.service import get_oss_service
-from common.service import get_kafka_producer_service
-from common.otlp.metrics.meter import Meter
-from common.otlp.trace.span import Span
-from common.otlp.log_trace.node_trace_log import (
-    NodeTraceLog,
-    Status
-)
+import uuid
 
 from plugin.aitools.api.schema.types import ErrorResponse, SuccessDataResponse
 from plugin.aitools.const.err_code.code import CodeEnum
 from plugin.aitools.service.ase_sdk.ability.oss.client import OSSClient
-from plugin.aitools.service.speech_synthesis.one_sentence_reproduction.train import VoiceTrainer
-from plugin.aitools.service.speech_synthesis.one_sentence_reproduction.ttsclient import TTSClient
-from plugin.aitools.service.speech_synthesis.smart_tts.smart_tts_client import SmartTTSClient
+from plugin.aitools.service.speech_synthesis.one_sentence_reproduction.train import (
+    VoiceTrainer,
+)
+from plugin.aitools.service.speech_synthesis.one_sentence_reproduction.ttsclient import (
+    TTSClient,
+)
+from plugin.aitools.service.speech_synthesis.smart_tts.smart_tts_client import (
+    SmartTTSClient,
+)
+
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service, get_oss_service
 
 
 # 超拟人
@@ -57,7 +59,7 @@ def smarttts_main(text: str, vcn: str, speed: int, request):
                 question=json.dumps(usr_input, ensure_ascii=False),
             )
             kafka_service = get_kafka_producer_service()
-           
+
             node_trace.start_time = int(round(time.time() * 1000))
 
             if not text:
@@ -95,16 +97,15 @@ def smarttts_main(text: str, vcn: str, speed: int, request):
                 }
                 m.in_error_count(response["code"])
                 node_trace.answer = response["message"]
-                node_trace.status = Status(code=response["code"], message=response["message"])
+                node_trace.status = Status(
+                    code=response["code"], message=response["message"]
+                )
                 kafka_service.send("spark-agent-builder", node_trace.to_json())
 
                 return response
 
-         
             oss_service = get_oss_service()
-            voice_url = oss_service.upload_file(
-                str(uuid.uuid4()) + ".MP3", 
-                audios)
+            voice_url = oss_service.upload_file(str(uuid.uuid4()) + ".MP3", audios)
 
             span_context.add_info_events(
                 {"voice_url": json.dumps(voice_url, ensure_ascii=False)}
@@ -124,5 +125,5 @@ def smarttts_main(text: str, vcn: str, speed: int, request):
         node_trace.answer = response.message
         node_trace.status = Status(code=response.code, message=response.message)
         kafka_service.send("spark-agent-builder", node_trace.to_json())
-       
+
         return response

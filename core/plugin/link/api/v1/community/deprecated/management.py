@@ -6,12 +6,14 @@ Please use the versioned tool management APIs instead.
 """
 
 from fastapi import APIRouter, Query
-from plugin.link.api.schemas.community.deprecated.management_schema import ToolManagerRequest
+from plugin.link.api.schemas.community.deprecated.management_schema import (
+    ToolManagerRequest,
+)
 from plugin.link.service.community.deprecated.management_server import (
     create_tools,
     delete_tools,
-    update_tools,
     read_tools,
+    update_tools,
 )
 
 deprecated_router = APIRouter(tags=["deprecated tool management api"])

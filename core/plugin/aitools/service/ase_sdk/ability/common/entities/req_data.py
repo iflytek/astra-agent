@@ -1,6 +1,8 @@
+from plugin.aitools.service.ase_sdk.__base.entities.req_data import (
+    BaseReqSourceData,
+    ReqData,
+)
 from pydantic import BaseModel
-
-from plugin.aitools.service.ase_sdk.__base.entities.req_data import BaseReqSourceData, ReqData
 
 
 class Credentials(BaseModel):

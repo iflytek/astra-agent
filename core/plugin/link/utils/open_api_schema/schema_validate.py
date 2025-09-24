@@ -4,14 +4,15 @@ This module provides validation functionality for OpenAPI specifications,
 including format checking, version validation, and schema compliance.
 """
 
-import re
-import jsonschema
-from plugin.link.utils.open_api_schema.common_schema import open_api_schema_template
-from plugin.link.utils.otlp.trace.span import Span
 import base64
 import json
+import re
+
+import jsonschema
 from openapi_spec_validator import validate
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
+from plugin.link.utils.open_api_schema.common_schema import open_api_schema_template
+from plugin.link.utils.otlp.trace.span import Span
 from yaml import safe_load
 
 

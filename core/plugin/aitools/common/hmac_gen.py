@@ -33,7 +33,7 @@ def sha256base64(data):
 
 def parse_url(requset_url):
     stidx = requset_url.index("://")
-    host = requset_url[stidx + 3:]
+    host = requset_url[stidx + 3 :]
     schema = requset_url[: stidx + 3]
     edidx = host.index("/")
     if edidx <= 0:

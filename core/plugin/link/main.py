@@ -5,6 +5,7 @@ This module serves as the main entry point for the Spark Link server application
 It initializes the necessary environment variables for Polaris configuration
 and starts the SparkLinkServer instance.
 """
+
 import os
 import subprocess
 import sys
@@ -16,8 +17,8 @@ def setup_python_path() -> None:
     # 获取当前脚本的路径和项目根目录
     current_file_path = Path(__file__)
     project_root = current_file_path.parent  # 项目根目录（当前目录）
-    parent_dir = project_root.parent        # 上层目录
-    grandparent_dir = parent_dir.parent      # 上上层目录
+    parent_dir = project_root.parent  # 上层目录
+    grandparent_dir = parent_dir.parent  # 上上层目录
 
     # 获取当前的 PYTHONPATH
     python_path = os.environ.get("PYTHONPATH", "")
@@ -47,7 +48,7 @@ def load_env_file(env_file: str) -> None:
     print(f"📋 Loading configuration file: {env_file}")
 
     use_polaris = False
-    os.environ["CONFIG_ENV_PATH"] = (env_file)
+    os.environ["CONFIG_ENV_PATH"] = env_file
     with open(env_file, "r", encoding="utf-8") as f:
         for line_num, line in enumerate(f, 1):
             line = line.strip()
@@ -60,7 +61,7 @@ def load_env_file(env_file: str) -> None:
             if "=" in line:
                 key, value = line.split("=", 1)
                 # Set CONFIG_ENV_PATH, common to load
-                if (os.environ.get(key.strip())):
+                if os.environ.get(key.strip()):
                     print(f"ENV  ✅ {key.strip()}={os.environ.get(key.strip())}")
                 else:
                     print(f"CFG  ✅ {key.strip()}={value.strip()}")
@@ -99,6 +100,7 @@ def load_polaris() -> None:
     )
 
     from plugin.link.consts import const
+
     username = os.getenv(const.POLARIS_USERNAME_KEY)
     password = os.getenv(const.POLARIS_PASSWORD_KEY)
 
@@ -127,7 +129,9 @@ def start_service() -> None:
 
     try:
         # Start FastAPI application
-        relative_path = (Path(__file__).resolve().parent).relative_to(Path.cwd()) / "app/start_server.py"
+        relative_path = (Path(__file__).resolve().parent).relative_to(
+            Path.cwd()
+        ) / "app/start_server.py"
         if not relative_path.exists():
             raise FileNotFoundError(f"can not find {relative_path}")
         subprocess.run([sys.executable, relative_path], check=True)

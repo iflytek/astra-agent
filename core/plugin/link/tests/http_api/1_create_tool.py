@@ -1,7 +1,8 @@
 """Tool creation test script using numbered prefix for test execution order."""
 
-import requests
 import json
+
+import requests
 
 # NOTE: These host configuration patterns are duplicated across multiple test files
 # to maintain consistent test environment configuration. Each test file can be run
@@ -24,8 +25,8 @@ URL = f"{HOST_LOC}{PATH}"
 # ********************
 
 if __name__ == "__main__":
-    import os
     import base64
+    import os
 
     file = os.path.join(os.path.dirname(__file__), "0_search.json")
     READ_CONTENT = ""

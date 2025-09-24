@@ -13,7 +13,6 @@ from typing import Iterator
 
 from opentelemetry import trace
 from opentelemetry.trace import Status
-
 from opentelemetry.util import types
 from plugin.link.consts import const
 

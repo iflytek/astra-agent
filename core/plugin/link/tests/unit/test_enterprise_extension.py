@@ -6,16 +6,16 @@ including validation, database operations, telemetry tracking, and error
 handling scenarios specific to enterprise environment requirements.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
-from plugin.link.service.enterprise.extension import register_mcp
-from plugin.link.api.schemas.enterprise.extension_schema import (
-    MCPManagerResponse
+import pytest
+from plugin.link.api.schemas.community.deprecated.management_schema import (
+    ToolManagerResponse,
 )
-from plugin.link.api.schemas.community.deprecated.management_schema import ToolManagerResponse
-from plugin.link.utils.errors.code import ErrCode
+from plugin.link.api.schemas.enterprise.extension_schema import MCPManagerResponse
 from plugin.link.consts import const
+from plugin.link.service.enterprise.extension import register_mcp
+from plugin.link.utils.errors.code import ErrCode
 
 
 class TestEnterpriseExtension:
@@ -31,7 +31,7 @@ class TestEnterpriseExtension:
             "name": "Enterprise Search Tool",
             "description": "Advanced search tool for enterprise users",
             "mcp_schema": '{"openapi": "3.0.0", "info": {"title": "Enterprise Tool"}}',
-            "mcp_server_url": "https://enterprise.example.com/mcp"
+            "mcp_server_url": "https://enterprise.example.com/mcp",
         }
 
     @pytest.fixture
@@ -41,16 +41,23 @@ class TestEnterpriseExtension:
             "app_id": "enterprise_123",
             "name": "Minimal Tool",
             "description": "Basic enterprise tool",
-            "mcp_server_url": "https://enterprise.example.com/basic"
+            "mcp_server_url": "https://enterprise.example.com/basic",
         }
 
-    @patch('service.enterprise.extension.Span')
-    @patch('service.enterprise.extension.api_validate')
-    @patch('service.enterprise.extension.ToolCrudOperation')
-    @patch('service.enterprise.extension.get_db_engine')
-    @patch('service.enterprise.extension.gen_id')
-    def test_register_mcp_success_with_flow_id(self, mock_gen_id, mock_get_db, mock_crud_class,
-                                               mock_api_validate, mock_span_class, valid_mcp_request):
+    @patch("service.enterprise.extension.Span")
+    @patch("service.enterprise.extension.api_validate")
+    @patch("service.enterprise.extension.ToolCrudOperation")
+    @patch("service.enterprise.extension.get_db_engine")
+    @patch("service.enterprise.extension.gen_id")
+    def test_register_mcp_success_with_flow_id(
+        self,
+        mock_gen_id,
+        mock_get_db,
+        mock_crud_class,
+        mock_api_validate,
+        mock_span_class,
+        valid_mcp_request,
+    ):
         """Test successful MCP registration with flow_id."""
         # Mock validation
         mock_api_validate.return_value = None
@@ -77,7 +84,7 @@ class TestEnterpriseExtension:
         mock_request = Mock()
         mock_request.model_dump.return_value = valid_mcp_request
 
-        with patch('service.enterprise.extension.os.getenv') as mock_getenv:
+        with patch("service.enterprise.extension.os.getenv") as mock_getenv:
             mock_getenv.return_value = "false"  # Disable OTLP
 
             result = register_mcp(mock_request)
@@ -100,16 +107,23 @@ class TestEnterpriseExtension:
         assert call_args["name"] == "Enterprise Search Tool"
         assert call_args["mcp_server_url"] == "https://enterprise.example.com/mcp"
 
-    @patch('service.enterprise.extension.Span')
-    @patch('service.enterprise.extension.api_validate')
-    @patch('service.enterprise.extension.ToolCrudOperation')
-    @patch('service.enterprise.extension.get_db_engine')
-    @patch('service.enterprise.extension.gen_id')
-    def test_register_mcp_success_without_flow_id(self, mock_gen_id, mock_get_db, mock_crud_class,
-                                                  mock_api_validate, mock_span_class, minimal_mcp_request):
+    @patch("service.enterprise.extension.Span")
+    @patch("service.enterprise.extension.api_validate")
+    @patch("service.enterprise.extension.ToolCrudOperation")
+    @patch("service.enterprise.extension.get_db_engine")
+    @patch("service.enterprise.extension.gen_id")
+    def test_register_mcp_success_without_flow_id(
+        self,
+        mock_gen_id,
+        mock_get_db,
+        mock_crud_class,
+        mock_api_validate,
+        mock_span_class,
+        minimal_mcp_request,
+    ):
         """Test successful MCP registration without flow_id (uses generated ID)."""
         mock_api_validate.return_value = None
-        mock_gen_id.return_value = 0x123456789abcdef
+        mock_gen_id.return_value = 0x123456789ABCDEF
 
         mock_span = Mock()
         mock_span_context = Mock()
@@ -130,7 +144,7 @@ class TestEnterpriseExtension:
         mock_request = Mock()
         mock_request.model_dump.return_value = minimal_mcp_request
 
-        with patch('service.enterprise.extension.os.getenv') as mock_getenv:
+        with patch("service.enterprise.extension.os.getenv") as mock_getenv:
             # Mock different environment variables appropriately
             def mock_getenv_side_effect(key, default=None):
                 if key == const.OTLP_ENABLE_KEY:
@@ -143,6 +157,7 @@ class TestEnterpriseExtension:
                     return "1"  # Return a valid worker_id
                 else:
                     return default if default is not None else "default_value"
+
             mock_getenv.side_effect = mock_getenv_side_effect
 
             result = register_mcp(mock_request)
@@ -153,8 +168,8 @@ class TestEnterpriseExtension:
         expected_tool_id = "mcp@123456789abcdef"
         assert result.data["id"] == expected_tool_id
 
-    @patch('service.enterprise.extension.Span')
-    @patch('service.enterprise.extension.api_validate')
+    @patch("service.enterprise.extension.Span")
+    @patch("service.enterprise.extension.api_validate")
     def test_register_mcp_validation_error(self, mock_api_validate, mock_span_class):
         """Test MCP registration with validation error."""
         mock_api_validate.return_value = "Enterprise MCP validation failed"
@@ -172,7 +187,7 @@ class TestEnterpriseExtension:
         mock_request = Mock()
         mock_request.model_dump.return_value = {"invalid": "data"}
 
-        with patch('service.enterprise.extension.os.getenv') as mock_getenv:
+        with patch("service.enterprise.extension.os.getenv") as mock_getenv:
             # Mock different environment variables appropriately
             def mock_getenv_side_effect(key, default=None):
                 if key == const.OTLP_ENABLE_KEY:
@@ -185,6 +200,7 @@ class TestEnterpriseExtension:
                     return "1"  # Return a valid worker_id
                 else:
                     return default if default is not None else "default_value"
+
             mock_getenv.side_effect = mock_getenv_side_effect
 
             result = register_mcp(mock_request)
@@ -193,12 +209,13 @@ class TestEnterpriseExtension:
         assert result.code == ErrCode.JSON_PROTOCOL_PARSER_ERR.code
         assert result.message == "Enterprise MCP validation failed"
 
-    @patch('service.enterprise.extension.Span')
-    @patch('service.enterprise.extension.api_validate')
-    @patch('service.enterprise.extension.ToolCrudOperation')
-    @patch('service.enterprise.extension.get_db_engine')
-    def test_register_mcp_database_error(self, mock_get_db, mock_crud_class,
-                                         mock_api_validate, mock_span_class):
+    @patch("service.enterprise.extension.Span")
+    @patch("service.enterprise.extension.api_validate")
+    @patch("service.enterprise.extension.ToolCrudOperation")
+    @patch("service.enterprise.extension.get_db_engine")
+    def test_register_mcp_database_error(
+        self, mock_get_db, mock_crud_class, mock_api_validate, mock_span_class
+    ):
         """Test MCP registration with database error."""
         mock_api_validate.return_value = None
 
@@ -222,10 +239,10 @@ class TestEnterpriseExtension:
             "app_id": "enterprise_123",
             "name": "Test Tool",
             "description": "Test",
-            "mcp_server_url": "https://example.com"
+            "mcp_server_url": "https://example.com",
         }
 
-        with patch('service.enterprise.extension.os.getenv') as mock_getenv:
+        with patch("service.enterprise.extension.os.getenv") as mock_getenv:
             # Mock different environment variables appropriately
             def mock_getenv_side_effect(key, default=None):
                 if key == const.OTLP_ENABLE_KEY:
@@ -238,6 +255,7 @@ class TestEnterpriseExtension:
                     return "1"  # Return a valid worker_id
                 else:
                     return default if default is not None else "default_value"
+
             mock_getenv.side_effect = mock_getenv_side_effect
 
             result = register_mcp(mock_request)
@@ -245,12 +263,13 @@ class TestEnterpriseExtension:
         assert result.code == ErrCode.COMMON_ERR.code
         assert "Database connection failed" in result.message
 
-    @patch('service.enterprise.extension.Span')
-    @patch('service.enterprise.extension.api_validate')
-    @patch('service.enterprise.extension.ToolCrudOperation')
-    @patch('service.enterprise.extension.get_db_engine')
-    def test_register_mcp_with_telemetry_enabled(self, mock_get_db, mock_crud_class,
-                                                 mock_api_validate, mock_span_class):
+    @patch("service.enterprise.extension.Span")
+    @patch("service.enterprise.extension.api_validate")
+    @patch("service.enterprise.extension.ToolCrudOperation")
+    @patch("service.enterprise.extension.get_db_engine")
+    def test_register_mcp_with_telemetry_enabled(
+        self, mock_get_db, mock_crud_class, mock_api_validate, mock_span_class
+    ):
         """Test MCP registration with telemetry enabled."""
         mock_api_validate.return_value = None
 
@@ -274,12 +293,14 @@ class TestEnterpriseExtension:
             "app_id": "enterprise_123",
             "name": "Telemetry Test Tool",
             "description": "Tool for testing telemetry",
-            "mcp_server_url": "https://telemetry.example.com"
+            "mcp_server_url": "https://telemetry.example.com",
         }
 
-        with patch('service.enterprise.extension.os.getenv') as mock_getenv, \
-             patch('service.enterprise.extension.Meter') as mock_meter_class, \
-             patch('service.enterprise.extension.NodeTraceLog') as mock_node_trace_class:
+        with patch("service.enterprise.extension.os.getenv") as mock_getenv, patch(
+            "service.enterprise.extension.Meter"
+        ) as mock_meter_class, patch(
+            "service.enterprise.extension.NodeTraceLog"
+        ) as mock_node_trace_class:
 
             # Mock different environment variables appropriately
             def mock_getenv_side_effect(key, default=None):
@@ -293,6 +314,7 @@ class TestEnterpriseExtension:
                     return "1"  # Return a valid worker_id
                 else:
                     return default if default is not None else "default_value"
+
             mock_getenv.side_effect = mock_getenv_side_effect
 
             mock_meter = Mock()
@@ -315,21 +337,17 @@ class TestEnterpriseExtension:
         """Test different MCP tool ID generation patterns."""
         # Test with flow_id
         test_cases = [
-            {
-                "type": "search",
-                "flow_id": "flow_123",
-                "expected": "mcp@searchflow_123"
-            },
+            {"type": "search", "flow_id": "flow_123", "expected": "mcp@searchflow_123"},
             {
                 "type": "analytics",
                 "flow_id": "analytics_flow_456",
-                "expected": "mcp@analyticsanalytics_flow_456"
+                "expected": "mcp@analyticsanalytics_flow_456",
             },
             {
                 "type": "",
                 "flow_id": "empty_type_flow",
-                "expected": "mcp@empty_type_flow"
-            }
+                "expected": "mcp@empty_type_flow",
+            },
         ]
 
         for case in test_cases:
@@ -344,18 +362,13 @@ class TestEnterpriseExtension:
     def test_mcp_data_structure_validation(self):
         """Test MCP data structure validation."""
         # Test required fields for MCP registration
-        required_fields = [
-            "app_id",
-            "name",
-            "description",
-            "mcp_server_url"
-        ]
+        required_fields = ["app_id", "name", "description", "mcp_server_url"]
 
         valid_data = {
             "app_id": "enterprise_123",
             "name": "Test MCP Tool",
             "description": "Test MCP description",
-            "mcp_server_url": "https://mcp.example.com"
+            "mcp_server_url": "https://mcp.example.com",
         }
 
         for field in required_fields:
@@ -376,7 +389,7 @@ class TestEnterpriseExtension:
             "DEFAULT_APPID_KEY": "Default app ID for enterprise",
             "DEF_VER": "Default version for MCP tools",
             "DEF_DEL": "Default deletion flag",
-            "OTLP_ENABLE_KEY": "Enterprise telemetry setting"
+            "OTLP_ENABLE_KEY": "Enterprise telemetry setting",
         }
 
         for config, description in enterprise_configs.items():
@@ -388,14 +401,14 @@ class TestEnterpriseExtension:
         valid_urls = [
             "https://enterprise.example.com/mcp",
             "https://mcp-server.company.internal:8443/api",
-            "https://secure-mcp.enterprise.net/v1/tools"
+            "https://secure-mcp.enterprise.net/v1/tools",
         ]
 
         invalid_urls = [
             "http://insecure.example.com",  # Non-HTTPS
-            "ftp://wrong-protocol.com",     # Wrong protocol
-            "not-a-url",                    # Invalid format
-            ""                              # Empty string
+            "ftp://wrong-protocol.com",  # Wrong protocol
+            "not-a-url",  # Invalid format
+            "",  # Empty string
         ]
 
         for url in valid_urls:
@@ -423,7 +436,7 @@ class TestMCPDatabaseOperations:
             "description",
             "mcp_server_url",
             "version",
-            "is_deleted"
+            "is_deleted",
         ]
 
         mcp_record = {
@@ -434,7 +447,7 @@ class TestMCPDatabaseOperations:
             "description": "Enterprise search tool",
             "mcp_server_url": "https://mcp.enterprise.com",
             "version": "1.0.0",
-            "is_deleted": 0
+            "is_deleted": 0,
         }
 
         for field in expected_fields:
@@ -462,12 +475,12 @@ class TestEnterpriseErrorHandling:
         error_codes = [
             ErrCode.SUCCESSES,
             ErrCode.JSON_PROTOCOL_PARSER_ERR,
-            ErrCode.COMMON_ERR
+            ErrCode.COMMON_ERR,
         ]
 
         for error_code in error_codes:
-            assert hasattr(error_code, 'code')
-            assert hasattr(error_code, 'msg')
+            assert hasattr(error_code, "code")
+            assert hasattr(error_code, "msg")
             assert isinstance(error_code.code, int)
             assert isinstance(error_code.msg, str)
 
@@ -477,39 +490,31 @@ class TestEnterpriseErrorHandling:
 
         # MCPManagerResponse for validation errors
         mcp_response = MCPManagerResponse(
-            code=1001,
-            message="Validation error",
-            sid="test_sid",
-            data={}
+            code=1001, message="Validation error", sid="test_sid", data={}
         )
 
-        assert hasattr(mcp_response, 'code')
-        assert hasattr(mcp_response, 'message')
-        assert hasattr(mcp_response, 'sid')
-        assert hasattr(mcp_response, 'data')
+        assert hasattr(mcp_response, "code")
+        assert hasattr(mcp_response, "message")
+        assert hasattr(mcp_response, "sid")
+        assert hasattr(mcp_response, "data")
 
         # ToolManagerResponse for successful operations
         tool_response = ToolManagerResponse(
             code=0,
             message="Success",
             sid="test_sid",
-            data={"name": "Test Tool", "id": "mcp@123"}
+            data={"name": "Test Tool", "id": "mcp@123"},
         )
 
-        assert hasattr(tool_response, 'code')
-        assert hasattr(tool_response, 'message')
-        assert hasattr(tool_response, 'sid')
-        assert hasattr(tool_response, 'data')
+        assert hasattr(tool_response, "code")
+        assert hasattr(tool_response, "message")
+        assert hasattr(tool_response, "sid")
+        assert hasattr(tool_response, "data")
 
     def test_enterprise_telemetry_requirements(self):
         """Test enterprise telemetry requirements."""
         # Test telemetry components required for enterprise
-        telemetry_components = [
-            "Span",
-            "Meter",
-            "NodeTraceLog",
-            "Status"
-        ]
+        telemetry_components = ["Span", "Meter", "NodeTraceLog", "Status"]
 
         telemetry_operations = [
             "span.start",
@@ -518,7 +523,7 @@ class TestEnterpriseErrorHandling:
             "meter.in_success_count",
             "meter.in_error_count",
             "node_trace.record_start",
-            "node_trace.upload"
+            "node_trace.upload",
         ]
 
         for component in telemetry_components:
@@ -535,7 +540,7 @@ class TestEnterpriseErrorHandling:
             "app_id_validation": "Enterprise app ID must be validated",
             "mcp_server_url_validation": "MCP server URL must be HTTPS",
             "schema_validation": "MCP schema must be validated",
-            "access_control": "Enterprise users need proper permissions"
+            "access_control": "Enterprise users need proper permissions",
         }
 
         for check, requirement in security_checks.items():

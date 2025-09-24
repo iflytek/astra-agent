@@ -9,9 +9,8 @@ The module uses a SchemaProcess class to read schema files from the filesystem
 and provides getter functions to access the loaded schemas.
 """
 
-import os
 import json
-
+import os
 
 create_tool_schema: str = ""
 update_tool_schema: str = ""

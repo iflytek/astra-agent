@@ -4,18 +4,20 @@ This module provides HTTP request execution functionality with various
 authentication methods and security validations.
 """
 
+import ipaddress
 import json
 import os
 import re
-import ipaddress
-from urllib.parse import urljoin, urlparse, urlunparse, quote
+from urllib.parse import quote, urljoin, urlparse, urlunparse
 
 import aiohttp
-
-from plugin.link.exceptions.sparklink_exceptions import CallThirdApiException
-from plugin.link.utils.errors.code import ErrCode
 from plugin.link.consts import const
-from plugin.link.infra.tool_exector.http_auth import public_query_url, assemble_ws_auth_url
+from plugin.link.exceptions.sparklink_exceptions import CallThirdApiException
+from plugin.link.infra.tool_exector.http_auth import (
+    assemble_ws_auth_url,
+    public_query_url,
+)
+from plugin.link.utils.errors.code import ErrCode
 
 
 class HttpRun:
@@ -125,11 +127,11 @@ class HttpRun:
         if self._is_official:
             return (
                 ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.code,
-                ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.msg
+                ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.msg,
             )
         return (
             ErrCode.THIRD_API_REQUEST_FAILED_ERR.code,
-            ErrCode.THIRD_API_REQUEST_FAILED_ERR.msg
+            ErrCode.THIRD_API_REQUEST_FAILED_ERR.msg,
         )
 
     async def _execute_request(self, url, span_context):
@@ -148,23 +150,18 @@ class HttpRun:
             pass
 
         encoded_url = quote(url, safe="/:?=&")
+        span_context.add_info_event(f"raw_url: {url}, encoded_url: {encoded_url}")
         span_context.add_info_event(
-            f"raw_url: {url}, encoded_url: {encoded_url}"
-        )
-        span_context.add_info_event(
-            f"encoded_url: {encoded_url}, header: {self.header}, "
-            f"body: {self.body}"
+            f"encoded_url: {encoded_url}, header: {self.header}, " f"body: {self.body}"
         )
 
         kwargs = {
             "headers": self.header if self.header else None,
-            "json": self.body if self.body else None
+            "json": self.body if self.body else None,
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.request(
-                self.method, encoded_url, **kwargs
-            ) as response:
+            async with session.request(self.method, encoded_url, **kwargs) as response:
                 response_text = await response.text()
                 status_code = response.status
 
@@ -190,7 +187,9 @@ class HttpRun:
 
         with span.start(func_name="http_run") as span_context:
             try:
-                third_result, status_code = await self._execute_request(url, span_context)
+                third_result, status_code = await self._execute_request(
+                    url, span_context
+                )
             except Exception as err:
                 span.add_error_event(str(err))
                 code_return, err_pre_return = self._get_error_codes()
@@ -199,7 +198,9 @@ class HttpRun:
                 ) from err
 
         if status_code != 200:
-            err_reason = f"Request error code: {status_code}, error message {third_result}"
+            err_reason = (
+                f"Request error code: {status_code}, error message {third_result}"
+            )
             code_return, err_pre_return = self._get_error_codes()
             raise CallThirdApiException(
                 code=code_return, err_pre=err_pre_return, err=err_reason
@@ -247,7 +248,7 @@ class HttpRun:
                     ix = authorization.index(":")
                     auth_prefix = authorization[:ix]
                     if auth_prefix == "HMAC":
-                        auth_con = authorization[ix + 1:].strip()
+                        auth_con = authorization[ix + 1 :].strip()
                         try:
                             auth_con_js = json.loads(auth_con)
                             return True, auth_con_js

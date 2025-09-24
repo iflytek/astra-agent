@@ -12,20 +12,17 @@ import os
 import time
 import uuid
 
-from common.service import get_kafka_producer_service
-from common.otlp.metrics.meter import Meter
-from common.otlp.trace.span import Span
-from common.otlp.log_trace.node_trace_log import (
-    NodeTraceLog,
-    Status
-)
-
 from plugin.aitools.api.schema.types import ErrorResponse, SuccessDataResponse
 from plugin.aitools.common.sid_generator2 import new_sid
 from plugin.aitools.const.err_code.code import CodeEnum
 from plugin.aitools.service.image_understanding.image_understanding_client import (
     ImageUnderstandingClient,
 )
+
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service
 
 
 # 图片理解 - 开放平台
@@ -83,8 +80,9 @@ def image_understanding_main(question: str, image_url: str, request):
                     m.in_error_count(response.get("code"))
 
                     node_trace.answer = json.dumps(response, ensure_ascii=False)
-                    node_trace.status = Status(code=response.get("code"),
-                                            message=response.get("message"))
+                    node_trace.status = Status(
+                        code=response.get("code"), message=response.get("message")
+                    )
                     kafka_service.send("spark-agent-builder", node_trace.to_json())
 
                     return response
@@ -93,14 +91,16 @@ def image_understanding_main(question: str, image_url: str, request):
                     m.in_error_count(response.code)
 
                     node_trace.answer = response.message
-                    node_trace.status = Status(code=response.code, message=response.message)
+                    node_trace.status = Status(
+                        code=response.code, message=response.message
+                    )
                     kafka_service.send("spark-agent-builder", node_trace.to_json())
 
                     return response
 
             response = SuccessDataResponse(data={"content": answer}, sid=sid)
             m.in_success_count()
-            
+
             node_trace.answer = json.dumps(response.data, ensure_ascii=False)
             node_trace.status = Status(code=response.code, message=response.message)
             kafka_service.send("spark-agent-builder", node_trace.to_json())
@@ -110,7 +110,7 @@ def image_understanding_main(question: str, image_url: str, request):
         logging.error("图片理解请求error: %s", str(e))
         response = ErrorResponse(CodeEnum.INTERNAL_ERROR)
         m.in_error_count(response.code)
-        
+
         node_trace.answer = response.message
         node_trace.status = Status(code=response.code, message=response.message)
         kafka_service.send("spark-agent-builder", node_trace.to_json())
@@ -164,15 +164,16 @@ async def ise_evaluate_main(
             kafka_service = get_kafka_producer_service()
 
             from plugin.aitools.service.ise.ise_client import ISEClient
-        
+
             # 解码音频数据
             audio_bytes = base64.b64decode(audio_data)
 
             # 创建ISE客户端
             ise_client = ISEClient(
-                            os.getenv("AI_APP_ID"),
-                            os.getenv("AI_API_KEY"),
-                            os.getenv("AI_API_SECRET"))
+                os.getenv("AI_APP_ID"),
+                os.getenv("AI_API_KEY"),
+                os.getenv("AI_API_SECRET"),
+            )
 
             # 执行语音评测
             success, message, result = await ise_client.evaluate_audio(
@@ -197,7 +198,9 @@ async def ise_evaluate_main(
                 m.in_error_count(CodeEnum.INTERNAL_ERROR.code)
 
                 node_trace.answer = message
-                node_trace.status = Status(code=CodeEnum.INTERNAL_ERROR.code, message=message)
+                node_trace.status = Status(
+                    code=CodeEnum.INTERNAL_ERROR.code, message=message
+                )
                 kafka_service.send("spark-agent-builder", node_trace.to_json())
 
                 return ErrorResponse(
@@ -209,7 +212,7 @@ async def ise_evaluate_main(
     except Exception as e:
         logging.error("ISE语音评测失败， error: %s", str(e))
         m.in_error_count(CodeEnum.INTERNAL_ERROR.code)
-       
+
         node_trace.answer = str(e)
         node_trace.status = Status(code=CodeEnum.INTERNAL_ERROR.code, message=str(e))
         kafka_service.send("spark-agent-builder", node_trace.to_json())

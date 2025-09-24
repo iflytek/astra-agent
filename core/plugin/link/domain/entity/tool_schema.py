@@ -6,10 +6,10 @@ and entities used by the SparkLink plugin system.
 
 import warnings
 from datetime import datetime
-from plugin.link.consts import const
 
 import sqlalchemy as sa
-from sqlmodel import SQLModel, Field, Column, String, Text, BigInteger
+from plugin.link.consts import const
+from sqlmodel import BigInteger, Column, Field, SQLModel, String, Text
 
 # Ignore schema name warnings
 warnings.filterwarnings(
@@ -26,7 +26,9 @@ class Tools(SQLModel, table=True):
 
     __tablename__ = "tools_schema"
     id: int = Field(sa_column=Column(BigInteger, primary_key=True, autoincrement=True))
-    app_id: str = Field(sa_column=Column(String(32), nullable=True, comment="Application ID"))
+    app_id: str = Field(
+        sa_column=Column(String(32), nullable=True, comment="Application ID")
+    )
     tool_id: str = Field(
         sa_column=Column(String(32), nullable=True, unique=True, comment="Tool ID")
     )

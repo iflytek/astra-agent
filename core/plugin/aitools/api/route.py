@@ -10,21 +10,11 @@ import base64
 import json
 import logging
 import os
-import uuid
 import time
+import uuid
 
 import requests
 from fastapi import APIRouter, Request
-
-from common.service import get_oss_service
-from common.service import get_kafka_producer_service
-from common.otlp.metrics.meter import Meter
-from common.otlp.trace.span import Span
-from common.otlp.log_trace.node_trace_log import (
-    NodeTraceLog,
-    Status
-)
-
 from plugin.aitools.api.schema.types import (
     OCRLLM,
     ErrorCResponse,
@@ -36,7 +26,6 @@ from plugin.aitools.api.schema.types import (
     SuccessDataResponse,
 )
 from plugin.aitools.common.logger import log
-
 from plugin.aitools.const.const import IMAGE_GENERATE_MAX_PROMPT_LEN
 from plugin.aitools.const.err_code.code import CodeEnum
 from plugin.aitools.const.err_code.code_convert import CodeConvert
@@ -49,8 +38,12 @@ from plugin.aitools.service.ase_sdk.ability.ocr_llm.entities.req_data_multithrea
     OcrLLMReqSourceDataMultithreading,
     PayloadM,
 )
-
 from plugin.aitools.service.ase_sdk.exception.CustomException import CustomException
+
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service, get_oss_service
 
 app = APIRouter(prefix="/aitools/v1")
 
@@ -102,16 +95,16 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
         )
 
         node_trace = NodeTraceLog(
-                service_id=tool_id,
-                sid=span_context.sid,
-                app_id=span_context.app_id,
-                uid=span_context.uid,
-                chat_id=span_context.sid,
-                sub="aitools",
-                caller=caller,
-                log_caller="ocr",
-                question=json.dumps(str(usr_input), ensure_ascii=False),
-            )
+            service_id=tool_id,
+            sid=span_context.sid,
+            app_id=span_context.app_id,
+            uid=span_context.uid,
+            chat_id=span_context.sid,
+            sub="aitools",
+            caller=caller,
+            log_caller="ocr",
+            question=json.dumps(str(usr_input), ensure_ascii=False),
+        )
         node_trace.start_time = int(round(time.time() * 1000))
         kafka_service = get_kafka_producer_service()
 
@@ -121,9 +114,7 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
             image_byte_arrays.append(
                 requests.get(ase_ocr_llm_vo.file_url, timeout=30).content
             )
-            client = OcrLLMClientMultithreading(
-                url=os.getenv("OCR_LLM_WS_URL")
-            )
+            client = OcrLLMClientMultithreading(url=os.getenv("OCR_LLM_WS_URL"))
             asyncio.run(
                 client.invoke(
                     req_source_data=OcrLLMReqSourceDataMultithreading(
@@ -157,7 +148,7 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
             log.error("request: %s, error: %s", ase_ocr_llm_vo.json(), str(e))
             response = ErrorResponse(CodeEnum.OCR_FILE_HANDLING_ERROR)
             m.in_error_count(response.code)
-           
+
             node_trace.answer = response.message
             node_trace.status = Status(code=response.code, message=response.message)
             kafka_service.send("spark-agent-builder", node_trace.to_json())
@@ -191,24 +182,26 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
             {"usr_input": json.dumps(str(usr_input), ensure_ascii=False)}
         )
         span_context.set_attributes(attributes={"prompt": usr_input.prompt})
-       
+
         node_trace = NodeTraceLog(
-                service_id=tool_id,
-                sid=span_context.sid,
-                app_id=span_context.app_id,
-                uid=span_context.uid,
-                chat_id=span_context.sid,
-                sub="aitools",
-                caller=caller,
-                log_caller="image_generate",
-                question=json.dumps(str(usr_input), ensure_ascii=False),
-            )
+            service_id=tool_id,
+            sid=span_context.sid,
+            app_id=span_context.app_id,
+            uid=span_context.uid,
+            chat_id=span_context.sid,
+            sub="aitools",
+            caller=caller,
+            log_caller="image_generate",
+            question=json.dumps(str(usr_input), ensure_ascii=False),
+        )
         node_trace.start_time = int(round(time.time() * 1000))
         kafka_service = get_kafka_producer_service()
 
         try:
             from plugin.aitools.service.ase_sdk.__base.entities.req_data import ReqData
-            from plugin.aitools.service.ase_sdk.ability.common.client import CommonClient
+            from plugin.aitools.service.ase_sdk.ability.common.client import (
+                CommonClient,
+            )
             from plugin.aitools.service.ase_sdk.ability.common.entities.req_data import (
                 CommonReqSourceData,
             )
@@ -270,11 +263,10 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
             payload = content_dict[0].get("payload", {})
             text = payload.get("choices", {}).get("text", [{}])[0].get("content", "")
 
-
             oss_service = get_oss_service()
             image_url = oss_service.upload_file(
-                str(uuid.uuid4()) + ".jpg",
-                base64.b64decode(text))
+                str(uuid.uuid4()) + ".jpg", base64.b64decode(text)
+            )
             response = SuccessDataResponse(
                 data={"image_url": image_url, "image_url_md": f"![]({image_url})"},
                 sid=sid,

@@ -5,15 +5,15 @@ This module provides comprehensive function-level testing for all CRUD operation
 including edge cases, error scenarios, and boundary conditions for each method.
 """
 
-import pytest
-from unittest.mock import patch, Mock
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from unittest.mock import Mock, patch
 
-from plugin.link.infra.tool_crud.process import ToolCrudOperation
+import pytest
+from plugin.link.consts import const
 from plugin.link.domain.entity.tool_schema import Tools
 from plugin.link.exceptions.sparklink_exceptions import ToolNotExistsException
+from plugin.link.infra.tool_crud.process import ToolCrudOperation
 from plugin.link.utils.errors.code import ErrCode
-from plugin.link.consts import const
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
 
 class TestToolCrudOperationInit:
@@ -25,7 +25,7 @@ class TestToolCrudOperationInit:
         crud_op = ToolCrudOperation(mock_engine)
 
         assert crud_op.engine == mock_engine
-        assert hasattr(crud_op, 'engine')
+        assert hasattr(crud_op, "engine")
 
     def test_init_with_none_engine(self):
         """Test initialization with None engine."""
@@ -58,7 +58,7 @@ class TestAddToolsFunction:
                 "description": "First test tool",
                 "schema": '{"openapi": "3.0.0"}',
                 "version": "1.0.0",
-                "is_deleted": 0
+                "is_deleted": 0,
             },
             {
                 "app_id": "test_app_123",
@@ -67,11 +67,11 @@ class TestAddToolsFunction:
                 "description": "Second test tool",
                 "schema": '{"openapi": "3.0.1"}',
                 "version": "1.1.0",
-                "is_deleted": 0
-            }
+                "is_deleted": 0,
+            },
         ]
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tools_success_single_tool(self, mock_session_getter, crud_operation):
         """Test adding a single tool successfully."""
         # Mock session
@@ -79,13 +79,15 @@ class TestAddToolsFunction:
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
         mock_session_getter.return_value.__exit__ = Mock(return_value=None)
 
-        tool_info = [{
-            "app_id": "app123",
-            "tool_id": "tool@123",
-            "name": "Single Tool",
-            "description": "A single test tool",
-            "schema": '{"test": "schema"}'
-        }]
+        tool_info = [
+            {
+                "app_id": "app123",
+                "tool_id": "tool@123",
+                "name": "Single Tool",
+                "description": "A single test tool",
+                "schema": '{"test": "schema"}',
+            }
+        ]
 
         crud_operation.add_tools(tool_info)
 
@@ -102,8 +104,10 @@ class TestAddToolsFunction:
         assert added_tool.version == const.DEF_VER  # Default version
         assert added_tool.is_deleted == const.DEF_DEL  # Default deleted flag
 
-    @patch('infra.tool_crud.process.session_getter')
-    def test_add_tools_success_multiple_tools(self, mock_session_getter, crud_operation, sample_tool_info):
+    @patch("infra.tool_crud.process.session_getter")
+    def test_add_tools_success_multiple_tools(
+        self, mock_session_getter, crud_operation, sample_tool_info
+    ):
         """Test adding multiple tools successfully."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -124,7 +128,7 @@ class TestAddToolsFunction:
         assert second_call_tool.name == "Test Tool 2"
         assert second_call_tool.version == "1.1.0"
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tools_with_missing_fields(self, mock_session_getter, crud_operation):
         """Test adding tools with missing optional fields."""
         mock_session = Mock()
@@ -132,14 +136,16 @@ class TestAddToolsFunction:
         mock_session_getter.return_value.__exit__ = Mock(return_value=None)
 
         # Tool info with missing version and is_deleted
-        tool_info = [{
-            "app_id": "app123",
-            "tool_id": "tool@123",
-            "name": "Minimal Tool",
-            "description": "Tool with missing fields",
-            "schema": '{"minimal": "schema"}'
-            # Missing version and is_deleted
-        }]
+        tool_info = [
+            {
+                "app_id": "app123",
+                "tool_id": "tool@123",
+                "name": "Minimal Tool",
+                "description": "Tool with missing fields",
+                "schema": '{"minimal": "schema"}',
+                # Missing version and is_deleted
+            }
+        ]
 
         crud_operation.add_tools(tool_info)
 
@@ -148,20 +154,22 @@ class TestAddToolsFunction:
         assert added_tool.version == const.DEF_VER
         assert added_tool.is_deleted == const.DEF_DEL
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tools_with_none_values(self, mock_session_getter, crud_operation):
         """Test adding tools with None values."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
         mock_session_getter.return_value.__exit__ = Mock(return_value=None)
 
-        tool_info = [{
-            "app_id": None,
-            "tool_id": None,
-            "name": None,
-            "description": None,
-            "schema": None
-        }]
+        tool_info = [
+            {
+                "app_id": None,
+                "tool_id": None,
+                "name": None,
+                "description": None,
+                "schema": None,
+            }
+        ]
 
         crud_operation.add_tools(tool_info)
 
@@ -171,7 +179,7 @@ class TestAddToolsFunction:
         assert added_tool.tool_id is None
         assert added_tool.name is None
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tools_empty_list(self, mock_session_getter, crud_operation):
         """Test adding empty tool list."""
         mock_session = Mock()
@@ -184,7 +192,7 @@ class TestAddToolsFunction:
         mock_session.add.assert_not_called()
         mock_session.commit.assert_not_called()
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tools_session_exception(self, mock_session_getter, crud_operation):
         """Test handling of session exceptions during add_tools."""
         mock_session = Mock()
@@ -219,12 +227,14 @@ class TestAddMcpFunction:
             "schema": '{"mcp": "schema"}',
             "mcp_server_url": "https://mcp.example.com",
             "version": "2.0.0",
-            "is_deleted": 0
+            "is_deleted": 0,
         }
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_add_mcp_new_tool_creation(self, mock_select, mock_session_getter, crud_operation, sample_mcp_info):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_add_mcp_new_tool_creation(
+        self, mock_select, mock_session_getter, crud_operation, sample_mcp_info
+    ):
         """Test creating new MCP tool when none exists."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -247,9 +257,11 @@ class TestAddMcpFunction:
         assert added_tool.tool_id == "mcp@search123"
         assert added_tool.mcp_server_url == "https://mcp.example.com"
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_add_mcp_update_existing_tool(self, mock_select, mock_session_getter, crud_operation, sample_mcp_info):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_add_mcp_update_existing_tool(
+        self, mock_select, mock_session_getter, crud_operation, sample_mcp_info
+    ):
         """Test updating existing MCP tool."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -274,9 +286,11 @@ class TestAddMcpFunction:
         mock_session.add.assert_called_once_with(existing_tool)
         mock_session.commit.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_add_mcp_with_defaults(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_add_mcp_with_defaults(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test add_mcp with missing optional fields using defaults."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -288,7 +302,7 @@ class TestAddMcpFunction:
             "app_id": "app123",
             "tool_id": "mcp@minimal",
             "name": "Minimal MCP",
-            "description": "Basic MCP tool"
+            "description": "Basic MCP tool",
             # Missing schema, mcp_server_url, version, is_deleted
         }
 
@@ -299,9 +313,11 @@ class TestAddMcpFunction:
         assert added_tool.version == const.DEF_VER
         assert added_tool.is_deleted == const.DEF_DEL
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_add_mcp_no_result_found_exception(self, mock_select, mock_session_getter, crud_operation, sample_mcp_info):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_add_mcp_no_result_found_exception(
+        self, mock_select, mock_session_getter, crud_operation, sample_mcp_info
+    ):
         """Test handling NoResultFound exception in add_mcp."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -334,13 +350,15 @@ class TestUpdateToolsFunction:
                 "description": "Updated description",
                 "open_api_schema": '{"updated": "schema"}',
                 "version": "1.0.0",
-                "is_deleted": 0
+                "is_deleted": 0,
             }
         ]
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_update_tools_success(self, mock_select, mock_session_getter, crud_operation, sample_update_info):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_update_tools_success(
+        self, mock_select, mock_session_getter, crud_operation, sample_update_info
+    ):
         """Test successful tool update."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -364,9 +382,11 @@ class TestUpdateToolsFunction:
         mock_session.add.assert_called_once_with(existing_tool)
         mock_session.commit.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_update_tools_partial_update(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_update_tools_partial_update(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test partial tool update (only some fields provided)."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -380,11 +400,13 @@ class TestUpdateToolsFunction:
         mock_session.exec.return_value.first.return_value = existing_tool
 
         # Update only name
-        partial_update_info = [{
-            "tool_id": "tool@partial",
-            "name": "New Name Only",
-            # No description or schema
-        }]
+        partial_update_info = [
+            {
+                "tool_id": "tool@partial",
+                "name": "New Name Only",
+                # No description or schema
+            }
+        ]
 
         crud_operation.update_tools(partial_update_info)
 
@@ -393,9 +415,11 @@ class TestUpdateToolsFunction:
         assert existing_tool.description == "Original Description"  # Unchanged
         assert existing_tool.open_api_schema == "Original Schema"  # Unchanged
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_update_tools_not_exists_exception(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_update_tools_not_exists_exception(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test ToolNotExistsException when tool doesn't exist."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -412,9 +436,11 @@ class TestUpdateToolsFunction:
         assert exc_info.value.code == ErrCode.TOOL_NOT_EXIST_ERR.code
         assert "tools don't exist!" in str(exc_info.value)
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_update_tools_empty_string_fields(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_update_tools_empty_string_fields(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test update_tools with empty string fields (should not update)."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -427,12 +453,14 @@ class TestUpdateToolsFunction:
         mock_session.exec.return_value.first.return_value = existing_tool
 
         # Update with empty strings
-        update_info = [{
-            "tool_id": "tool@empty",
-            "name": "",  # Empty string
-            "description": "",  # Empty string
-            "open_api_schema": ""  # Empty string
-        }]
+        update_info = [
+            {
+                "tool_id": "tool@empty",
+                "name": "",  # Empty string
+                "description": "",  # Empty string
+                "open_api_schema": "",  # Empty string
+            }
+        ]
 
         crud_operation.update_tools(update_info)
 
@@ -440,9 +468,11 @@ class TestUpdateToolsFunction:
         assert existing_tool.name == "Original Name"  # Unchanged
         assert existing_tool.description == "Original Description"  # Unchanged
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_update_tools_version_tuple_handling(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_update_tools_version_tuple_handling(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test update_tools with version as tuple (edge case)."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -452,11 +482,13 @@ class TestUpdateToolsFunction:
         mock_session.exec.return_value.first.return_value = existing_tool
 
         # Version as tuple (edge case from line 96)
-        update_info = [{
-            "tool_id": "tool@tuple",
-            "version": ("1.0.0",),  # Tuple version
-            "name": "Tuple Version Tool"
-        }]
+        update_info = [
+            {
+                "tool_id": "tool@tuple",
+                "version": ("1.0.0",),  # Tuple version
+                "name": "Tuple Version Tool",
+            }
+        ]
 
         crud_operation.update_tools(update_info)
 
@@ -471,22 +503,24 @@ class TestAddToolVersionFunction:
     def crud_operation(self):
         return ToolCrudOperation(Mock())
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tool_version_success(self, mock_session_getter, crud_operation):
         """Test successful tool version addition."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
         mock_session_getter.return_value.__exit__ = Mock(return_value=None)
 
-        version_info = [{
-            "app_id": "app123",
-            "tool_id": "tool@version",
-            "name": "Version Tool",
-            "description": "Tool with version",
-            "open_api_schema": '{"version": "schema"}',
-            "version": "2.0.0",
-            "is_deleted": 0
-        }]
+        version_info = [
+            {
+                "app_id": "app123",
+                "tool_id": "tool@version",
+                "name": "Version Tool",
+                "description": "Tool with version",
+                "open_api_schema": '{"version": "schema"}',
+                "version": "2.0.0",
+                "is_deleted": 0,
+            }
+        ]
 
         crud_operation.add_tool_version(version_info)
 
@@ -498,8 +532,10 @@ class TestAddToolVersionFunction:
         assert isinstance(added_tool, Tools)
         assert added_tool.version == "2.0.0"
 
-    @patch('infra.tool_crud.process.session_getter')
-    def test_add_tool_version_integrity_error(self, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    def test_add_tool_version_integrity_error(
+        self, mock_session_getter, crud_operation
+    ):
         """Test handling IntegrityError (version already exists)."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -515,7 +551,7 @@ class TestAddToolVersionFunction:
 
         mock_session.rollback.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
+    @patch("infra.tool_crud.process.session_getter")
     def test_add_tool_version_multiple_tools(self, mock_session_getter, crud_operation):
         """Test adding multiple tool versions."""
         mock_session = Mock()
@@ -524,7 +560,7 @@ class TestAddToolVersionFunction:
 
         version_info = [
             {"tool_id": "tool@v1", "version": "1.0.0"},
-            {"tool_id": "tool@v2", "version": "2.0.0"}
+            {"tool_id": "tool@v2", "version": "2.0.0"},
         ]
 
         crud_operation.add_tool_version(version_info)
@@ -540,10 +576,12 @@ class TestDeleteToolsFunction:
     def crud_operation(self):
         return ToolCrudOperation(Mock())
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    @patch('infra.tool_crud.process.datetime')
-    def test_delete_tools_with_version(self, mock_datetime, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    @patch("infra.tool_crud.process.datetime")
+    def test_delete_tools_with_version(
+        self, mock_datetime, mock_select, mock_session_getter, crud_operation
+    ):
         """Test deleting tools with specific version."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -559,11 +597,7 @@ class TestDeleteToolsFunction:
         tool2 = Mock()
         mock_session.exec.return_value.all.return_value = [tool1, tool2]
 
-        delete_info = [{
-            "tool_id": "tool@delete",
-            "version": "1.0.0",
-            "is_deleted": 0
-        }]
+        delete_info = [{"tool_id": "tool@delete", "version": "1.0.0", "is_deleted": 0}]
 
         crud_operation.delete_tools(delete_info)
 
@@ -572,9 +606,11 @@ class TestDeleteToolsFunction:
         assert tool2.is_deleted == 1234567890
         mock_session.commit.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_delete_tools_without_version(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_delete_tools_without_version(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test deleting tools without specific version (deletes all versions)."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -582,20 +618,24 @@ class TestDeleteToolsFunction:
 
         mock_session.exec.return_value.all.return_value = [Mock()]
 
-        delete_info = [{
-            "tool_id": "tool@delete_all",
-            "version": "",  # Empty version
-            "is_deleted": 0
-        }]
+        delete_info = [
+            {
+                "tool_id": "tool@delete_all",
+                "version": "",  # Empty version
+                "is_deleted": 0,
+            }
+        ]
 
         crud_operation.delete_tools(delete_info)
 
         # Should use query without version filter
         mock_session.commit.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_delete_tools_version_tuple_handling(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_delete_tools_version_tuple_handling(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test delete_tools with version as tuple."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -603,20 +643,24 @@ class TestDeleteToolsFunction:
 
         mock_session.exec.return_value.all.return_value = []
 
-        delete_info = [{
-            "tool_id": "tool@tuple_version",
-            "version": ("1.0.0",),  # Tuple version
-            "is_deleted": 0
-        }]
+        delete_info = [
+            {
+                "tool_id": "tool@tuple_version",
+                "version": ("1.0.0",),  # Tuple version
+                "is_deleted": 0,
+            }
+        ]
 
         crud_operation.delete_tools(delete_info)
 
         # Should handle tuple version correctly
         mock_session.exec.assert_called_once()
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_delete_tools_no_results_found(self, mock_select, mock_session_getter, crud_operation):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_delete_tools_no_results_found(
+        self, mock_select, mock_session_getter, crud_operation
+    ):
         """Test delete_tools when no tools are found."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -648,9 +692,11 @@ class TestGetToolsFunction:
         span.start.return_value.__exit__ = Mock(return_value=None)
         return span
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_get_tools_success(self, mock_select, mock_session_getter, crud_operation, mock_span):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_get_tools_success(
+        self, mock_select, mock_session_getter, crud_operation, mock_span
+    ):
         """Test successful tool retrieval."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -666,7 +712,7 @@ class TestGetToolsFunction:
 
         tool_info = [
             {"tool_id": "tool@123", "version": "1.0.0"},
-            {"tool_id": "tool@456", "version": "1.0.0"}
+            {"tool_id": "tool@456", "version": "1.0.0"},
         ]
 
         result = crud_operation.get_tools(tool_info, mock_span)
@@ -675,9 +721,11 @@ class TestGetToolsFunction:
         assert result[0] == tool1
         assert result[1] == tool2
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_get_tools_not_found_exception(self, mock_select, mock_session_getter, crud_operation, mock_span):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_get_tools_not_found_exception(
+        self, mock_select, mock_session_getter, crud_operation, mock_span
+    ):
         """Test ToolNotExistsException when tool not found."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -694,9 +742,11 @@ class TestGetToolsFunction:
         assert exc_info.value.code == ErrCode.TOOL_NOT_EXIST_ERR.code
         assert "tool@notfound 1.0.0不存在" in str(exc_info.value)
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_get_tools_version_tuple_handling(self, mock_select, mock_session_getter, crud_operation, mock_span):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_get_tools_version_tuple_handling(
+        self, mock_select, mock_session_getter, crud_operation, mock_span
+    ):
         """Test get_tools with version as tuple."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -705,19 +755,18 @@ class TestGetToolsFunction:
         mock_tool = Mock()
         mock_session.exec.return_value.first.return_value = mock_tool
 
-        tool_info = [{
-            "tool_id": "tool@tuple",
-            "version": ("1.0.0",)  # Tuple version
-        }]
+        tool_info = [{"tool_id": "tool@tuple", "version": ("1.0.0",)}]  # Tuple version
 
         result = crud_operation.get_tools(tool_info, mock_span)
 
         assert len(result) == 1
         assert result[0] == mock_tool
 
-    @patch('infra.tool_crud.process.session_getter')
-    @patch('infra.tool_crud.process.select')
-    def test_get_tools_default_values(self, mock_select, mock_session_getter, crud_operation, mock_span):
+    @patch("infra.tool_crud.process.session_getter")
+    @patch("infra.tool_crud.process.select")
+    def test_get_tools_default_values(
+        self, mock_select, mock_session_getter, crud_operation, mock_span
+    ):
         """Test get_tools with default version and is_deleted values."""
         mock_session = Mock()
         mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
@@ -741,7 +790,7 @@ class TestGetToolsFunction:
         mock_span.start.return_value.__enter__ = Mock(return_value=mock_span_context)
         mock_span.start.return_value.__exit__ = Mock(return_value=None)
 
-        with patch('infra.tool_crud.process.session_getter') as mock_session_getter:
+        with patch("infra.tool_crud.process.session_getter") as mock_session_getter:
             mock_session = Mock()
             mock_session_getter.return_value.__enter__ = Mock(return_value=mock_session)
             mock_session_getter.return_value.__exit__ = Mock(return_value=None)
@@ -753,4 +802,6 @@ class TestGetToolsFunction:
             crud_operation.get_tools(tool_info, mock_span)
 
             # Verify span context methods were called
-            assert mock_span_context.add_info_event.call_count >= 2  # Called at start and end
+            assert (
+                mock_span_context.add_info_event.call_count >= 2
+            )  # Called at start and end

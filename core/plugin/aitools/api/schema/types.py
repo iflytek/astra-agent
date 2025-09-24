@@ -6,9 +6,8 @@ import base64
 import re
 
 from fastapi import HTTPException
-from pydantic import BaseModel, validator
-
 from plugin.aitools.service.ase_sdk.util.pdf_convert import DOCUMENT_PAGE_UNLIMITED
+from pydantic import BaseModel, validator
 
 
 class GenText2Img(BaseModel):

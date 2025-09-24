@@ -5,8 +5,9 @@ with the OpenStellar platform. It provides an example of creating an MCP server
 registration with specific configuration including name, description, and server URL.
 """
 
-import requests
 import json
+
+import requests
 
 URL = "http://localhost:18888/api/v1/mcp"  # localhost url
 # URL = "http://10.1.87.65:18888/api/v1/mcp" # dev url

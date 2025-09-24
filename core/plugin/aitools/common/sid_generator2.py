@@ -9,9 +9,9 @@ import socket
 import time
 
 from plugin.aitools.const.const import (
-    SERVICE_SUB_KEY,
     SERVICE_LOCATION_KEY,
     SERVICE_PORT_KEY,
+    SERVICE_SUB_KEY,
 )
 
 sid_generator2: SidGenerator2 = None
@@ -27,13 +27,14 @@ def new_sid():
 
 def get_sid_generate() -> SidGenerator2:
     if not sid_generator2:
-        service_sub =os.getenv(SERVICE_SUB_KEY)
+        service_sub = os.getenv(SERVICE_SUB_KEY)
         service_location = os.getenv(SERVICE_LOCATION_KEY)
         service_port = os.getenv(SERVICE_PORT_KEY)
-    
+
         service_ip = get_host_ip()
         init_sid(service_sub, service_location, service_ip, service_port)
     return sid_generator2
+
 
 def get_host_ip():
     """
