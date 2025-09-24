@@ -2,14 +2,11 @@
 Server startup module responsible for FastAPI application initialization and startup.
 """
 
-import json
 import os
 import threading
 import time
-from pathlib import Path
 
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from loguru import logger
 from plugin.aitools.api.route import app

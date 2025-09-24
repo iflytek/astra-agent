@@ -2,7 +2,7 @@
 AI Tools service main entry module
 """
 
-from app.start_server import AIToolsServer
+from plugin.aitools.app.start_server import AIToolsServer
 
 if __name__ == "__main__":
     import os

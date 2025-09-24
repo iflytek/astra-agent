@@ -21,8 +21,8 @@ def pdf_convert_png(
 
     """
     if (
-        page_start > page_end != DOCUMENT_PAGE_UNLIMITED
-        and page_start != DOCUMENT_PAGE_UNLIMITED
+        page_start > page_end != DOCUMENT_PAGE_UNLIMITED and
+        page_start != DOCUMENT_PAGE_UNLIMITED
     ):
         raise ValueError("page_start should be less than page_end")
 
