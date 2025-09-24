@@ -290,7 +290,8 @@ def handle_debug_validation_error(
 ):
     """Handle validation errors in tool debug with telemetry."""
     span_context.add_error_event(
-        f"Error code: {ErrCode.JSON_PROTOCOL_PARSER_ERR.code}, error message: {validate_err}"
+        f"Error code: {ErrCode.JSON_PROTOCOL_PARSER_ERR.code}, "
+        f"error message: {validate_err}"
     )
 
     if os.getenv(const.OTLP_ENABLE_KEY, "false").lower() == "true":

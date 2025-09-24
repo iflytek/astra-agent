@@ -32,7 +32,7 @@ def generate_13_digit_timestamp():
     milliseconds = int(
         (current_time - seconds) * 1000
     )  # Milliseconds part, take integer part from 0 to 999
-    # Combine into 13-digit timestamp (first 10 digits are seconds, last 3 are milliseconds)
+    # Combine into 13-digit timestamp (10 for seconds, 3 for milliseconds)
     timestamp = f"{seconds}{milliseconds:03d}"
     return timestamp
 

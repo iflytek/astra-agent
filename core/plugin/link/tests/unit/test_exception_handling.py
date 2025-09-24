@@ -281,7 +281,12 @@ class TestSparkLinkFunctionCallException:
 
     def test_function_call_exception_with_stack_trace(self):
         """Test SparkLinkFunctionCallException with stack trace information."""
-        stack_trace = "Traceback (most recent call last):\n  File 'test.py', line 42, in calculate\n    result = x / y\nZeroDivisionError: division by zero"
+        stack_trace = (
+            "Traceback (most recent call last):\n  "
+            "   File 'test.py', line 42, in calculate\n"
+            "   result = x / y\n"
+            "   ZeroDivisionError: division by zero"
+        )
         exception = SparkLinkFunctionCallException(
             code=500, err_pre="RUNTIME_ERROR", err=stack_trace
         )
@@ -294,7 +299,10 @@ class TestSparkLinkFunctionCallException:
         exception = SparkLinkFunctionCallException(
             code=400,
             err_pre="INVALID_PARAMETERS",
-            err="Function 'search' called with invalid parameter: 'limit' must be positive integer, got -5",
+            err=(
+                "Function 'search' called with invalid parameter: "
+                "'limit' must be positive integer, got -5",
+            )
         )
 
         assert "search" in exception.message
@@ -344,7 +352,10 @@ class TestSparkLinkLLMException:
         exception = SparkLinkLLMException(
             code=502,
             err_pre="RESPONSE_PARSING_ERROR",
-            err="Failed to parse LLM response as JSON: Expecting ',' delimiter at line 3 column 15",
+            err=(
+                "Failed to parse LLM response as JSON: "
+                "Expecting ',' delimiter at line 3 column 15"
+            ),
         )
 
         assert "JSON" in exception.message

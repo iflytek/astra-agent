@@ -97,7 +97,8 @@ class TestConstantsValidation:
             assert isinstance(key, str)
             assert len(key) > 0
             # Environment variable keys should be valid identifier format
-            # Can be either CamelCase (like PolarisPassword) or lowercase_with_underscores (like app_auth_host)
+            # Can be either CamelCase (like PolarisPassword) or
+            # lowercase_with_underscores (like app_auth_host)
             import re
 
             is_camel_case = re.match(r"^[A-Z][a-zA-Z0-9]*$", key)

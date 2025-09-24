@@ -384,9 +384,9 @@ class RedisService:
         """
         existing_value = self.get(key)
         if (
-            existing_value is not None
-            and isinstance(existing_value, dict)
-            and isinstance(value, dict)
+            existing_value is not None and
+            isinstance(existing_value, dict) and
+            isinstance(value, dict)
         ):
             existing_value.update(value)
             value = existing_value

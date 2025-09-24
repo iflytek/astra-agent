@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 def setup_python_path() -> None:
-    """Set up Python path to include project root, parent directory, and grandparent directory"""
+    """Set up Python path to include root, parent dir, and grandparent dir"""
     # 获取当前脚本的路径和项目根目录
     current_file_path = Path(__file__)
     project_root = current_file_path.parent  # 项目根目录（当前目录）

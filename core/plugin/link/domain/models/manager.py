@@ -32,7 +32,7 @@ def init_data_base():
     global redis_singleton
     addr = os.getenv(const.REDIS_CLUSTER_ADDR_KEY)
     if not addr:
-        addr = redis_addr = os.getenv(const.REDIS_ADDR_KEY)
+        addr = os.getenv(const.REDIS_ADDR_KEY)
 
     password = os.getenv(const.REDIS_PASSWORD_KEY)
     redis_singleton = RedisService(cluster_addr=addr, password=password)

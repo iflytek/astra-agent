@@ -224,9 +224,9 @@ class HttpRun:
                 parameters = get_dict["get"]["parameters"]
                 for para in parameters:
                     if (
-                        para["in"] == "header"
-                        and para["name"] == "Authorization"
-                        and para["schema"]["default"] == "MD5"
+                        para["in"] == "header" and
+                        para["name"] == "Authorization" and
+                        para["schema"]["default"] == "MD5"
                     ):
                         return True
         return False

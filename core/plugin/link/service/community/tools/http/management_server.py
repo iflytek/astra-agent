@@ -221,7 +221,8 @@ def process_tools_for_creation(tools, app_id, span_context):
         if err:
             return (
                 None,
-                f"create tool: failed to validate tool {tool.get('name', '')} openapi schema, reason {err}",
+                f"create tool: failed to validate tool {tool.get('name', '')} "
+                f"openapi schema, reason {err}",
             )
 
         tool_name = tool.get("name", "")
@@ -269,7 +270,8 @@ def process_tools_for_update(tools, app_id, span_context):
             if err:
                 return (
                     None,
-                    f"update tool: failed to validate tool {tool.get('id')} schema, reason {json.dumps(err)}",
+                    f"update tool: failed to validate tool {tool.get('id')} schema, "
+                    f"reason {json.dumps(err)}",
                 )
             schema_content = validated_schema
 
@@ -515,7 +517,10 @@ def read_version(
 
         # Validate inputs
         if len(tool_ids) == 0 or len(versions) == 0 or len(tool_ids) != len(versions):
-            msg = f"get tool: tool num {len(tool_ids)}, version num {len(versions)} not equal"
+            msg = (
+                f"get tool: tool num {len(tool_ids)}, "
+                f"version num {len(versions)} not equal"
+            )
             return handle_validation_error_mgmt(msg, span_context, node_trace, m)
 
         tool_id_error = validate_tool_ids(tool_ids)

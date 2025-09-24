@@ -45,8 +45,10 @@ def init_metric(
     :param endpoint:                OpenTelemetry address
     :param service_name:            Service name
     :param timeout:                 Default server connection time in ms, default 5000ms
-    :param export_interval_millis:  SDK metric reporting interval, recommended < 30000ms, default 1000ms
-    :param export_timeout_millis:   Default metric reporting server timeout in ms, default 5000ms
+    :param export_interval_millis:  SDK metric reporting interval,
+                                    recommended < 30000ms, default 1000ms
+    :param export_timeout_millis:   Default metric reporting server timeout in ms,
+                                    default 5000ms
     :return:
     """
 

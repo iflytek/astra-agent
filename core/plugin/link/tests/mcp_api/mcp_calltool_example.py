@@ -11,8 +11,8 @@ import requests
 
 URL = "http://localhost:18888/api/v1/mcp/call_tool"  # localhost url
 # URL = "http://10.1.87.65:18888/api/v1/mcp/call_tool" # dev url
-# URL = "http://pre-agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url internal access
-# URL = "http://agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pro url internal access
+# URL = "http://pre-agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url access
+# URL = "http://agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url access
 
 calc_payload = json.dumps(
     {

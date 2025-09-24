@@ -621,7 +621,8 @@ class TestToolDebug:
         mock_span.start.return_value.__exit__ = Mock(return_value=None)
         mock_span_class.return_value = mock_span
 
-        # Create a real ToolDebugRequest object instead of Mock to avoid JSON serialization issues
+        # Create a real ToolDebugRequest object instead of Mock
+        # to avoid JSON serialization issues
         mock_request = ToolDebugRequest(
             server="https://api.example.com",
             method="GET",
@@ -680,7 +681,8 @@ class TestToolDebug:
         mock_http_run.do_call.return_value = '{"invalid": "response"}'
         mock_http_run_class.return_value = mock_http_run
 
-        # Create a real ToolDebugRequest object instead of Mock to avoid JSON serialization issues
+        # Create a real ToolDebugRequest object instead of Mock
+        # to avoid JSON serialization issues
         # Use a proper OpenAPI schema that defines a response schema for validation
         openapi_schema = """
         {
@@ -742,7 +744,7 @@ class TestToolDebug:
             # Use an error that can't be auto-fixed by adding default values
             mock_error = Mock()
             mock_error.json_path = "$.results.items"
-            mock_error.message = "'string' is not of type 'object'"  # Type mismatch that can't be auto-fixed
+            mock_error.message = "'string' is not of type 'object'"
             mock_error.absolute_path = []
 
             mock_validator_instance = Mock()
