@@ -1,12 +1,12 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /backend
 
-COPY pom.xml ./
-COPY commons/pom.xml commons/pom.xml
-COPY hub/pom.xml hub/pom.xml
-COPY toolkit/pom.xml toolkit/pom.xml
+COPY console/backend/pom.xml ./
+COPY console/backend/commons/pom.xml commons/pom.xml
+COPY console/backend/hub/pom.xml hub/pom.xml
+COPY console/backend/toolkit/pom.xml toolkit/pom.xml
 
-COPY . .
+COPY console/backend/ .
 RUN mvn -DskipTests package -pl hub -am
 
 FROM eclipse-temurin:21-jre
