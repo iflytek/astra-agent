@@ -45,6 +45,7 @@ class BaseRedisClient(ABC):
 
 class RedisStandaloneClient(BaseModel, BaseRedisClient):
     """Redis单机客户端"""
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     host: str
@@ -59,7 +60,7 @@ class RedisStandaloneClient(BaseModel, BaseRedisClient):
                 host=self.host,
                 port=self.port,
                 password=self.password,
-                decode_responses=False
+                decode_responses=False,
             )
 
         await self.is_connected(self._client)
@@ -89,13 +90,11 @@ class RedisStandaloneClient(BaseModel, BaseRedisClient):
         result = client.delete(name)
         return int(result)
 
-    async def get_ttl(self, name: str) -> Optional[int]:
+    async def get_ttl(self, name: str) -> int:
         """获取指定 key 的剩余过期时间（秒）"""
         client = await self.create_client()
         result = client.ttl(name)
-        if isinstance(result, int):
-            return result
-        return None
+        return int(result)
 
     @staticmethod
     async def is_connected(client: redis.Redis) -> bool:
@@ -121,7 +120,9 @@ class RedisClusterClient(BaseModel, BaseRedisClient):
             for node in self.nodes.split(","):
                 node_parts = node.strip().split(":")
                 if len(node_parts) != 2:
-                    raise ValueError(f"Invalid Redis node format: '{node}'. Expected format: 'host:port'")
+                    raise ValueError(
+                        f"Invalid Redis node format: '{node}'. Expected format: 'host:port'"
+                    )
                 node_addr, node_port = node_parts
                 nodes.append({"host": node_addr, "port": int(node_port)})
 
@@ -151,7 +152,6 @@ class RedisClusterClient(BaseModel, BaseRedisClient):
         client = await self.create_client()
         result = client.set(name, value, ex=ex, px=px, nx=nx, xx=xx)
         return bool(result)
-
 
     async def delete(self, name: str) -> int:
         client = await self.create_client()
@@ -183,7 +183,9 @@ class RedisClusterClient(BaseModel, BaseRedisClient):
             raise PingRedisExc from e
 
 
-def create_redis_client(cluster_addr: str = "", standalone_addr: str = "", password: str = "") -> BaseRedisClient:
+def create_redis_client(
+    cluster_addr: str = "", standalone_addr: str = "", password: str = ""
+) -> BaseRedisClient:
     """Redis客户端工厂方法
 
     Args:
@@ -201,7 +203,9 @@ def create_redis_client(cluster_addr: str = "", standalone_addr: str = "", passw
     elif standalone_addr:
         addr_parts = standalone_addr.strip().split(":")
         if len(addr_parts) != 2:
-            raise ValueError(f"Invalid Redis standalone address format: '{standalone_addr}'. Expected format: 'host:port'")
+            raise ValueError(
+                f"Invalid Redis standalone address format: '{standalone_addr}'. Expected format: 'host:port'"
+            )
         host, port = addr_parts
         return RedisStandaloneClient(host=host, port=int(port), password=password)
     else:

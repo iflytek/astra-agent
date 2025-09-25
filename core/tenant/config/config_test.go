@@ -8,15 +8,33 @@ import (
 
 func TestLoadConfig(t *testing.T) {
 	// Set environment variables for testing
-	os.Setenv("SERVICE_PORT", "8080")
-	os.Setenv("SERVICE_LOCATION", "localhost")
-	os.Setenv("DATABASE_DB_TYPE", "mysql")
-	os.Setenv("DATABASE_USERNAME", "root")
-	os.Setenv("DATABASE_PASSWORD", "password")
-	os.Setenv("DATABASE_URL", "(localhost:3306)/tenant")
-	os.Setenv("DATABASE_MAX_OPEN_CONNS", "100")
-	os.Setenv("DATABASE_MAX_IDLE_CONNS", "10")
-	os.Setenv("LOG_PATH", "log.txt")
+	if err := os.Setenv("SERVICE_PORT", "8080"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("SERVICE_LOCATION", "localhost"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_DB_TYPE", "mysql"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_USERNAME", "root"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_PASSWORD", "password"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_URL", "(localhost:3306)/tenant"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_MAX_OPEN_CONNS", "5"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("DATABASE_MAX_IDLE_CONNS", "5"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
+	if err := os.Setenv("LOG_PATH", "log.txt"); err != nil {
+		t.Errorf("Setenv() error = %v", err)
+	}
 	// Assume config.toml exists with some default values
 	cfg, err := LoadConfig("./config.toml")
 	if err != nil {

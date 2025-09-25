@@ -26,6 +26,5 @@ def validate_thread_results(results: List[Any], expected_count: int) -> None:
     """
     assert (
         len(results) == expected_count
-    ), f"Expected {
-        expected_count} results, got {len(results)}"
+    ), f"Expected {expected_count} results, got {len(results)}"
     assert all(result is not None for result in results), "Some results are None"

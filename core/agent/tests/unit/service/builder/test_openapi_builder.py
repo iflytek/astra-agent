@@ -549,7 +549,7 @@ class TestOpenAPIRunnerBuilder:
         context_manager.__exit__ = Mock(return_value=None)
         mock_span.start = Mock(return_value=context_manager)
 
-        mock_knowledge_response = {"data": {"results": []}}
+        mock_knowledge_response: dict = {"data": {"results": []}}
         mock_knowledge_plugin = Mock()
         mock_knowledge_plugin.run = AsyncMock(return_value=mock_knowledge_response)
 

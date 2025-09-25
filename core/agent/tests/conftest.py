@@ -257,6 +257,20 @@ def mock_agent_config() -> Generator[Mock, None, None]:
         mock_config.APP_AUTH_PROT = "https"
         mock_config.APP_AUTH_API_KEY = "test_api_key"
         mock_config.APP_AUTH_SECRET = "test_secret"
+
+        # Redis configuration - provide standalone address for tests
+        mock_config.REDIS_CLUSTER_ADDR = ""
+        mock_config.REDIS_ADDR = "localhost:6379"
+        mock_config.REDIS_PASSWORD = "test_password"
+        mock_config.REDIS_EXPIRE = 3600
+
+        # MySQL configuration for tests
+        mock_config.MYSQL_HOST = "localhost"
+        mock_config.MYSQL_PORT = "3306"
+        mock_config.MYSQL_USER = "test_user"
+        mock_config.MYSQL_PASSWORD = "test_password"
+        mock_config.MYSQL_DB = "test_db"
+
         yield mock_config
 
 

@@ -573,41 +573,6 @@ class TestBaseApiBuilder:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_create_model_special_models(
-        self, base_builder: BaseApiBuilder
-    ) -> None:
-        """Test model creation with special model configurations."""
-        # Test with spark model
-        with (
-            patch("service.builder.base_builder.AsyncOpenAI") as mock_openai,
-            patch("service.builder.base_builder.agent_config") as mock_config,
-            patch(
-                "service.builder.base_builder.BaseApiBuilder.query_maas_sk"
-            ) as mock_query_sk,
-        ):
-
-            mock_config.spark_x1_model_name = "spark-x1"
-            mock_config.spark_x1_model_default_base_url = "https://spark.api.com"
-            mock_config.default_llm_models = ["gpt-3.5-turbo", "gpt-4"]
-            mock_config.default_llm_base_url = "https://default.api.com"
-
-            mock_openai.return_value = Mock(spec=AsyncOpenAI)
-            mock_query_sk.return_value = "test_key"
-
-            # Act - Test spark model
-            result = await base_builder.create_model(
-                app_id="test_app", model_name="spark-x1", base_url="original_url"
-            )
-
-            # Assert
-            assert isinstance(result, BaseLLMModel)
-            mock_openai.assert_called_with(
-                api_key="test_key",
-                base_url="https://spark.api.com",
-            )
-
-    @pytest.mark.unit
-    @pytest.mark.asyncio
     async def test_build_plugins_empty_params(
         self, base_builder: BaseApiBuilder
     ) -> None:

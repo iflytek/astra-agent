@@ -15,7 +15,9 @@ func NewEnvLoader() *EnvLoader {
 func (l *EnvLoader) Load(cfg *Config) error {
 	// No operation, as environment variables are accessed directly in the application.
 	if v := os.Getenv("SERVICE_PORT"); v != "" {
-		fmt.Sscanf(v, "%d", &cfg.Server.Port)
+		if n, err := fmt.Sscanf(v, "%d", &cfg.Server.Port); err != nil || n != 1 {
+			return fmt.Errorf("invalid SERVICE_PORT: %v", err)
+		}
 	}
 	if v := os.Getenv("SERVICE_LOCATION"); v != "" {
 		cfg.Server.Location = v
@@ -33,10 +35,14 @@ func (l *EnvLoader) Load(cfg *Config) error {
 		cfg.DataBase.Url = v
 	}
 	if v := os.Getenv("DATABASE_MAX_OPEN_CONNS"); v != "" {
-		fmt.Sscanf(v, "%d", &cfg.DataBase.MaxOpenConns)
+		if n, err := fmt.Sscanf(v, "%d", &cfg.DataBase.MaxOpenConns); err != nil || n != 1 {
+			return fmt.Errorf("invalid DATABASE_MAX_OPEN_CONNS: %v", err)
+		}
 	}
 	if v := os.Getenv("DATABASE_MAX_IDLE_CONNS"); v != "" {
-		fmt.Sscanf(v, "%d", &cfg.DataBase.MaxIdleConns)
+		if n, err := fmt.Sscanf(v, "%d", &cfg.DataBase.MaxIdleConns); err != nil || n != 1 {
+			return fmt.Errorf("invalid DATABASE_MAX_IDLE_CONNS: %v", err)
+		}
 	}
 	if v := os.Getenv("LOG_PATH"); v != "" {
 		cfg.Log.LogFile = v

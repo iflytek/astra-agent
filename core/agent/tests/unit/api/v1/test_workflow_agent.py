@@ -54,7 +54,11 @@ class TestWorkflowAgentAPI:
         async def mock_run_stream() -> AsyncGenerator[dict[str, str], None]:
             yield {"type": "step", "content": "开始execute工作流"}
             yield {"type": "step", "content": "正在处理数据"}
-            yield {"type": "result", "content": "工作流execute完成", "status": "success"}
+            yield {
+                "type": "result",
+                "content": "工作流execute完成",
+                "status": "success",
+            }
 
         mock_runner.run = Mock(return_value=mock_run_stream())
 
@@ -278,7 +282,10 @@ class TestWorkflowAgentAPI:
         # Test long-running workflow that may cause timeout
         timeout_request = {
             "workflow_id": "long-running-workflow",
-            "inputs": {"query": "long-running execution test", "timeout": 30},  # Set timeout
+            "inputs": {
+                "query": "long-running execution test",
+                "timeout": 30,
+            },  # Set timeout
         }
 
         response = self.client.post("/v1/workflow/execute", json=timeout_request)
@@ -374,8 +381,14 @@ class TestWorkflowAgentAPI:
         """test工作流参数验证."""
         # Test various parameter boundary values
         boundary_requests = [
-            {"workflow_id": "param-test", "inputs": {"temperature": -1.0}},  # Invalid temperature
-            {"workflow_id": "param-test", "inputs": {"max_steps": 0}},  # Invalid step count
+            {
+                "workflow_id": "param-test",
+                "inputs": {"temperature": -1.0},
+            },  # Invalid temperature
+            {
+                "workflow_id": "param-test",
+                "inputs": {"max_steps": 0},
+            },  # Invalid step count
             {"workflow_id": "param-test", "inputs": {"timeout": -5}},  # Invalid timeout
         ]
 

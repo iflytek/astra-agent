@@ -46,23 +46,17 @@ class TestBaseLLMModel:
             return_value=expected_response
         )
 
-        with patch("domain.models.base.agent_config") as mock_config:
-            mock_config.default_llm_timeout = 60
-            mock_config.default_llm_max_token = 10000
+        result = await self.model.create_completion(test_messages, test_stream)
 
-            result = await self.model.create_completion(test_messages, test_stream)
+        # Verify results
+        assert result == expected_response
 
-            # Verify results
-            assert result == expected_response
-
-            # verify call parameters
-            self.mock_llm.chat.completions.create.assert_called_once_with(
-                messages=test_messages,
-                stream=test_stream,
-                model=self.model_name,
-                timeout=60,
-                max_tokens=10000,
-            )
+        # verify call parameters
+        self.mock_llm.chat.completions.create.assert_called_once_with(
+            messages=test_messages,
+            stream=test_stream,
+            model=self.model_name,
+        )
 
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)

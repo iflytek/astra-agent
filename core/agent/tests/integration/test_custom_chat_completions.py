@@ -265,7 +265,9 @@ class TestCustomChatCompletions:
 
     def test_custom_chat_with_custom_model_config(self) -> None:
         """testcustom model configuration"""
-        request_data = self._create_basic_request_data("使用custom model configuration处理请求")
+        request_data = self._create_basic_request_data(
+            "使用custom model configuration处理请求"
+        )
 
         # custom model configuration
         request_data["model_config"] = {
@@ -420,7 +422,10 @@ if __name__ == "__main__":
         ("多轮对话", test_instance.test_custom_chat_multi_turn_conversation),
         ("流式模式", test_instance.test_custom_chat_stream_mode),
         ("非流式模式", test_instance.test_custom_chat_non_stream_mode),
-        ("custom model configuration", test_instance.test_custom_chat_with_custom_model_config),
+        (
+            "custom model configuration",
+            test_instance.test_custom_chat_with_custom_model_config,
+        ),
         ("Headers验证", test_instance.test_missing_required_headers),
         ("输入验证", test_instance.test_invalid_request_data),
         ("并发请求", test_instance.test_concurrent_custom_requests),

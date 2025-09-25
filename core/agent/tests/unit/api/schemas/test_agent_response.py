@@ -277,7 +277,9 @@ class TestAgentResponse:
             # Test update
             updated_response = agent_response.model_copy(update={"content": "更新内容"})
             assert updated_response.content == "更新内容"
-            assert updated_response.model == "original-model"  # other fields remain unchanged
+            assert (
+                updated_response.model == "original-model"
+            )  # other fields remain unchanged
 
     def test_agent_response_comparison(self) -> None:
         """test代理响应比较."""

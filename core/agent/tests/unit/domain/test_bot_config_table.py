@@ -72,7 +72,9 @@ class TestTbBotConfig:
 
         # SQLAlchemy objects use identity comparison by default, not value comparison
         assert config1 is not config2  # different object instances
-        assert str(config1.app_id) == str(config2.app_id)  # but field values are the same
+        assert str(config1.app_id) == str(
+            config2.app_id
+        )  # but field values are the same
         assert str(config1.app_id) != str(config3.app_id)
 
     def test_field_types(self) -> None:
@@ -143,7 +145,9 @@ class TestTbBotConfig:
         )
         assert str(updated_config.app_id) == "updated_app_id"
         assert str(updated_config.tool_ids) == str(["updated_tool"])
-        assert str(updated_config.bot_id) == "test_bot_id"  # unupdated fields retain original values
+        assert (
+            str(updated_config.bot_id) == "test_bot_id"
+        )  # unupdated fields retain original values
 
     def test_validation(self) -> None:
         """test验证."""

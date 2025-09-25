@@ -34,8 +34,12 @@ try:
     NodeDataUsage = Usage  # xingchen_utils.NodeDataUsage -> common.Usage
 
     # Runtime constants - created for compatibility
-    DevelopmentEnv = "development"
-    ProductionEnv = "production"
+    DEVELOPMENT_ENV = "development"
+    PRODUCTION_ENV = "production"
+
+    # Legacy aliases for backwards compatibility
+    DevelopmentEnv = DEVELOPMENT_ENV  # pylint: disable=invalid-name
+    ProductionEnv = PRODUCTION_ENV  # pylint: disable=invalid-name
 
     # IP alias - for compatibility
     ip = local_ip  # xingchen_utils.otlp.util.ip.ip -> common.otlp.ip.local_ip
@@ -67,5 +71,6 @@ try:
 except ImportError as e:
     # If import fails, provide a more useful error message
     raise ImportError(
-        f"Failed to import common modules. Please ensure the common package is properly installed. Error: {e}"
-    )
+        f"Failed to import common modules. "
+        f"Please ensure the common package is properly installed. Error: {e}"
+    ) from e

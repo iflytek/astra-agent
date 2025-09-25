@@ -56,7 +56,9 @@ class ChatCompletionsTestClient:
         uid = kwargs.get("uid", "12")  # fixed user ID
         stream = kwargs.get("stream", False)
         meta_data = kwargs.get("meta_data")
-        bot_id = kwargs.get("bot_id", "14a9bbbcf0254f9b94562e6705d3a13f")  # fixed bot_id
+        bot_id = kwargs.get(
+            "bot_id", "14a9bbbcf0254f9b94562e6705d3a13f"
+        )  # fixed bot_id
         headers = kwargs.get("headers")
 
         if meta_data is None:
@@ -231,7 +233,10 @@ class TestChatCompletionsV2:
         """test无效的消息顺序 - 不是user/assistant交替"""
         messages = [
             {"role": "user", "content": "第一条消息"},
-            {"role": "user", "content": "consecutive user messages"},  # violates alternating rule
+            {
+                "role": "user",
+                "content": "consecutive user messages",
+            },  # violates alternating rule
         ]
 
         response = self.client.send_request(messages)

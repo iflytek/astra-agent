@@ -277,7 +277,9 @@ class TestOpenAPIRoutes:
         short_timeout_client = TestClient(app)
 
         try:
-            response = short_timeout_client.get("/", timeout=0.001)  # Very short timeout
+            response = short_timeout_client.get(
+                "/", timeout=0.001
+            )  # Very short timeout
             # If no timeout, verify normal response
             assert response.status_code in [200, 404, 405]
         except (TimeoutError, ConnectionError) as e:

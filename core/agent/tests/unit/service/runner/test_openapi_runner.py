@@ -25,7 +25,9 @@ class TestOpenAPIRunner:
         # create Mock object, specify spec as appropriate type but allow free attribute setting
         self.mock_chat_runner = Mock()  # pylint: disable=attribute-defined-outside-init
         self.mock_chat_runner.__class__ = ChatRunner  # type: ignore
-        self.mock_chat_runner.question = "test question"  # avoid JSON serialization errors
+        self.mock_chat_runner.question = (
+            "test question"  # avoid JSON serialization errors
+        )
 
         self.mock_cot_runner = Mock()  # pylint: disable=attribute-defined-outside-init
         self.mock_cot_runner.__class__ = CotRunner  # type: ignore
@@ -200,7 +202,9 @@ class TestOpenAPIRunner:
         async def mock_empty_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
-            yield AgentResponse(typ="content", content="空插件execute", model="test-model")
+            yield AgentResponse(
+                typ="content", content="空插件execute", model="test-model"
+            )
 
         self.mock_chat_runner.run = mock_empty_stream
 
@@ -271,8 +275,12 @@ class TestOpenAPIRunner:
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
             await asyncio.sleep(0.01)  # simulate async processing
-            yield AgentResponse(typ="content", content="concurrent execution", model="test-model")
-            yield AgentResponse(typ="content", content="execute完成", model="test-model")
+            yield AgentResponse(
+                typ="content", content="concurrent execution", model="test-model"
+            )
+            yield AgentResponse(
+                typ="content", content="execute完成", model="test-model"
+            )
 
         self.mock_cot_runner.run = mock_concurrent_stream
 
@@ -403,7 +411,9 @@ class TestOpenAPIRunner:
         async def mock_multi_plugin_stream(
             _span: Any, _node_trace: Any
         ) -> AsyncGenerator[AgentResponse, None]:
-            yield AgentResponse(typ="content", content="多插件execute", model="test-model")
+            yield AgentResponse(
+                typ="content", content="多插件execute", model="test-model"
+            )
             yield AgentResponse(
                 typ="content", content="plugin1完成", model="test-model"
             )
