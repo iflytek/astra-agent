@@ -30,6 +30,7 @@
         a.client_hide as clientHide,
         b.hot_num as hotNum,
         b.id as marketBotId,
+        a.model_id as modelId,
         case when a.support_system then 1 else 0 end as supportSystem,
         CAST(support_upload AS SIGNED) as supportUpload,
         CASE

@@ -1,6 +1,7 @@
 package com.iflytek.astron.console.commons.entity.bot;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.iflytek.astron.console.commons.dto.bot.BotModelDto;
 import lombok.Data;
 
 import java.util.List;
@@ -106,4 +107,8 @@ public class BotInfoDto {
     private Long maasId;
 
     private String model;
+
+    private Long modelId;
+
+    private BotModelDto botModelDto;
 }

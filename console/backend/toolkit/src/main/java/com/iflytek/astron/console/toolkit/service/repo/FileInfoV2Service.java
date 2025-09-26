@@ -130,7 +130,19 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
 
     @Value("${biz.cbg-rag-max-char-count}")
     private long cbgRagMaxCharCount;
+
+    @Autowired
     private ApiUrl apiUrl;
+
+    private void ensureApiUrl() {
+        if (this.apiUrl == null) {
+            try {
+                this.apiUrl = SpringUtils.getBean(ApiUrl.class);
+            } catch (Exception e) {
+                log.error("ApiUrl bean not found in Spring context.", e);
+            }
+        }
+    }
 
     /**
      * Upload file to repository
@@ -145,7 +157,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
      */
     @Transactional
     public FileInfoV2 uploadFile(MultipartFile file, Long parentId, Long repoId, String tag, HttpServletRequest request) {
-        String originalFilename = file.getOriginalFilename();
+        String originalFilename = Optional.ofNullable(file.getOriginalFilename()).orElse("");
         String fileType = getFileFormat(originalFilename);
 
         // 1. File type validation
@@ -171,11 +183,21 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
 
         // 6. Upload & save
         JSONObject uploadRes = fileUploadTool.uploadFile(file, tag);
-        return createFile(repoId,
+        if (uploadRes == null) {
+            log.error("uploadFile failed: uploadRes is null, tag={}", tag);
+            throw new BusinessException(ResponseEnum.REPO_FILE_UPLOAD_FAILED);
+        }
+        String s3Key = uploadRes.getString("s3Key");
+        if (StringUtils.isBlank(s3Key)) {
+            log.error("uploadFile failed: s3Key missing in uploadRes, tag={}, uploadRes={}", tag, uploadRes);
+            throw new BusinessException(ResponseEnum.REPO_FILE_UPLOAD_FAILED);
+        }
+        return createFile(
+                repoId,
                 UUID.randomUUID().toString().replace("-", ""),
                 originalFilename,
                 parentId,
-                uploadRes.getString("s3Key"),
+                s3Key,
                 file.getSize(),
                 (long) charCount,
                 0,
@@ -236,7 +258,8 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
      */
     private int countChars(MultipartFile file) {
         int charCount = 0;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 charCount += line.length() + 1; // including newlines
@@ -474,7 +497,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                 List<String> separatorBase64 = new ArrayList<>();
                 if (!separator.isEmpty()) {
                     for (String string : separator) {
-                        String base64 = Base64.getEncoder().encodeToString(string.getBytes());
+                        String base64 = Base64.getEncoder().encodeToString(string.getBytes(StandardCharsets.UTF_8));
                         separatorBase64.add(base64);
                     }
                 }
@@ -1002,36 +1025,36 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                 ExecutorService executorService = Executors.newFixedThreadPool(fileIds.size());
                 for (Long fileId : fileIds) {
                     FileInfoV2 fileInfo = this.getById(fileId);
-                    if (fileInfo != null) {
-                        if (sliceFileVO.getIsBackTask() == null) {
-                            Long spaceId = SpaceInfoUtil.getSpaceId();
-                            if (null == spaceId) {
-                                dataPermissionCheckTool.checkFileBelong(fileInfo);
-                            }
+                    if (fileInfo == null) {
+                        log.warn("embeddingFiles skip: file not found, id={}", fileId);
+                        continue;
+                    }
+                    if (sliceFileVO.getIsBackTask() == null) {
+                        Long spaceId = SpaceInfoUtil.getSpaceId();
+                        if (null == spaceId) {
+                            dataPermissionCheckTool.checkFileBelong(fileInfo);
                         }
                     }
                     FileDirectoryTree fileDirectoryTree = fileDirectoryTreeService.getOnly(Wrappers.lambdaQuery(FileDirectoryTree.class)
                             .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
                             .eq(FileDirectoryTree::getFileId, fileId));
+                    if (fileDirectoryTree == null) {
+                        ensureFileDirectoryTree(fileInfo);
+                        fileDirectoryTree = fileDirectoryTreeService.getOnly(
+                                Wrappers.lambdaQuery(FileDirectoryTree.class)
+                                        .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
+                                        .eq(FileDirectoryTree::getFileId, fileId));
+                        if (fileDirectoryTree == null) {
+                            log.error("embeddingFiles: ensureFileDirectoryTree failed, fileId={}", fileId);
+                            continue;
+                        }
+                    }
                     fileDirectoryTree.setStatus(1);
                     fileDirectoryTreeMapper.updateById(fileDirectoryTree);
                     executorService.execute(() -> {
                         int count = 0;
                         while (true) {
                             FileInfoV2 fileInfoV2 = fileInfoV2Mapper.selectById(fileId);
-                            // if(Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_EMBEDDING_SUCCESSED)){
-                            // if (count > 10) {
-                            // break;
-                            // }
-                            // count++;
-                            // // Wait 3 seconds before checking again
-                            // try {
-                            // Thread.sleep(3000);
-                            // } catch (InterruptedException e) {
-                            // throw new RuntimeException(e);
-                            // }
-                            // continue;
-                            // }
                             if (Objects.equals(fileInfoV2.getStatus(), ProjectContent.FILE_PARSE_FAILED)) {
                                 break;
                             }
@@ -1161,13 +1184,30 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                 ExecutorService executorService = Executors.newFixedThreadPool(fileIds.size());
                 for (Long fileId : fileIds) {
                     FileInfoV2 fileInfo = this.getById(fileId);
-                    if (fileInfo != null) {
-                        if (sliceFileVO.getIsBackTask() == null) {
-                            dataPermissionCheckTool.checkFileBelong(fileInfo);
+                    if (fileInfo == null) {
+                        log.warn("embeddingBack skip: file not found, id={}", fileId);
+                        continue;
+                    }
+                    if (sliceFileVO.getIsBackTask() == null) {
+                        dataPermissionCheckTool.checkFileBelong(fileInfo);
+                    }
+
+                    // Set file visibility
+                    FileDirectoryTree fileDirectoryTree = fileDirectoryTreeService.getOnly(
+                            Wrappers.lambdaQuery(FileDirectoryTree.class)
+                                    .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
+                                    .eq(FileDirectoryTree::getFileId, fileId));
+                    if (fileDirectoryTree == null) {
+                        ensureFileDirectoryTree(fileInfo);
+                        fileDirectoryTree = fileDirectoryTreeService.getOnly(
+                                Wrappers.lambdaQuery(FileDirectoryTree.class)
+                                        .eq(FileDirectoryTree::getAppId, fileInfo.getRepoId())
+                                        .eq(FileDirectoryTree::getFileId, fileId));
+                        if (fileDirectoryTree == null) {
+                            log.error("embeddingBack: ensureFileDirectoryTree failed, fileId={}", fileId);
+                            continue;
                         }
                     }
-                    // Set file visibility
-                    FileDirectoryTree fileDirectoryTree = fileDirectoryTreeService.getOnly(Wrappers.lambdaQuery(FileDirectoryTree.class).eq(FileDirectoryTree::getAppId, fileInfo.getRepoId()).eq(FileDirectoryTree::getFileId, fileId));
                     fileDirectoryTree.setStatus(1);
                     fileDirectoryTreeMapper.updateById(fileDirectoryTree);
                     executorService.execute(() -> {
@@ -1265,8 +1305,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
         JSONObject wiki = new JSONObject();
         List<String> sep = Optional.ofNullable(vo.getSliceConfig().getSeperator()).orElseGet(ArrayList::new);
         List<String> sep64 = new ArrayList<>();
-        for (String s : sep)
-            sep64.add(Base64.getEncoder().encodeToString(s.getBytes()));
+        for (String s : sep) {
+            sep64.add(Base64.getEncoder().encodeToString(s.getBytes(StandardCharsets.UTF_8)));
+        }
         wiki.put("chunkSeparators", sep64);
         wiki.put("chunkSize", vo.getSliceConfig().getLengthRange().get(1));
         wiki.put("minChunkSize", vo.getSliceConfig().getLengthRange().get(0));
@@ -1443,7 +1484,7 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
                 extractKnowledgeTask.setTaskId(fileInfoV2.getUuid());
                 extractKnowledgeTask.setFileId(fileId);
                 extractKnowledgeTask.setStatus(0);
-                extractKnowledgeTask.setUserId(UserInfoManagerHandler.getUserId());
+                extractKnowledgeTask.setUserId(fileInfoV2.getUid());
                 extractKnowledgeTask.setTaskStatus(2);
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 extractKnowledgeTask.setCreateTime(timestamp);
@@ -2100,9 +2141,9 @@ public class FileInfoV2Service extends ServiceImpl<FileInfoV2Mapper, FileInfoV2>
 
             // Add back billing metrics after deletion
             FileInfoV2 fileInfoV2 = this.getById(fileDirectoryTree.getFileId());
-            removeById(fileInfoV2.getId());
             fileCostRollback(fileInfoV2.getUuid());
             knowledgeService.deleteDoc(ids);
+            removeById(fileInfoV2.getId());
         }
     }
 

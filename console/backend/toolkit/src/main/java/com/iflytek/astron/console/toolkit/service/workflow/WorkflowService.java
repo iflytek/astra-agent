@@ -1017,7 +1017,17 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
 
             @Override
             public void onFailure(@NotNull EventSource eventSource, Throwable t, Response response) {
-                log.error("build onFailure, res = {}, t = {}", response, t.getMessage(), t);
+                try {
+                    if (t instanceof java.net.SocketTimeoutException) {
+                        log.error("build onFailure (timeout), res = {}", response, t);
+                    } else if (t != null) {
+                        log.error("build onFailure, res = {}", response, t);
+                    } else {
+                        log.error("build onFailure, res = {}, error = <null Throwable>", response);
+                    }
+                } finally {
+                    latch.countDown();
+                }
             }
         });
         try {
@@ -1059,7 +1069,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             bizNodeData.getNodeParam().put("apiSecret", aksk.getApiSecret());
 
             if (!node.getId().startsWith(WorkflowConst.NodeType.FLOW)
-                    && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
+                    && CommonConst.FIXED_APPID_ENV.contains(env)) {
                 buidKeyInfo(bizNodeData);
             }
             String source = bizNodeData.getNodeParam().getString("source");
@@ -1078,7 +1088,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             fixOnRepoNode(type, bizNodeData, prefix);
         } catch (Exception ignored) {
             if (!node.getId().startsWith(WorkflowConst.NodeType.FLOW)
-                    && StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV)) {
+                    && CommonConst.FIXED_APPID_ENV.contains(env)) {
                 buidKeyInfo(bizNodeData);
                 checkAndEditData(bizNodeData, prefix);
                 fixOnRepoNode(type, bizNodeData, prefix);
@@ -1797,7 +1807,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
         String apiKey;
         String apiSecret;
 
-        boolean fixedAppEnv = StringUtils.equalsAny(env, CommonConst.FIXED_APPID_ENV);
+        boolean fixedAppEnv = CommonConst.FIXED_APPID_ENV.contains(env);
         Workflow workflow = getOne(Wrappers.lambdaQuery(Workflow.class).eq(Workflow::getFlowId, flowId));
         try {
             if (workflow == null) {
@@ -3396,37 +3406,43 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
     }
 
     public String saveComparisons(List<WorkflowComparisonSaveReq> workflowComparisonReqList) {
-        try {
-            if (workflowComparisonReqList == null || workflowComparisonReqList.isEmpty()) {
-                throw new BusinessException(ResponseEnum.PROMPT_GROUP_PROMPT_CANNOT_EMPTY);
-            }
-            Workflow workflow = workflowMapper.selectOne(Wrappers.lambdaQuery(Workflow.class)
-                    .eq(Workflow::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
-            dataPermissionCheckTool.checkWorkflowBelong(workflow, SpaceInfoUtil.getSpaceId());
-            // Delete old comparison group protocol
-            workflowComparisonMapper.delete(Wrappers.lambdaQuery(WorkflowComparison.class)
-                    .eq(WorkflowComparison::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
-            // Save new comparison group protocol
-            Date date = new Date();
-            workflowComparisonReqList.forEach(data -> {
-                WorkflowComparison workflowComparison = new WorkflowComparison();
-                workflowComparison.setFlowId(data.getFlowId());
-                workflowComparison.setType(data.getType());
-                workflowComparison.setPromptId(data.getPromptId());
-                workflowComparison.setData(JSONObject.toJSONString(data.getData()));
-                workflowComparison.setCreateTime(date);
-                workflowComparison.setUpdateTime(date);
-                workflowComparisonMapper.insert(workflowComparison);
-            });
-            // Define formatter
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            return formatter.format(date);
-        } catch (Exception ex) {
-            log.error("Failed to save comparison group protocol, flowId={}, error={}", workflowComparisonReqList.get(0).getFlowId(), ex.getMessage(), ex);
-            throw new BusinessException(ResponseEnum.PROMPT_GROUP_SAVE_FAILED);
+        if (workflowComparisonReqList == null || workflowComparisonReqList.isEmpty()) {
+            throw new BusinessException(ResponseEnum.PROMPT_GROUP_PROMPT_CANNOT_EMPTY);
         }
 
+        final String flowIdForLog = Optional.ofNullable(workflowComparisonReqList)
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.get(0).getFlowId())
+                .orElse("");
 
+        try {
+            Workflow workflow = workflowMapper.selectOne(
+                    Wrappers.lambdaQuery(Workflow.class)
+                            .eq(Workflow::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
+            dataPermissionCheckTool.checkWorkflowBelong(workflow, SpaceInfoUtil.getSpaceId());
+
+            workflowComparisonMapper.delete(
+                    Wrappers.lambdaQuery(WorkflowComparison.class)
+                            .eq(WorkflowComparison::getFlowId, workflowComparisonReqList.get(0).getFlowId()));
+
+            Date now = new Date();
+            for (WorkflowComparisonSaveReq data : workflowComparisonReqList) {
+                WorkflowComparison wc = new WorkflowComparison();
+                wc.setFlowId(data.getFlowId());
+                wc.setType(data.getType());
+                wc.setPromptId(data.getPromptId());
+                wc.setData(JSONObject.toJSONString(data.getData()));
+                wc.setCreateTime(now);
+                wc.setUpdateTime(now);
+                workflowComparisonMapper.insert(wc);
+            }
+
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(now);
+        } catch (Exception ex) {
+            log.error("Failed to save comparison group protocol, flowId={}, error={}",
+                    flowIdForLog, ex.getMessage(), ex);
+            throw new BusinessException(ResponseEnum.PROMPT_GROUP_SAVE_FAILED);
+        }
     }
 
     public List<WorkflowComparison> listComparisons(String promptId) {
@@ -3657,6 +3673,7 @@ public class WorkflowService extends ServiceImpl<WorkflowMapper, Workflow> {
             mcpServerTool.setCreator(mcpObject.getString("creator"));
             mcpServerTool.setCreateTime(mcpObject.getString("createTime"));
             mcpServerTool.setLogoUrl(mcpObject.getString("logo"));
+            mcpServerTool.setName(mcpObject.getString("name"));
             mcpServerTool.setMcpType(mcpObject.getString("mcpType"));
             mcpServerTool.setContent(mcpObject.getString("content"));
             mcpServerTool.setTools(mcpObject.getJSONArray("tools"));

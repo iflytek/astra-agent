@@ -48,7 +48,7 @@ public class OpenPlatformTool {
      */
     private static String md5(String cipherText) {
         try {
-            byte[] data = cipherText.getBytes();
+            byte[] data = cipherText.getBytes(StandardCharsets.UTF_8);
             // Message digest is a secure one-way hash function that accepts data of any size and outputs a
             // fixed-length hash value.
             MessageDigest mdInst = MessageDigest.getInstance("MD5");
@@ -98,6 +98,6 @@ public class OpenPlatformTool {
         } catch (NoSuchAlgorithmException e) {
             throw new SignatureException("NoSuchAlgorithmException:" + e.getMessage());
         }
-        return new String(Base64.encodeBase64(rawHmac));
+        return Base64.encodeBase64String(rawHmac);
     }
 }

@@ -41,6 +41,7 @@ public class BotDetail {
     private Integer supportUpload;
     private Integer botStatus;
     private Long spaceId;
+    private Long modelId;
     private List<String> inputExampleList;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")

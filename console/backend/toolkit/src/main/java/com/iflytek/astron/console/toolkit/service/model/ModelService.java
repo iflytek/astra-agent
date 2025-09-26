@@ -370,6 +370,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         model.setDesc(request.getDescription());
         model.setTag(JSONArray.toJSONString(request.getTag()));
         model.setType(1);
+        model.setStatus(ModelStatusEnum.RUNNING.getCode());
         model.setApiKey(request.getApiKey());
         model.setColor(request.getColor());
         model.setConfig(
@@ -695,6 +696,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             vo.setDomain(model.getDomain());
             vo.setModelId(model.getId());
             vo.setDesc(model.getDesc());
+            vo.setStatus(model.getStatus());
             vo.setLlmId(LLMService.generate9DigitRandomFromId(model.getId()));
             vo.setAddress(s3UtilClient.getS3Prefix());
             vo.setCreateTime(model.getCreateTime());
@@ -778,7 +780,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
             // First 4 digits + asterisks + last 4 digits
             apiKey = apiKey.substring(0, 4) + "********" + apiKey.substring(apiKey.length() - 4);
         }
-        if(model.getType() == 2 && !Objects.equals(model.getStatus(), ModelStatusEnum.RUNNING.getCode())){
+        if (model.getType() == 2 && !Objects.equals(model.getStatus(), ModelStatusEnum.RUNNING.getCode())) {
             this.flushStatus(model);
         }
         vo.setName(model.getName());
@@ -1261,7 +1263,7 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
 
     private Model loadForEdit(LocalModelDto dto) {
         Model model = this.getById(dto.getId());
-        if (model == null || Objects.equals(model.getIsDeleted(), 1)) {
+        if (model == null || Objects.equals(model.getIsDeleted(), true)) {
             throw new BusinessException(ResponseEnum.MODEL_NOT_EXIST);
         }
         if (!Objects.equals(model.getUid(), dto.getUid())) {
@@ -1289,6 +1291,8 @@ public class ModelService extends ServiceImpl<ModelMapper, Model> {
         model.setModelPath(dto.getModelPath());
         model.setAcceleratorCount(dto.getAcceleratorCount());
         model.setReplicaCount(dto.getReplicaCount());
+        model.setConfig(
+                Optional.ofNullable(dto.getConfig()).map(JSON::toJSONString).orElse(null));
     }
 
     private void persistModel(Model model, boolean isCreate) {

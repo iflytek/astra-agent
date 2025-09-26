@@ -50,25 +50,10 @@ public class ProjectContent {
     public static final String JPEG_FILE_TYPE = "jpeg";
     public static final String PNG_FILE_TYPE = "png";
     public static final String BMP_FILE_TYPE = "bmp";
-    public static final Set<String> SUPPORTED_FILE_TYPES = new HashSet<>();
-    static {
-        // Initialize supported file types
-        SUPPORTED_FILE_TYPES.add(HTML_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(WORD_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(WORDX_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(PDF_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(MD_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(TXT_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(XLS_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(XLSX_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(CSV_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(PPT_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(PPTX_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(JPG_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(JPEG_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(PNG_FILE_TYPE);
-        SUPPORTED_FILE_TYPES.add(BMP_FILE_TYPE);
-    }
+    public static final Set<String> SUPPORTED_FILE_TYPES = Set.of(
+            HTML_FILE_TYPE, WORD_FILE_TYPE, WORDX_FILE_TYPE, PDF_FILE_TYPE, MD_FILE_TYPE, TXT_FILE_TYPE,
+            XLS_FILE_TYPE, XLSX_FILE_TYPE, CSV_FILE_TYPE, PPT_FILE_TYPE, PPTX_FILE_TYPE,
+            JPG_FILE_TYPE, JPEG_FILE_TYPE, PNG_FILE_TYPE, BMP_FILE_TYPE);
 
 
     public static final Integer FILE_UPLOAD_STATUS = -1;

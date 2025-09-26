@@ -1,5 +1,6 @@
 package com.iflytek.astron.console.hub.service.chat;
 
+import com.iflytek.astron.console.commons.dto.bot.BotModelDto;
 import com.iflytek.astron.console.commons.entity.bot.BotInfoDto;
 import com.iflytek.astron.console.commons.entity.chat.ChatBotListDto;
 import com.iflytek.astron.console.commons.entity.chat.ChatListCreateResponse;
@@ -64,4 +65,6 @@ public interface ChatListService {
      * @return
      */
     ChatListCreateResponse createRestartChat(String uid, String chatListName, Integer botId);
+
+    BotModelDto getBotModelDto(HttpServletRequest request, Long modelId, String model);
 }

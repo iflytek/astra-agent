@@ -243,8 +243,9 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         ToolBox toolBox;
         if (toolBoxDto.getId() != null) {
             toolBox = getById(toolBoxDto.getId());
-            if (toolBox != null) {
-                // Add permission validation
+            if (toolBox == null) {
+                toolBox = new ToolBox();
+            } else {
                 dataPermissionCheckTool.checkToolBelong(toolBox);
             }
         } else {
@@ -778,7 +779,7 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         // Get regular tools
         List<ToolBox> toolBoxList = toolBoxMapper.getModelListSquareByCondition(
                 uid, content, null, null, favorites, dto.getOrderFlag(),
-                dto.getTagFlag(), dto.getTags(), bizConfig.getAdminUid(), CommonConst.Platform.COMMON);
+                dto.getTagFlag(), dto.getTags(), bizConfig.getAdminUid(), String.valueOf(CommonConst.PlatformCode.COMMON));
 
         toolBoxVoList.addAll(toolBoxList.stream()
                 .map(this::convert2ToolBoxVo)
@@ -856,9 +857,67 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         boolean isFavorite = toolBoxVo.getIsMcp() ? favoritesId.contains(toolBoxVo.getMcpTooId()) : favoritesId.contains(toolBoxVo.getToolId());
         toolBoxVo.setIsFavorite(isFavorite);
 
+        // Set heat value from Redis
+        fillHeatValue(toolBoxVo);
+
         // Set tags
         fillToolTags(toolBoxVo, configInfoList);
 
+    }
+
+    /**
+     * Fill heat value from Redis
+     */
+    private void fillHeatValue(ToolBoxVo toolBoxVo) {
+        Long heatValue = 0L;
+        String toolKey = toolBoxVo.getIsMcp() ? toolBoxVo.getMcpTooId() : toolBoxVo.getToolId();
+
+        if (toolKey != null) {
+            try {
+                Object redisValue = redisTemplate.opsForValue().get(TOOL_HEAT_VALUE_PREFIX + toolKey);
+                heatValue = parseToLong(redisValue, toolKey);
+            } catch (Exception e) {
+                // Log the exception and use default value
+                log.warn("Failed to get heat value for tool: {}, error: {}", toolKey, e.getMessage());
+                heatValue = 0L;
+            }
+        }
+
+        toolBoxVo.setHeatValue(heatValue);
+    }
+
+    /**
+     * Safely parse object to Long, handle Integer, Long, String and null values
+     */
+    private Long parseToLong(Object value, String toolKey) {
+        if (value == null) {
+            return 0L;
+        }
+
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+
+        if (value instanceof String) {
+            try {
+                return Long.parseLong((String) value);
+            } catch (NumberFormatException e) {
+                log.warn("Heat Value Error: Failed to parse string to Long={}, toolKey={}", value, toolKey);
+                return 0L;
+            }
+        }
+
+        // Handle other Number types
+        if (value instanceof Number) {
+            return ((Number) value).longValue();
+        }
+
+        log.warn("Unexpected value type for heat value={}, type={}, toolKey={}", value, value.getClass().getSimpleName(), toolKey);
+        return 0L;
     }
 
     /**
@@ -898,7 +957,7 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
      */
     private List<ToolBoxVo> sortByHeatValueAndPaginate(List<ToolBoxVo> toolBoxVoList, Integer pageNo, Integer pageSize) {
         return toolBoxVoList.stream()
-                .sorted(Comparator.comparing(ToolBoxVo::getHeatValue).reversed())
+                .sorted(Comparator.comparing(ToolBoxVo::getHeatValue, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                 .skip((long) (pageNo - 1) * pageSize)
                 .limit(pageSize)
                 .collect(Collectors.toList());
@@ -1036,7 +1095,6 @@ public class ToolBoxService extends ServiceImpl<ToolBoxMapper, ToolBox> {
         List<ToolBoxVo> toolBoxVoList = new ArrayList<>();
         // MCP tools
         List<McpServerTool> mcpToolList = workflowService.getMcpServerListLocally(null, 1, 1000, dto.getAuthorized(), null);
-        // List<McpServerTool> mcpToolList = mcpServerHandler.getMcpToolList(null, 1, 10000, null);
         if (mcpToolList == null || mcpToolList.isEmpty()) {
             return toolBoxVoList;
         }

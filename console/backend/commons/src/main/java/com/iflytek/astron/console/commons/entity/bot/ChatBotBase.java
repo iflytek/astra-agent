@@ -2,6 +2,7 @@ package com.iflytek.astron.console.commons.entity.bot;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -53,6 +54,7 @@ public class ChatBotBase {
     @Schema(description = "Bot description")
     private String botDesc;
 
+    @TableLogic
     @Schema(description = "Deletion status: 0 Not deleted, 1 Deleted")
     private Integer isDelete;
 

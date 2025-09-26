@@ -15,7 +15,7 @@ api:
     apiKey: ${APP_APIKEY:apikey}
     apiSecret: ${APP_API_SECRET:apiSecret}
     defaultAddRepo: sparkbot_repo_01
-    knowledgeUrl: http://10.1.87.65:10007/knowledge
+    knowledgeUrl: http://10.1.87.65:30007/knowledge
     mcpToolServer: http://127.0.0.1:port/api/v1
     mcpAuthServer: http://127.0.0.1:port
     openPlatform: https://127.0.0.1:8080

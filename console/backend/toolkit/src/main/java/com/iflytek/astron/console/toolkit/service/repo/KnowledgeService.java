@@ -487,10 +487,6 @@ public class KnowledgeService {
         }
 
         // 3. Store data in database
-        Repo repo = repoService.getById(fileInfoV2.getRepoId());
-        if (repo.getEnableAudit()) {
-            this.auditPreviewKnowledge(chunkInfos);
-        }
         this.storagePreviewKnowledge(fileInfoV2.getUuid(), fileInfoV2.getId(), chunkInfos);
 
         int charCount = 0;
@@ -586,10 +582,6 @@ public class KnowledgeService {
         }
 
         // 3. Store data in database
-        Repo repo = repoService.getById(fileInfoV2.getRepoId());
-        if (repo.getEnableAudit()) {
-            this.auditPreviewKnowledge(chunkInfos);
-        }
         this.storagePreviewKnowledge(fileInfoV2.getUuid(), fileInfoV2.getId(), chunkInfos);
 
         int charCount = 0;
@@ -1146,7 +1138,6 @@ public class KnowledgeService {
             if (repo.getEnableAudit()) {
                 if (jsonArray != null) {
                     chunkInfos = jsonArray.toJavaList(ChunkInfo.class);
-                    this.auditPreviewKnowledge(chunkInfos);
                 }
             }
             this.storagePreviewKnowledge(fileInfoV2.getUuid(), fileInfoV2.getId(), chunkInfos);
@@ -1172,32 +1163,6 @@ public class KnowledgeService {
             fileInfoV2.setUpdateTime(timestamp);
             fileInfoV2Service.updateById(fileInfoV2);
         }
-    }
-
-    /**
-     * Audit preview knowledge chunks for content compliance
-     *
-     * @param chunkInfos list of chunk information objects to be audited
-     */
-    private void auditPreviewKnowledge(List<ChunkInfo> chunkInfos) {
-        if (CollectionUtils.isEmpty(chunkInfos)) {
-            return;
-        }
-        // List<Future<SyncAuditResult<TextDetail>>> futureList = new ArrayList<>();
-        // for (ChunkInfo chunkInfo : chunkInfos) {
-        // String knowledgeStr = chunkInfo.getContent();
-        // JSONObject previewKnowledgeObject = JSON.parseObject(JSON.toJSONString(chunkInfo));
-        // Future<SyncAuditResult<TextDetail>> syncAuditResultFuture =
-        // auditService.syncAuditText(knowledgeStr, previewKnowledgeObject);
-        // futureList.add(syncAuditResultFuture);
-        // }
-        // for (Future<SyncAuditResult<TextDetail>> syncAuditResultFuture : futureList) {
-        // try {
-        // syncAuditResultFuture.get();
-        // } catch (Exception e) {
-        // log.error("Failed to batch get audit results in thread, skip this record", e);
-        // }
-        // }
     }
 
     /**
@@ -1274,7 +1239,7 @@ public class KnowledgeService {
         }
         if (!cbgKnowledgeDataList.isEmpty()) {
             for (CbgKnowledgeData cbgKnowledgeData : cbgKnowledgeDataList) {
-                resultMap.put(String.format("%.0f", cbgKnowledgeData.getDataIndex()), cbgKnowledgeData.getId());
+                resultMap.put(cbgKnowledgeData.getDataIndex(), cbgKnowledgeData.getId());
             }
         }
 

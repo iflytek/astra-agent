@@ -343,12 +343,12 @@ public class WorkflowExportService {
         Long llmId = param.getLong("llmId");
 
         // If it's openai and uid matches, allow it to pass
-        if ("openai".equals(source) && Objects.equals(paramUid, uid)) {
+        if ("openai".equals(source) && Objects.equals(paramUid.toString(), uid)) {
             return;
         }
 
         // Other cases: if llmId is not included, clean all
-        if (!allowedLlmSet.contains(llmId)) {
+        if (llmId == null || !allowedLlmSet.contains(llmId)) {
             removeLlmParamNew(param);
         }
     }
@@ -365,9 +365,9 @@ public class WorkflowExportService {
         String pluginId = param.getString("pluginId");
         ToolBox toolBox = toolBoxService.getOnly(new LambdaQueryWrapper<ToolBox>()
                 .eq(ToolBox::getToolId, pluginId));
-        if (toolBox == null || (!toolBox.getIsPublic()
-                && !Objects.equals(Long.parseLong(toolBox.getUserId()), bizConfig.getAdminUid())
-                && !Objects.equals(Long.parseLong(toolBox.getUserId()), uid))) {
+        if (toolBox == null || (!Boolean.TRUE.equals(toolBox.getIsPublic())
+                && !Objects.equals(toolBox.getUserId(), String.valueOf(bizConfig.getAdminUid()))
+                && !Objects.equals(toolBox.getUserId(), uid))) {
             param.remove("pluginId");
             param.remove("uid");
             data.setInputs(Collections.emptyList());

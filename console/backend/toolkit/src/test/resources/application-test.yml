@@ -2,7 +2,3 @@ mcp:
   server:
     file:
       path: classpath:mcp-servers
-
-spring:
-  profiles:
-    active: test

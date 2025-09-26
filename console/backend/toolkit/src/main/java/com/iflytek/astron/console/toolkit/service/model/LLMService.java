@@ -426,8 +426,12 @@ public class LLMService {
     public void switchFinetuneModel(Long modelId, Boolean enable) {
         final String enabledKey = MODEL_ENABLE_KEY.concat(UserInfoManagerHandler.getUserId());
         Map<String, Boolean> catchModelMap = getCatchModelMap(enabledKey);
-        Boolean b = catchModelMap.get(modelId);
-        if (b == null) {
+        if (catchModelMap == null) {
+            catchModelMap = new HashMap<>();
+        }
+        final String key = String.valueOf(modelId);
+        Boolean exists = catchModelMap.get(key);
+        if (exists == null) {
             throw new BusinessException(ResponseEnum.RESPONSE_FAILED, "Fine-tuning model does not exist");
         } else {
             catchModelMap.put(modelId.toString(), enable);

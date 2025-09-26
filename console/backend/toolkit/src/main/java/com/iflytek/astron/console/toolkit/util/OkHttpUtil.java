@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -87,13 +88,13 @@ public class OkHttpUtil {
                 .build();
     }
 
+
     /**
-     * Get the shared {@link OkHttpClient}.
-     *
-     * @return singleton {@link OkHttpClient}
+     * Returns a facade client cloned from the shared singleton. It shares Dispatcher and ConnectionPool
+     * but is a distinct instance to avoid exposing the internal reference.
      */
     public static OkHttpClient getHttpClient() {
-        return HTTP_CLIENT;
+        return HTTP_CLIENT.newBuilder().build();
     }
 
     // ============================== HEAD ==============================
@@ -128,7 +129,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String head(String url) {
-        return new String(headForBytes(url));
+        return new String(headForBytes(url), StandardCharsets.UTF_8);
     }
 
     // ============================== GET ==============================
@@ -235,7 +236,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String get(String url) {
-        return new String(getForBytes(url));
+        return new String(getForBytes(url), StandardCharsets.UTF_8);
     }
 
     /**
@@ -247,7 +248,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String get(String url, Map<String, String> headerMap) {
-        return new String(getForBytes(url, headerMap));
+        return new String(getForBytes(url, headerMap), StandardCharsets.UTF_8);
     }
 
     /**
@@ -260,7 +261,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String get(String url, Map<String, String> headerMap, Map<String, String> urlParams) {
-        return new String(getForBytes(url, headerMap, urlParams));
+        return new String(getForBytes(url, headerMap, urlParams), StandardCharsets.UTF_8);
     }
 
     // ============================== POST ==============================
@@ -374,7 +375,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String post(String url, String body) {
-        return new String(postForBytes(url, null, body));
+        return new String(postForBytes(url, null, body), StandardCharsets.UTF_8);
     }
 
     /**
@@ -401,7 +402,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String post(String url, Map<String, String> urlParams, Map<String, String> headerMap, String body) {
-        return new String(postForBytes(url, urlParams, headerMap, body));
+        return new String(postForBytes(url, urlParams, headerMap, body), StandardCharsets.UTF_8);
     }
 
     /**
@@ -469,7 +470,7 @@ public class OkHttpUtil {
      * @throws IOException if the request fails or I/O error occurs
      */
     public static String postMultipart(String url, Map<String, String> headerMap, Map<String, String> urlParams, Map<String, Object> bodyParams, byte[] fileBytes) throws IOException {
-        return new String(postMultipartForBytes(url, headerMap, urlParams, bodyParams, fileBytes));
+        return new String(postMultipartForBytes(url, headerMap, urlParams, bodyParams, fileBytes), StandardCharsets.UTF_8);
     }
 
     // ============================== PUT ==============================
@@ -536,7 +537,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String put(String url, String body) {
-        return new String(putForBytes(url, body));
+        return new String(putForBytes(url, body), StandardCharsets.UTF_8);
     }
 
     /**
@@ -549,7 +550,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String put(String url, Map<String, String> headerMap, String body) {
-        return new String(putForBytes(url, headerMap, body));
+        return new String(putForBytes(url, headerMap, body), StandardCharsets.UTF_8);
     }
 
     // ============================== PATCH ==============================
@@ -616,7 +617,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String patch(String url, String body) {
-        return new String(patchForBytes(url, body));
+        return new String(patchForBytes(url, body), StandardCharsets.UTF_8);
     }
 
     /**
@@ -629,7 +630,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String patch(String url, Map<String, String> headerMap, String body) {
-        return new String(patchForBytes(url, headerMap, body));
+        return new String(patchForBytes(url, headerMap, body), StandardCharsets.UTF_8);
     }
 
     // ============================== DELETE ==============================
@@ -707,7 +708,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String delete(String url) {
-        return new String(deleteForBytes(url, null));
+        return new String(deleteForBytes(url, null), StandardCharsets.UTF_8);
     }
 
     /**
@@ -719,7 +720,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String delete(String url, String body) {
-        return new String(deleteForBytes(url, body));
+        return new String(deleteForBytes(url, body), StandardCharsets.UTF_8);
     }
 
     /**
@@ -732,7 +733,7 @@ public class OkHttpUtil {
      * @throws RuntimeException if the request fails or I/O error occurs
      */
     public static String delete(String url, Map<String, String> headerMap, String body) {
-        return new String(deleteForBytes(url, headerMap, body));
+        return new String(deleteForBytes(url, headerMap, body), StandardCharsets.UTF_8);
     }
 
     // ============================== Builders & Helpers ==============================

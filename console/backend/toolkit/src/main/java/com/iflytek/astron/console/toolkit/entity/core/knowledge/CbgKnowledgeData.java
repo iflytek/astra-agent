@@ -13,7 +13,7 @@ public class CbgKnowledgeData {
     String content;
     String question;
     String answer;
-    Double dataIndex;
+    String dataIndex;
     String imgReference;
     String copiedFrom;
 }

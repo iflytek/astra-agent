@@ -1,7 +1,5 @@
 package com.iflytek.astron.console.commons.service.data.impl;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.iflytek.astron.console.commons.entity.bot.UserLangChainInfo;
@@ -14,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author wowo_zZ
@@ -28,21 +25,16 @@ public class UserLangChainInfoDataServiceImpl implements UserLangChainDataServic
     private final UserLangChainInfoMapper userLangChainInfoMapper;
 
     @Override
-    public List<JSONObject> findByBotIdSet(Set<Integer> idSet) {
+    public List<UserLangChainInfo> findByBotIdSet(Set<Integer> idSet) {
         // Check if input parameters are null or invalid
         if (idSet == null || idSet.isEmpty()) {
             return Collections.emptyList();
         }
 
         // Execute database query to get UserLangChainInfo list
-        List<UserLangChainInfo> records = userLangChainInfoMapper.selectList(
+        return userLangChainInfoMapper.selectList(
                 Wrappers.<UserLangChainInfo>lambdaQuery()
                         .in(UserLangChainInfo::getBotId, idSet));
-
-        // Transform using Stream API
-        return records.stream()
-                .map(record -> JSON.parseObject(JSON.toJSONString(record)))
-                .collect(Collectors.toList());
     }
 
     @Override

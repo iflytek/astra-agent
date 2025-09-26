@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FileDirectoryTreeDto extends FileDirectoryTree {
+    private static final long serialVersionUID = 1L;
     private List<TagDto> tagDtoList;
     // private Long hitCount;
 }

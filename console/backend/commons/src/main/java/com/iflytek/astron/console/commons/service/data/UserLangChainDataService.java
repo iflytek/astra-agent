@@ -1,6 +1,5 @@
 package com.iflytek.astron.console.commons.service.data;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.iflytek.astron.console.commons.entity.bot.UserLangChainInfo;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.Set;
 
 public interface UserLangChainDataService {
 
-    List<JSONObject> findByBotIdSet(Set<Integer> idSet);
+    List<UserLangChainInfo> findByBotIdSet(Set<Integer> idSet);
 
     UserLangChainInfo insertUserLangChainInfo(UserLangChainInfo userLangChainInfo);
 

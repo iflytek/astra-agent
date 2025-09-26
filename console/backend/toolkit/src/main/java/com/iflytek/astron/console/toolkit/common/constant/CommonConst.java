@@ -1,8 +1,13 @@
 package com.iflytek.astron.console.toolkit.common.constant;
 
+import java.util.*;
+
 public class CommonConst {
-    public static final String[] FIXED_APPID_ENV = new String[] {"dev", "test", "custom"};
-    public static final String[] FIXED_APPID_ENV_PRO = new String[] {"dev", "test", "custom", "pre", "prod"};
+    public static final List<String> FIXED_APPID_ENV =
+            Collections.unmodifiableList(Arrays.asList("dev", "test", "custom"));
+
+    public static final List<String> FIXED_APPID_ENV_PRO =
+            Collections.unmodifiableList(Arrays.asList("dev", "test", "custom", "pre", "prod"));
     public static final String ENV_DEV = "dev";
 
     public static final String LOCAL_TMP_WORK_DIR = "/tmp/agent-builder/";

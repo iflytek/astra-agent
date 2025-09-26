@@ -28,6 +28,10 @@ spring:
           jwk-set-uri: ${OAUTH2_JWK_SET_URI:http://auth-server:8000/.well-known/jwks}
           audiences:
             - ${OAUTH2_AUDIENCE:your-oauth2-client-id}
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
 
   # Disable static resource mapping
   web:
@@ -155,3 +159,15 @@ space:
     enterprise-content: >
       <h3>Team Invitation Reminder</h3>[%s] invited you to join team "%s",
       <a href="%s" target="_blank" style="color: blue;">Click to view</a>
+
+# WeChat third-party platform configuration
+wechat:
+  thirdparty:
+    # Third-party platform AppID
+    component-appid: ${WECHAT_COMPONENT_APPID:your_component_appid}
+    # Third-party platform AppSecret
+    component-secret: ${WECHAT_COMPONENT_SECRET:your_component_secret}
+    # Message verification token
+    token: ${WECHAT_TOKEN:your_token}
+    # Message encryption/decryption key
+    encoding-aes-key: ${WECHAT_ENCODING_AES_KEY:your_encoding_aes_key}

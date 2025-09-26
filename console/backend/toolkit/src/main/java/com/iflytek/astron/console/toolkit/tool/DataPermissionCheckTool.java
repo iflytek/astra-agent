@@ -1,7 +1,6 @@
 package com.iflytek.astron.console.toolkit.tool;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.iflytek.astron.console.commons.constant.ResponseEnum;
@@ -383,8 +382,10 @@ public class DataPermissionCheckTool {
             try {
                 JSONObject obj = JSON.parseObject(ext);
                 botId = obj.getInteger("botId");
-            } catch (Exception ignore) {
-                // Ignore parsing exceptions, treat as unbound
+            } catch (JSONException e) {
+                log.warn("Invalid workflow.ext JSON, cannot extract botId. flowId={}, extSnippet={}",
+                        workflow.getFlowId(), org.apache.commons.lang3.StringUtils.abbreviate(ext, 64), e);
+                botId = null;
             }
         } else {
             UserLangChainInfo userLangChainInfo = userLangChainInfoDao.selectOne(new LambdaQueryWrapper<UserLangChainInfo>().eq(UserLangChainInfo::getFlowId, workflow.getFlowId()));

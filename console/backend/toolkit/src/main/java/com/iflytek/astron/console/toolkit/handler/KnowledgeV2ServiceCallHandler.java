@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.iflytek.astron.console.toolkit.config.properties.RepoAuthorizedConfig;
 import com.iflytek.astron.console.toolkit.config.properties.ApiUrl;
 import com.iflytek.astron.console.toolkit.entity.core.knowledge.*;
-import com.iflytek.astron.console.toolkit.tool.http.HttpAuthTool;
 import com.iflytek.astron.console.toolkit.util.OkHttpUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +61,6 @@ public class KnowledgeV2ServiceCallHandler {
 
     public KnowledgeResponse knowledgeQuery(QueryRequest request) {
         String url = apiUrl.getKnowledgeUrl().concat("/v1/chunk/query");
-        url = HttpAuthTool.assembleRequestUrl(url, "POST", repoAuthorizedConfig.getApiKey(), repoAuthorizedConfig.getApiSecret());
         String reqBody = JSON.toJSONString(request);
         log.info("knowledgeQuery request url:{}\ndata:{}", url, reqBody);
         String respData = OkHttpUtil.post(url, reqBody);

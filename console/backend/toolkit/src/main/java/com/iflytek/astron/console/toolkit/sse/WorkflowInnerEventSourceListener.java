@@ -46,8 +46,22 @@ public class WorkflowInnerEventSourceListener extends EventSourceListener {
 
     @Override
     public void onFailure(@NotNull EventSource eventSource, Throwable t, Response response) {
-        log.error("WorkflowSseEventSourceListener[{}] onFailure, response = {}, t = {}", sseId, response, t.getMessage(), t);
-        SseEmitterUtil.error(sseId, t);
+        String msg;
+        if (t instanceof java.net.SocketTimeoutException) {
+            msg = "Request timeout";
+        } else if (t != null) {
+            msg = String.valueOf(t.getMessage());
+        } else {
+            msg = "Unknown error (null Throwable)";
+        }
+        if (t != null) {
+            log.error("WorkflowSseEventSourceListener[{}] onFailure, response = {}, error = {}",
+                    sseId, response, msg, t);
+        } else {
+            log.error("WorkflowSseEventSourceListener[{}] onFailure, response = {}, error = {}",
+                    sseId, response, msg);
+        }
+        SseEmitterUtil.error(sseId, (t != null) ? t : new RuntimeException(msg));
     }
 
 }

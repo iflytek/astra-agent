@@ -3,6 +3,8 @@ package com.iflytek.astron.console.toolkit.entity.biz.modelconfig;
 import com.iflytek.astron.console.toolkit.entity.vo.ModelCategoryReq;
 import lombok.Data;
 
+import java.util.List;
+
 
 @Data
 public class LocalModelDto {
@@ -29,4 +31,8 @@ public class LocalModelDto {
      * Model file path
      */
     private String modelPath;
+    /**
+     * Model configuration parameters
+     */
+    private List<Config> config;
 }

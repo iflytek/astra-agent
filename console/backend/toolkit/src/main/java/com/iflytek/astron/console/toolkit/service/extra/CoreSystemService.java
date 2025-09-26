@@ -24,6 +24,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -90,7 +91,7 @@ public class CoreSystemService {
         String body = jsonObject.toString();
 
         if (!StringUtils.equalsAny(env, CommonConst.ENV_DEV)) {
-            requestHeader = assembleRequestHeader(url, apiUrl.getTenantKey(), apiUrl.getTenantSecret(), "POST", body.getBytes());
+            requestHeader = assembleRequestHeader(url, apiUrl.getTenantKey(), apiUrl.getTenantSecret(), "POST", body.getBytes(StandardCharsets.UTF_8));
         }
         requestHeader.put(X_CONSUMER_USERNAME, apiUrl.getTenantId());
         log.info("workflow protocol publish, url = {}, body = {}, header={}", url, body, requestHeader);
@@ -124,7 +125,8 @@ public class CoreSystemService {
         } else {
             authJson.fluentPut("app_id", appId);
             if (!StringUtils.equalsAny(env, CommonConst.ENV_DEV)) {
-                requestHeader = assembleRequestHeader(authUrl, apiUrl.getTenantKey(), apiUrl.getTenantSecret(), "POST", authJson.toString().getBytes());
+                requestHeader = assembleRequestHeader(authUrl, apiUrl.getTenantKey(), apiUrl.getTenantSecret(), "POST",
+                        authJson.toString().getBytes(StandardCharsets.UTF_8));
             }
         }
         String authBody = authJson.toString();

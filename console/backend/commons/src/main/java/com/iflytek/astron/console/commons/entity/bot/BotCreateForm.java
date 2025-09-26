@@ -78,6 +78,8 @@ public class BotCreateForm {
     @Schema(description = "Selected model")
     private String model;
 
+    private Long modelId;
+
     private int clientType;
 
     /**

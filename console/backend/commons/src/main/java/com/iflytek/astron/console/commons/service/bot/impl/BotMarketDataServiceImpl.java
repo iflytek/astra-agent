@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.iflytek.astron.console.commons.entity.bot.BotMarketForm;
 import com.iflytek.astron.console.commons.entity.bot.ChatBotMarket;
+import com.iflytek.astron.console.commons.entity.bot.UserLangChainInfo;
 import com.iflytek.astron.console.commons.enums.bot.BotStatusEnum;
 import com.iflytek.astron.console.commons.enums.bot.ReleaseTypeEnum;
 import com.iflytek.astron.console.commons.mapper.bot.ChatBotListMapper;
@@ -149,21 +150,22 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
             botIdSet.add((Integer) map.get("botId"));
         }
         if (CollectionUtils.isNotEmpty(botIdSet)) {
-            List<JSONObject> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
+            List<UserLangChainInfo> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
             // <botId, chain>map
-            Map<Integer, JSONObject> chainMap = chainList.stream()
+            Map<Integer, UserLangChainInfo> chainMap = chainList.stream()
                     .collect(Collectors.toMap(
-                            json -> json.getInteger("botId"), Function.identity(), (existing, newValue) -> newValue));
+                            UserLangChainInfo::getBotId, Function.identity(), (existing, newValue) -> newValue));
             Map<Integer, Boolean> multiInputMap = chainList.stream()
                     .collect(Collectors.toMap(
-                            json -> json.getInteger("botId"),
-                            json -> {
+                            UserLangChainInfo::getBotId,
+                            chain -> {
                                 // Process extraInputs
-                                if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
-                                    JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
+                                if (chain.getExtraInputs() != null) {
+                                    JSONObject extraInputs = JSONObject.parseObject(chain.getExtraInputs());
                                     int size = extraInputs.size();
                                     if (extraInputs.containsValue("image")) {
-                                        size -= 2; // image needs to subtract two
+                                        // image needs to subtract two
+                                        size -= 2;
                                     }
                                     return size > 0;
                                 } else {
@@ -172,7 +174,7 @@ public class BotMarketDataServiceImpl implements BotMarketDataService {
                             }));
             list.stream()
                     .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
-                    .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
+                    .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).getMaasId()));
             list.forEach(map -> map.put("multiInput", multiInputMap.get(map.get("botId"))));
         }
 

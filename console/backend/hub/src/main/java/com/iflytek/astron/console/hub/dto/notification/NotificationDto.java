@@ -1,5 +1,6 @@
 package com.iflytek.astron.console.hub.dto.notification;
 
+import com.iflytek.astron.console.hub.enums.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -13,7 +14,7 @@ public class NotificationDto {
     private Long id;
 
     @Schema(description = "Message type")
-    private String type;
+    private NotificationType type;
 
     @Schema(description = "Message title")
     private String title;

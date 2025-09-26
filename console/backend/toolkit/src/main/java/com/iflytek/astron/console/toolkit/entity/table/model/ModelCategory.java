@@ -17,7 +17,7 @@ public class ModelCategory {
     @TableField(value = "pid")
     private Long pid;
 
-    @TableField(value = "key")
+    @TableField(value = "`key`")
     private String key;
 
     @TableField(value = "`name`")

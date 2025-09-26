@@ -16,7 +16,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Read Excel -> Generate structured row data (each row Map<column name, value>), avoid SQL concatenation. - Validate headers and required fields - Null values fall back to field default values/type default values - Can set maximum row limit
+ * Read Excel -> Generate structured row data (each row Map<column name, value>), avoid SQL
+ * concatenation. - Validate headers and required fields - Null values fall back to field default
+ * values/type default values - Can set maximum row limit
  */
 public class DBExcelReadListener extends AnalysisEventListener<Map<Integer, String>> {
 

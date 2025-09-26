@@ -1,6 +1,6 @@
 package com.iflytek.astron.console.hub.controller.share;
 
-import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.iflytek.astron.console.commons.constant.ResponseEnum;
 import com.iflytek.astron.console.commons.entity.chat.ChatListCreateResponse;
 import com.iflytek.astron.console.commons.entity.space.AgentShareRecord;
@@ -49,7 +49,7 @@ public class ShareController {
         String uid = RequestContextUtil.getUID();
         Long relatedId = body.getRelateId();
         int relatedType = body.getRelateType();
-        log.info("****** uid: {} sharing agent: {}", uid, JSONUtil.toJsonStr(body));
+        log.info("****** uid: {} sharing agent: {}", uid, JSON.toJSONString(body));
         int status = shareService.getBotStatus(relatedId);
         // Check if already published
         if (ShelfStatusEnum.isOffShelf(status)) {

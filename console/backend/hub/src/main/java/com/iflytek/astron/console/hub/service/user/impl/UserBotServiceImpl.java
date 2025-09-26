@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.iflytek.astron.console.commons.dto.bot.ChatBotApi;
+import com.iflytek.astron.console.commons.entity.bot.UserLangChainInfo;
 import com.iflytek.astron.console.commons.entity.model.McpData;
 import com.iflytek.astron.console.commons.enums.bot.ReleaseTypeEnum;
 import com.iflytek.astron.console.commons.mapper.bot.ChatBotListMapper;
@@ -20,9 +21,9 @@ import com.iflytek.astron.console.hub.dto.user.MyBotPageDTO;
 import com.iflytek.astron.console.hub.dto.user.MyBotParamDTO;
 import com.iflytek.astron.console.hub.dto.user.MyBotResponseDTO;
 import com.iflytek.astron.console.hub.entity.ApplicationForm;
-import com.iflytek.astron.console.hub.entity.BotOffiaccount;
+import com.iflytek.astron.console.commons.entity.wechat.BotOffiaccount;
 import com.iflytek.astron.console.hub.mapper.ApplicationFormMapper;
-import com.iflytek.astron.console.hub.service.bot.BotOffiaccountService;
+import com.iflytek.astron.console.hub.service.wechat.BotOffiaccountService;
 import com.iflytek.astron.console.hub.service.chat.ChatBotApiService;
 import com.iflytek.astron.console.hub.service.user.UserBotService;
 import com.iflytek.astron.console.hub.util.BotPermissionUtil;
@@ -160,6 +161,7 @@ public class UserBotServiceImpl implements UserBotService {
         Set<Long> wechatBotId = botOffiaccountService.getAccountList(uid)
                 .stream()
                 .map(BotOffiaccount::getBotId)
+                .map(Integer::longValue)
                 .collect(Collectors.toSet());
 
         Set<Integer> apiBotId = chatBotApiService.getBotApiList(uid)
@@ -251,19 +253,19 @@ public class UserBotServiceImpl implements UserBotService {
     }
 
     private void processChainInformation(LinkedList<Map<String, Object>> list, Set<Integer> botIdSet) {
-        List<JSONObject> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
-        Map<Integer, JSONObject> chainMap = chainList.stream()
+        List<UserLangChainInfo> chainList = userLangChainDataService.findByBotIdSet(botIdSet);
+        Map<Integer, UserLangChainInfo> chainMap = chainList.stream()
                 .collect(Collectors.toMap(
-                        json -> json.getInteger("botId"),
+                        UserLangChainInfo::getBotId,
                         Function.identity(),
                         (existing, newValue) -> newValue));
 
         Map<Integer, Boolean> multiInputMap = chainList.stream()
                 .collect(Collectors.toMap(
-                        json -> json.getInteger("botId"),
-                        json -> {
-                            if (json.containsKey("extraInputs") && json.get("extraInputs") != null) {
-                                JSONObject extraInputs = JSONObject.parseObject(json.getString("extraInputs"));
+                        UserLangChainInfo::getBotId,
+                        chain -> {
+                            if (chain.getExtraInputs() != null) {
+                                JSONObject extraInputs = JSONObject.parseObject(chain.getExtraInputs());
                                 int size = extraInputs.size();
                                 if (extraInputs.containsValue("image")) {
                                     size -= 2;
@@ -275,7 +277,7 @@ public class UserBotServiceImpl implements UserBotService {
                         }));
         list.stream()
                 .filter(map -> chainMap.containsKey((Integer) map.get("botId")))
-                .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).get("maasId")));
+                .forEach(map -> map.put("maasId", chainMap.get(map.get("botId")).getMaasId()));
 
         list.forEach(map -> map.put("multiInput", multiInputMap.get(map.get("botId"))));
     }

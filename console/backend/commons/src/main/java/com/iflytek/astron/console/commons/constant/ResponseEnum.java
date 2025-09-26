@@ -37,6 +37,16 @@ public enum ResponseEnum {
     CHAT_REQ_ERROR(60005, "error.chat.req"),
     BOT_NOT_EXISTS(60006, "error.bot.not.exists"),
     CHAT_LIST_ERROR(60007, "error.chat.list"),
+    BOT_STATUS_NOT_ALLOW_PUBLISH(60021, "error.bot.status.not.allow.publish"),
+    BOT_STATUS_NOT_ALLOW_OFFLINE(60022, "error.bot.status.not.allow.offline"),
+    BOT_UPDATE_FAILED(60023, "error.bot.update.failed"),
+
+    // WeChat related errors 60024-60030
+    WECHAT_AUTH_FAILED(60024, "error.wechat.auth.failed"),
+    WECHAT_VERIFY_TICKET_MISSING(60025, "error.wechat.verify.ticket.missing"),
+    WECHAT_BIND_FAILED(60026, "error.wechat.bind.failed"),
+    WECHAT_UNBIND_FAILED(60027, "error.wechat.unbind.failed"),
+
     CHAT_REQ_NOT_BELONG_ERROR(60008, "error.chat.req.not.belong"),
     CHAT_TREE_ERROR(60009, "error.chat.tree"),
     CHAT_NORMAL_TREE_ERROR(60010, "error.chat.normal.tree"),

@@ -346,6 +346,7 @@ public class BotServiceImpl implements BotService {
         botBase.setSpaceId(spaceId);
         setInputExamples(botBase, bot.getInputExample(), bot.getInputExampleEn());
         botBase.setBotwebStatus(0);
+        botBase.setModelId(bot.getModelId());
         return botBase;
     }
 
@@ -464,6 +465,7 @@ public class BotServiceImpl implements BotService {
                 .virtualCharacter(bot.getVirtualCharacter())
                 .massBotId(bot.getMassBotId())
                 .inputExample(bot.getInputExample() != null && !bot.getInputExample().isEmpty() ? String.join(BOT_INPUT_EXAMPLE_SPLIT, bot.getInputExample()) : null)
+                .modelId(bot.getModelId())
                 .build();
     }
 

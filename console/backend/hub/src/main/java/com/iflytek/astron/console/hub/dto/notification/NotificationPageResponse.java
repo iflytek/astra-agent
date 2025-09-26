@@ -1,9 +1,12 @@
 package com.iflytek.astron.console.hub.dto.notification;
 
+import com.iflytek.astron.console.hub.enums.NotificationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Schema(name = "NotificationPageResponse", description = "Notification page response object")
@@ -27,6 +30,9 @@ public class NotificationPageResponse {
     @Schema(description = "Unread message count")
     private long unreadCount;
 
+    @Schema(description = "Notifications grouped by type")
+    private Map<NotificationType, List<NotificationDto>> notificationsByType;
+
     public NotificationPageResponse(List<NotificationDto> notifications, int pageIndex, int pageSize, long totalCount, long unreadCount) {
         this.notifications = notifications;
         this.pageIndex = pageIndex;
@@ -34,5 +40,7 @@ public class NotificationPageResponse {
         this.totalCount = totalCount;
         this.totalPages = pageSize > 0 ? (int) Math.ceil((double) totalCount / pageSize) : 0;
         this.unreadCount = unreadCount;
+        this.notificationsByType = notifications.stream()
+                .collect(Collectors.groupingBy(notification -> notification.getType() != null ? notification.getType() : NotificationType.SYSTEM));
     }
 }

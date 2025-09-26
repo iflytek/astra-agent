@@ -9,6 +9,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class RepoDto extends Repo {
+    private static final long serialVersionUID = 1L;
     private String address;
     private List<TagDto> tagDtoList;
     private List<SparkBotVO> bots;

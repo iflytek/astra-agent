@@ -1,11 +1,16 @@
 package com.iflytek.astron.console.commons.entity.model;
 
-import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +18,10 @@ import java.time.LocalDateTime;
  * @author yun-zhi-ztl
  */
 @Data
-@TableName("mcp_data")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@TableName(value = "mcp_data", autoResultMap = true)
 @Schema(name = "McpData", description = "mcp data table")
 public class McpData {
 
@@ -46,7 +54,8 @@ public class McpData {
     private String serverUrl;
 
     @Schema(description = "Service parameters in JSON format")
-    private JSON args;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Object args;
 
     @Schema(description = "Associated bot version name")
     private String versionName;
@@ -58,8 +67,10 @@ public class McpData {
     private Integer isDelete;
 
     @Schema(description = "Creation time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
 
     @Schema(description = "Last update time")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 }

@@ -69,7 +69,7 @@ class UserInfoDataServiceFinalTest {
         when(mockLock.isHeldByCurrentThread()).thenReturn(true);
 
         // Setup mapper mock
-        when(userInfoMapper.selectOne(any())).thenReturn(null, null);
+        when(userInfoMapper.selectOne(any())).thenReturn(null).thenReturn(null);
         when(userInfoMapper.insert(any(UserInfo.class))).thenAnswer(invocation -> {
             UserInfo user = invocation.getArgument(0);
             user.setId(1L);
@@ -95,7 +95,7 @@ class UserInfoDataServiceFinalTest {
                 IllegalArgumentException.class,
                 () -> userInfoDataService.createOrGetUser(testUser));
 
-        assertEquals("User UID cannot be empty", exception.getMessage());
+        assertEquals("User UID cannot be null", exception.getMessage());
         System.out.println("Empty UID exception test passed");
     }
 
@@ -105,7 +105,7 @@ class UserInfoDataServiceFinalTest {
                 IllegalArgumentException.class,
                 () -> userInfoDataService.createOrGetUser(null));
 
-        assertEquals("User information cannot be empty", exception.getMessage());
+        assertEquals("User information cannot be null", exception.getMessage());
         System.out.println("Empty user information exception test passed");
     }
 

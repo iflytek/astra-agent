@@ -2,7 +2,6 @@ package com.iflytek.astron.console.commons.service.bot.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -558,9 +557,15 @@ public class ChatBotDataServiceImpl implements ChatBotDataService {
         if (org.apache.commons.lang3.StringUtils.isNotBlank(vcnCn) && getVcnDetail(vcnCn) == null) {
             promptBotDetail.setVcnCn(null);
         }
-        if (DateUtil.parseLocalDateTime(promptBotDetail.getCreateTime().toString(), "yyyy-MM-dd HH:mm:ss.S").isBefore(LocalDateTime.of(2025, 2, 24, 10, 00))) {
-            promptBotDetail.setEditable(false);
-        } else {
+        try {
+            LocalDateTime createTime = LocalDateTime.parse(promptBotDetail.getCreateTime().toString().replace(" ", "T"));
+            if (createTime.isBefore(LocalDateTime.of(2025, 2, 24, 10, 00))) {
+                promptBotDetail.setEditable(false);
+            } else {
+                promptBotDetail.setEditable(true);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse createTime for botId {}, setting editable to true by default", botId, e);
             promptBotDetail.setEditable(true);
         }
         // Get assistant release channels

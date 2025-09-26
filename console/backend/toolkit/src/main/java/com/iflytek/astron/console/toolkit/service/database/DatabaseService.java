@@ -1,6 +1,5 @@
 package com.iflytek.astron.console.toolkit.service.database;
 
-import cn.hutool.poi.excel.ExcelUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -1225,7 +1224,7 @@ public class DatabaseService extends ServiceImpl<DbInfoMapper, DbInfo> {
                 dataList.add(line);
             }
 
-            response.setContentType(ExcelUtil.XLSX_CONTENT_TYPE);
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setCharacterEncoding("utf-8");
             String fileName = URLEncoder.encode(dbTable.getName(), "UTF-8").replaceAll("\\+", "%20");
             response.setHeader("Content-disposition", "attachment;filename=" + fileName + ".xlsx");

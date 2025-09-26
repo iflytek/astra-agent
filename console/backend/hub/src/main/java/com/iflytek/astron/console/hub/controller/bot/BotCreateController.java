@@ -10,15 +10,22 @@ import com.iflytek.astron.console.commons.service.bot.BotService;
 import com.iflytek.astron.console.commons.util.RequestContextUtil;
 import com.iflytek.astron.console.commons.util.space.SpaceInfoUtil;
 import com.iflytek.astron.console.hub.dto.bot.BotGenerationDTO;
+import com.iflytek.astron.console.commons.dto.bot.BotModelDto;
+import com.iflytek.astron.console.commons.enums.bot.DefaultBotModelEnum;
 import com.iflytek.astron.console.hub.service.bot.BotAIService;
 import com.iflytek.astron.console.hub.util.BotPermissionUtil;
+import com.iflytek.astron.console.toolkit.service.model.LLMService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
 
 @Slf4j
 @RestController
@@ -33,6 +40,9 @@ public class BotCreateController {
 
     @Autowired
     private BotPermissionUtil botPermissionUtil;
+
+    @Autowired
+    private LLMService llmService;
 
     /**
      * Create workflow assistant
@@ -174,5 +184,81 @@ public class BotCreateController {
             log.error("Failed to update assistant: {}", e.getMessage(), e);
             return ApiResult.error(ResponseEnum.SYSTEM_ERROR);
         }
+    }
+
+    /**
+     * Handle request to get bot models
+     *
+     * @param request HTTP request object
+     * @return API result containing all model lists
+     */
+    @Operation(summary = "Get bot model list", description = "Fetches both default and custom bot models")
+    @GetMapping("/bot-model")
+    public ApiResult<List<BotModelDto>> botModel(HttpServletRequest request) {
+        List<BotModelDto> allModels = new ArrayList<>();
+
+        // 1. Add default models: Spark 4.0 and x1
+        BotModelDto x1Model = new BotModelDto();
+        x1Model.setModelDomain(DefaultBotModelEnum.X1.getDomain());
+        x1Model.setModelName(DefaultBotModelEnum.X1.getName());
+        x1Model.setModelIcon(DefaultBotModelEnum.X1.getIcon());
+        x1Model.setIsCustom(false);
+        allModels.add(x1Model);
+
+        BotModelDto sparkModel = new BotModelDto();
+        sparkModel.setModelDomain(DefaultBotModelEnum.SPARK_4_0.getDomain());
+        sparkModel.setModelName(DefaultBotModelEnum.SPARK_4_0.getName());
+        sparkModel.setModelIcon(DefaultBotModelEnum.SPARK_4_0.getIcon());
+        sparkModel.setIsCustom(false);
+        allModels.add(sparkModel);
+
+        // 2. Get custom models
+        JSONObject result = JSONObject.from(llmService.getLlmAuthList(request, null, "workflow", "spark-llm"));
+
+        try {
+            if (result != null && result.containsKey("workflow")) {
+                JSONArray workflowArray = result.getJSONArray("workflow");
+
+                // Get the second array element (index 1, i.e., "Custom Models")
+                if (workflowArray != null && workflowArray.size() > 1) {
+                    JSONObject secondCategory = workflowArray.getJSONObject(1);
+
+                    if (secondCategory != null && secondCategory.containsKey("modelList")) {
+                        JSONArray modelList = secondCategory.getJSONArray("modelList");
+
+                        if (modelList != null) {
+                            for (int i = 0; i < modelList.size(); i++) {
+                                JSONObject modelObj = modelList.getJSONObject(i);
+                                if (modelObj != null) {
+                                    BotModelDto customModel = convertToModelDto(modelObj);
+                                    allModels.add(customModel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract custom models from LLM auth list", e);
+        }
+
+        return ApiResult.success(allModels);
+    }
+
+    /**
+     * Convert JSONObject to BotModelDto object
+     */
+    private BotModelDto convertToModelDto(JSONObject modelJson) {
+        BotModelDto model = new BotModelDto();
+
+        // Set basic properties
+        if (modelJson.containsKey("id") && modelJson.get("id") != null) {
+            model.setModelId(modelJson.getLong("id"));
+        }
+        model.setModelName(modelJson.getString("name"));
+        model.setModelDomain(modelJson.getString("domain"));
+        model.setModelIcon(modelJson.getString("icon"));
+
+        return model;
     }
 }

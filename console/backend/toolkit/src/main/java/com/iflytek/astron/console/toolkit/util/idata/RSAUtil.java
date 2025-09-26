@@ -25,7 +25,7 @@ public class RSAUtil {
      * @throws Exception if any error occurs while loading the public key
      */
     public static RSAPublicKey loadPublicKey(InputStream in) throws Exception {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String readLine;
             StringBuilder sb = new StringBuilder();
             while ((readLine = br.readLine()) != null) {
@@ -70,7 +70,7 @@ public class RSAUtil {
      * @throws Exception if any error occurs while loading the private key
      */
     public static RSAPrivateKey loadPrivateKey(InputStream in) throws Exception {
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
             String readLine;
             StringBuilder sb = new StringBuilder();
             while ((readLine = br.readLine()) != null) {
@@ -121,7 +121,7 @@ public class RSAUtil {
         StringBuilder builder = new StringBuilder();
         try {
             for (String s : datas) {
-                builder.append(bcd2Str(encryptByPublicKey(s.getBytes(), publicKey)));
+                builder.append(bcd2Str(encryptByPublicKey(s.getBytes(StandardCharsets.UTF_8), publicKey)));
             }
         } catch (Exception e) {
             log.error("encryptByPublicKey error", e);
@@ -171,7 +171,7 @@ public class RSAUtil {
         String[] datas = splitString(data, key_len - 11);
         StringBuilder builder = new StringBuilder();
         for (String s : datas) {
-            builder.append(bcd2Str(encryptByPrivateKey(s.getBytes(), privateKey)));
+            builder.append(bcd2Str(encryptByPrivateKey(s.getBytes(StandardCharsets.UTF_8), privateKey)));
         }
         return builder.toString();
     }
@@ -186,14 +186,14 @@ public class RSAUtil {
      */
     public static String decryptByPrivateKey(String data, RSAPrivateKey privateKey) throws Exception {
         int key_len = privateKey.getModulus().bitLength() / 8;
-        byte[] bytes = data.getBytes();
+        byte[] bytes = data.getBytes(StandardCharsets.US_ASCII);
         byte[] bcd = ASCII_To_BCD(bytes, bytes.length);
-        String ming = "";
+        StringBuilder sb = new StringBuilder();
         byte[][] arrays = splitArray(bcd, key_len);
         for (byte[] arr : arrays) {
-            ming += new String(decryptByPrivateKey(arr, privateKey));
+            sb.append(new String(decryptByPrivateKey(arr, privateKey), StandardCharsets.UTF_8));
         }
-        return ming;
+        return sb.toString();
     }
 
     /**
@@ -220,14 +220,14 @@ public class RSAUtil {
      */
     public static String decryptByPublicKey(String data, RSAPublicKey publicKey) throws Exception {
         int key_len = publicKey.getModulus().bitLength() / 8;
-        byte[] bytes = data.getBytes();
+        byte[] bytes = data.getBytes(StandardCharsets.US_ASCII);
         byte[] bcd = ASCII_To_BCD(bytes, bytes.length);
-        String ming = "";
+        StringBuilder sb = new StringBuilder();
         byte[][] arrays = splitArray(bcd, key_len);
         for (byte[] arr : arrays) {
-            ming += new String(decryptByPublicKey(arr, publicKey));
+            sb.append(new String(decryptByPublicKey(arr, publicKey), StandardCharsets.UTF_8));
         }
-        return ming;
+        return sb.toString();
     }
 
     /**
