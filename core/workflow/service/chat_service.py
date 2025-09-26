@@ -7,6 +7,7 @@ from datetime import datetime
 from typing import Any, AsyncGenerator, AsyncIterator, Dict, List, Optional, Tuple, cast
 
 from loguru import logger
+
 from workflow.cache.engine import get_engine, set_engine
 from workflow.cache.event_registry import Event, EventRegistry
 from workflow.consts.app_audit import AppAuditPolicy
@@ -54,10 +55,11 @@ async def event_stream(
     span: Span,
 ) -> AsyncIterator[str]:
     """
-    Event stream processing function for handling chat requests and generating streaming responses.
+    Event stream processing function for handling chat requests and generating
+    streaming responses.
 
-    This function orchestrates the workflow execution process, including engine initialization,
-    callback setup, and streaming response generation.
+    This function orchestrates the workflow execution process,including engine
+    initialization, callback setup, and streaming response generation.
 
     :param app_alias_id: Application alias ID for identification
     :param event_id: Unique event identifier for tracking
@@ -173,7 +175,9 @@ async def _get_or_build_workflow_engine(
             sparkflow_engine = engine_cache_entity
             need_rebuild = False
             span_context.add_info_event(
-                f"Retrieved Workflow engine from cache, DSL update time: {workflow_dsl_update_time}, engine build time: {build_timestamp}"
+                f"Retrieved Workflow engine from cache, "
+                f"DSL update time: {workflow_dsl_update_time}, "
+                f"engine build time: {build_timestamp}"
             )
 
     # Rebuild engine if cache miss or outdated
@@ -280,11 +284,13 @@ async def _validate_file_inputs(
     This function checks if required file parameters are provided and validates
     file types and formats according to the workflow definition.
 
-    :param workflow_dsl: Workflow DSL definition containing file parameter specifications
+    :param workflow_dsl: Workflow DSL definition containing
+                         file parameter specifications
     :param chat_vo: Chat value object containing user input parameters
     :param span_context: Distributed tracing span context
     :return: None
-    :raises CustomException: When file validation fails or required parameters are missing
+    :raises CustomException: When file validation fails or
+                             required parameters are missing
     """
     file_info_list, has_file = File.has_file_in_dsl(workflow_dsl, span_context)
     if not has_file:
@@ -480,7 +486,6 @@ async def _run(
     with span.start(
         attributes={"flow_id": chat_vo.flow_id},
     ) as span_context:
-        # span_context.add_info_event(f"start event_stream : {time.time() - start_time}")
         span.add_info_event(f"user input: {chat_vo.json()}")
         span.add_info_event(
             f"spark dsl: {json.dumps(workflow_dsl, ensure_ascii=False)}"
@@ -597,7 +602,8 @@ async def _init_stream_q(
     This function sets up streaming queues for nodes that support streaming output,
     enabling real-time data flow between nodes.
 
-    :param msg_or_end_node_deps: Dictionary mapping node IDs to their dependency information
+    :param msg_or_end_node_deps: Dictionary mapping node IDs to their dependency
+                                 information
     :param variable_pool: Variable pool containing streaming data structures
     :return: None
     """
@@ -762,11 +768,13 @@ def _filter_response_frame(
 
     :param response_frame: Current response frame to process
     :param is_stream: Whether this is a streaming response
-    :param last_workflow_step: Previous workflow step for tracking frame index and progress
+    :param last_workflow_step: Previous workflow step for tracking frame index
+                               and progress
     :param message_cache: Cached content for non-streaming mode
     :param reasoning_content_cache: Cached reasoning content for non-streaming mode
     :param is_release: Whether running in production release mode
-    :return: Tuple of (filtered response frame or None, whether to keep the response frame)
+    :return: Tuple of (filtered response frame or None, whether to keep the response
+             frame)
     """
 
     if not is_release:

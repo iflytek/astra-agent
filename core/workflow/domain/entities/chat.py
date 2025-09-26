@@ -67,7 +67,15 @@ class ChatVo(BaseModel):
 
     def __str__(self) -> str:
         """String representation of the chat request."""
-        return f"flow_id: {self.flow_id}\nuid: {self.uid}\nparameters: {self.parameters}\nstream: {self.stream}\next: {self.ext}\nchat_id: {self.chat_id}\nhistory: {self.history}"
+        return (
+            f"flow_id: {self.flow_id}\n"
+            f"uid: {self.uid}\n"
+            f"parameters: {self.parameters}\n"
+            f"stream: {self.stream}\n"
+            f"ext: {self.ext}\n"
+            f"chat_id: {self.chat_id}\n"
+            f"history: {self.history}"
+        )
 
 
 class ResumeVo(BaseModel):

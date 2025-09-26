@@ -45,7 +45,8 @@ class ThirdApiCodeEnum(Enum):
     - Code execution errors (10405, 1): Pod readiness and execution failures
     - Image generation errors (10003-10022): AI image generation service errors
     - SparkLink tool errors (30001-30600): External tool integration errors
-    - Spark model errors (10000-11203): AI model service errors including WebSocket, auth, and rate limiting
+    - Spark model errors (10000-11203): AI model service errors including WebSocket,
+                                        auth, and rate limiting
     - Audit errors (999999): Content audit service internal errors
 
     These codes are used as input to the CodeConvert utility for mapping
@@ -95,11 +96,13 @@ class ThirdApiCodeEnum(Enum):
     SPARK_PARAM_ERROR = (10005, "User parameter value error")
     SPARK_CONCURRENCY_ERROR = (
         10006,
-        "User concurrency error: current user is connected, same user cannot connect from multiple locations",
+        "User concurrency error: current user is connected, "
+        "same user cannot connect from multiple locations",
     )
     SPARK_TRAFFIC_LIMIT_ERROR = (
         10007,
-        "User traffic limit: service is processing user's current question, wait for completion before sending new request",
+        "User traffic limit: service is processing user's current question, "
+        "wait for completion before sending new request",
     )
     SPARK_CAPACITY_ERROR = (10008, "Service capacity insufficient, contact staff")
     SPARK_ENGINE_CONNECTION_ERROR = (10009, "Engine connection establishment failed")
@@ -112,17 +115,20 @@ class ThirdApiCodeEnum(Enum):
     )
     SPARK_OUTPUT_AUDIT_ERROR = (
         10014,
-        "Output content involves sensitive information, audit failed, results cannot be displayed to user",
+        "Output content involves sensitive information, audit failed, "
+        "results cannot be displayed to user",
     )
     SPARK_APP_ID_BLACKLIST_ERROR = (10015, "Appid is in blacklist")
     SPARK_APP_ID_AUTH_ERROR = (
         10016,
-        "Appid authorization error: feature not enabled, version not enabled, insufficient tokens, concurrency exceeds authorization",
+        "Appid authorization error: feature not enabled, version not enabled, "
+        "insufficient tokens, concurrency exceeds authorization",
     )
     SPARK_CLEAR_HISTORY_ERROR = (10017, "Clear history failed")
     SPARK_VIOLATION_ERROR = (
         10019,
-        "Session content has violation tendency; suggest showing violation warning to user",
+        "Session content has violation tendency; "
+        "suggest showing violation warning to user",
     )
     SPARK_BUSY_ERROR = (10110, "Service busy, please try again later")
     SPARK_ENGINE_PARAMS_ERROR = (
@@ -132,11 +138,13 @@ class ThirdApiCodeEnum(Enum):
     SPARK_ENGINE_NETWORK_ERROR = (10222, "Engine network error")
     SPARK_TOKEN_LIMIT_ERROR = (
         10907,
-        "Token count exceeds limit, conversation history + question text too long, need to simplify input",
+        "Token count exceeds limit, conversation history + question text too long, "
+        "need to simplify input",
     )
     SPARK_AUTH_ERROR = (
         11200,
-        "Authorization error: appId has no feature authorization or business volume exceeds limit",
+        "Authorization error: "
+        "appId has no feature authorization or business volume exceeds limit",
     )
     SPARK_DAILY_LIMIT_ERROR = (11201, "Authorization error: daily rate limit exceeded")
     SPARK_SECOND_LIMIT_ERROR = (

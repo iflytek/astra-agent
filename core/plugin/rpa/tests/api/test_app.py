@@ -19,7 +19,9 @@ class TestRPAServer:
         # Note: This tests the module-level functions, not RPAServer methods
         with patch("api.app.Path") as mock_path_class:
             mock_path_instance = MagicMock()
-            mock_path_return = mock_path_class.return_value.resolve.return_value.parent.parent
+            mock_path_return = (
+                mock_path_class.return_value.resolve.return_value.parent.parent
+            )
             mock_path_return.__truediv__.return_value = Path(temp_env_file)
             mock_path_instance.exists.return_value = True
             # Set up mock path existence check
@@ -37,9 +39,7 @@ class TestRPAServer:
             # This would test the file existence check
             assert not Path("nonexistent.env").exists()
 
-    def test_check_env_success(
-        self, _mock_env_vars: Dict[str, str]
-    ) -> None:
+    def test_check_env_success(self, _mock_env_vars: Dict[str, str]) -> None:
         """Test successful check when all required environment variables exist."""
         RPAServer.check_env()  # Should not raise exception
 

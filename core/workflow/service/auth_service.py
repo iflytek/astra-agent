@@ -1,4 +1,5 @@
 from sqlmodel import Session  # type: ignore
+
 from workflow.consts.tenant_publish_matrix import Platform, TenantPublishMatrix
 from workflow.domain.entities.flow import AuthInput
 from workflow.domain.models.flow import Flow
@@ -23,7 +24,8 @@ def handle(
     :param auth_input: Authentication input containing app_id and flow_id
     :param span: Distributed tracing span for monitoring
     :return: None
-    :raises CustomException: When tenant not found, flow not found, or flow not published
+    :raises CustomException: When tenant not found, flow not found,
+            or flow not published
     """
     user_app_id = auth_input.app_id
 
@@ -60,7 +62,8 @@ def handle(
     span.add_info_event(f"Current platform publish permission value: {rs}")
 
     # Check if workflow is published or not taken off from all platforms
-    # Bottom line: Workflow should not be bindable if unpublished or taken off from all three platforms
+    # Bottom line: Workflow should not be bindable if unpublished
+    # or taken off from all three platforms
     if (release_status == 0) or (
         (release_status & TenantPublishMatrix(Platform.XINGCHEN).get_take_off)
         and (release_status & TenantPublishMatrix(Platform.KAI_FANG).get_take_off)

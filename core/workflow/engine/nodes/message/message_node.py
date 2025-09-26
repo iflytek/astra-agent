@@ -8,6 +8,7 @@ during workflow execution. It supports template-based message generation and str
 from typing import Any, Dict, Optional
 
 from pydantic import Field
+
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_running_status import NodeRunningStatus

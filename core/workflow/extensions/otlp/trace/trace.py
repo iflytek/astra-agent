@@ -14,6 +14,7 @@ from opentelemetry.sdk.trace.export import (
     SpanExportResult,
 )
 from opentelemetry.trace import StatusCode
+
 from workflow.extensions.otlp.util.ip import ip
 
 

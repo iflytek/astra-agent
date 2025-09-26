@@ -3,6 +3,7 @@ import os
 from typing import Any
 
 from pydantic import Field
+
 from workflow.engine.entities.history import EnableChatHistoryV2, History
 from workflow.engine.entities.variable_pool import VariablePool
 from workflow.engine.nodes.base_node import BaseNode

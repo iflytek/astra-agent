@@ -11,6 +11,7 @@ from urllib.parse import urlencode
 import boto3  # type: ignore
 import requests  # type: ignore
 from loguru import logger
+
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.base import Service

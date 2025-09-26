@@ -8,6 +8,7 @@ sentence detection, splitting, and delimiter handling.
 import json
 
 import pytest
+
 from workflow.infra.audit_system.utils import END_SYMBOLS, NON_END_SYMBOLS, Sentence
 
 

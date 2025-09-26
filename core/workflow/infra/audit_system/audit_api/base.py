@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Any, List, Literal
 
 from pydantic import BaseModel, Field
+
 from workflow.extensions.otlp.trace.span import Span
 
 

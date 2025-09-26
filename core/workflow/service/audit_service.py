@@ -94,7 +94,8 @@ async def response_resume_audit(
     event: Event, audit_strategy: AuditStrategy, span: Span
 ) -> None:
     """
-    Process LLMGenerate objects from interrupted response queue and submit them for audit.
+    Process LLMGenerate objects from interrupted response queue and submit them
+    for audit.
 
     :param event: Event object containing workflow queue information
     :param audit_strategy: Audit strategy to use for processing
@@ -123,7 +124,8 @@ async def _common_response_audit(
     initial_index: int = 0,
 ) -> None:
     """
-    Common handler for processing LLMGenerate objects from response queue and submitting for audit.
+    Common handler for processing LLMGenerate objects from response queue
+    and submitting for audit.
 
     :param fetch_fn: Function to fetch LLMGenerate objects from the queue
     :param audit_strategy: Audit strategy to use for processing

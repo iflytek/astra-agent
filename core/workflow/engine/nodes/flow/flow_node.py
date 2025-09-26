@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 import aiohttp
 from aiohttp import ClientTimeout
 from pydantic import Field
+
 from workflow.consts.engine.chat_status import ChatStatus
 from workflow.domain.models.ai_app import App
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage

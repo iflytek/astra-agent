@@ -10,6 +10,7 @@ from typing import Dict
 
 from sqlalchemy import JSON, Column
 from sqlmodel import Field  # type: ignore
+
 from workflow.domain.models.base import SQLModelSerializable
 from workflow.utils.snowfake import get_id
 

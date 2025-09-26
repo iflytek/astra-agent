@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from pydantic import Field
+
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
 from workflow.engine.entities.variable_pool import VariablePool

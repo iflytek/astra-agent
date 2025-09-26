@@ -2,7 +2,8 @@
 Snowflake ID generator utility for generating unique identifiers.
 
 This module provides a simple interface for generating unique IDs using the
-Snowflake algorithm, which ensures globally unique identifiers across distributed systems.
+Snowflake algorithm, which ensures globally unique identifiers across
+distributed systems.
 """
 
 import time

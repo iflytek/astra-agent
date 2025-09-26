@@ -3,6 +3,7 @@ from typing import Annotated, Optional, Union
 
 from fastapi import APIRouter, Header
 from starlette.responses import JSONResponse, StreamingResponse
+
 from workflow.cache.event_registry import Event, EventRegistry
 from workflow.consts.app_audit import AppAuditPolicy
 from workflow.consts.engine.chat_status import ChatStatus

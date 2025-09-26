@@ -10,6 +10,7 @@ from typing import Iterator
 
 from loguru import logger
 from sqlmodel import Session  # type: ignore
+
 from workflow.extensions.middleware.database.manager import DatabaseService
 
 

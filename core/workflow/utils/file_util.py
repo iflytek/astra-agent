@@ -1,8 +1,9 @@
 """
-File utility functions for handling file operations, image processing, and URL conversions.
+File utility functions for handling file operations, image processing,
+and URL conversions.
 
-This module provides utilities for generating unique filenames, extracting image extensions,
-and converting image URLs to Base64 encoded strings.
+This module provides utilities for generating unique filenames, extracting
+image extensions,and converting image URLs to Base64 encoded strings.
 """
 
 import base64

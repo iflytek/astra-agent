@@ -2,6 +2,7 @@ import os
 import threading
 
 from loguru import logger
+
 from workflow.extensions.middleware.getters import get_kafka_producer_service
 from workflow.extensions.otlp.log_trace.workflow_log import WorkflowLog
 from workflow.extensions.otlp.trace.span import Span

@@ -157,7 +157,9 @@ def setup_logging_and_metrics(span_context: Span, req: str, product_id: str) -> 
     return Meter(app_id=span_context.app_id, func="task_monitoring")
 
 
-def otlp_handle(meter: Meter, node_trace: NodeTraceLog, code: int, message: str) -> None:
+def otlp_handle(
+    meter: Meter, node_trace: NodeTraceLog, code: int, message: str
+) -> None:
     if os.getenv(const.OTLP_ENABLE_KEY, "false").lower() == "false":
         return
 
@@ -174,4 +176,6 @@ def otlp_handle(meter: Meter, node_trace: NodeTraceLog, code: int, message: str)
 
     kafka_service = get_kafka_producer_service()
     node_trace.start_time = int(round(time.time() * 1000))
-    kafka_service.send(topic=os.getenv(const.KAFKA_TOPIC_KEY, ""), value=node_trace.to_json())
+    kafka_service.send(
+        topic=os.getenv(const.KAFKA_TOPIC_KEY, ""), value=node_trace.to_json()
+    )

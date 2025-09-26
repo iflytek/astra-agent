@@ -10,9 +10,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header
 from fastapi.responses import JSONResponse
 from sqlmodel import Session  # type: ignore
+
 from workflow.cache.flow import del_flow_by_flow_id_latest_version, del_flow_by_id
 from workflow.domain.entities.flow import AuthInput, PublishInput
-from workflow.domain.entities.response import response_error, response_success
+from workflow.domain.entities.response import Resp
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.getters import get_session
@@ -59,20 +60,18 @@ def publish(
             span_context.record_exception(err)
             db_session.rollback()
             m.in_error_count(err.code, span=span_context)
-            return response_error(
-                code=err.code, message=err.message, sid=span_context.sid
-            )
+            return Resp.error(code=err.code, message=err.message, sid=span_context.sid)
         except Exception as err:
             span_context.record_exception(err)
             db_session.rollback()
             m.in_error_count(CodeEnum.FLOW_PUBLISH_ERROR.code, span=span_context)
-            return response_error(
+            return Resp.error(
                 code=CodeEnum.FLOW_PUBLISH_ERROR.code,
                 message=f"{CodeEnum.FLOW_PUBLISH_ERROR.msg}, Error details: {err}",
                 sid=span_context.sid,
             )
         m.in_success_count()
-        return response_success(sid=span_context.sid)
+        return Resp.success(sid=span_context.sid)
 
 
 @publish_auth_router.post("/auth")
@@ -105,17 +104,16 @@ def auth(
             span_context.record_exception(err)
             db_session.rollback()
             m.in_error_count(err.code, span=span_context)
-            return response_error(
-                code=err.code, message=err.message, sid=span_context.sid
-            )
+            return Resp.error(code=err.code, message=err.message, sid=span_context.sid)
         except Exception as err:
             span_context.record_exception(err)
             db_session.rollback()
             m.in_error_count(CodeEnum.APP_FLOW_AUTH_BOND_ERROR.code, span=span_context)
-            return response_error(
+            return Resp.error(
                 code=CodeEnum.APP_FLOW_AUTH_BOND_ERROR.code,
-                message=f"{CodeEnum.APP_FLOW_AUTH_BOND_ERROR.msg}, Error details: {err}",
+                message=f"{CodeEnum.APP_FLOW_AUTH_BOND_ERROR.msg}, "
+                f"Error details: {err}",
                 sid=span_context.sid,
             )
         m.in_success_count()
-        return response_success(sid=span_context.sid)
+        return Resp.success(sid=span_context.sid)
