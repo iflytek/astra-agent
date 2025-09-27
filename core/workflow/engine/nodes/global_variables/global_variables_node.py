@@ -7,15 +7,16 @@ that extends BaseNode to handle global variable operations (set/get) in workflow
 """
 
 import json
-import time
-from typing import Any, Dict
+from typing import Any, Literal
 
+from pydantic import Field
 from workflow.engine.entities.variable_pool import VariablePool
 from workflow.engine.nodes.base_node import BaseNode
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.getters import get_cache_service
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
@@ -123,41 +124,8 @@ class GlobalVariablesNode(BaseNode):
     Supports both 'set' and 'get' operations for variable management.
     """
 
-    method: str = "set"  # Operation method: "set" or "get"
-    flowId: str = ""  # Flow identifier for variable scope
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the node configuration parameters.
-
-        :return: Dictionary containing node configuration (method and flowId)
-        """
-        return {
-            "method": self.method,
-            "flowId": self.flowId,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for this node).
-
-        :param variable_pool: Variable pool containing workflow variables
-        :param span: Tracing span for monitoring
-        :param event_log_node_trace: Optional node logging trace
-        :param kwargs: Additional keyword arguments
-        :return: Basic NodeRunResult with node metadata
-        """
-        return NodeRunResult(
-            node_id=self.node_id,
-            node_type=self.node_type,
-            alias_name=self.alias_name,
-        )
+    method: Literal["set", "get"] = Field(...)  # Operation method: "set" or "get"
+    flowId: str = Field(...)  # Flow identifier for variable scope
 
     async def async_execute(
         self,
@@ -179,7 +147,6 @@ class GlobalVariablesNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: NodeRunResult with execution status and data
         """
-        start_time = time.time()
         try:
             inputs: dict = {}
             outputs: dict = {}
@@ -251,15 +218,16 @@ class GlobalVariablesNode(BaseNode):
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except Exception as err:
             # Record exception in tracing span and return failed result
             span.record_exception(err)
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.VariableNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.VARIABLE_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,

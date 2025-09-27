@@ -31,7 +31,7 @@ dependencies = [
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
     "python-dotenv==1.0.1",
-    "ragflow-sdk>=0.20.5",
+    "ragflow-sdk==0.13.0",
     "requests-toolbelt==1.0.0",
     "sqlmodel>=0.0.25",
     "toml>=0.10.2",

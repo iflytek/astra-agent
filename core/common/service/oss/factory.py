@@ -8,19 +8,19 @@ from common.service.oss.ifly_storage_gateway_service import IFlyGatewayStorageCl
 
 
 class OSSServiceFactory(ServiceFactory):
-    name = ServiceType.OSS_SERVICE
+    name = ServiceType.OSS_SERVICE  # type: ignore[report-untyped-call]
 
-    def __init__(self):
-        super().__init__(BaseOSSService)
+    def __init__(self) -> None:  # type: ignore[report-untyped-call]
+        super().__init__(BaseOSSService)  # type: ignore[arg-type]
         self.client = None
 
-    def create(self):
+    def create(self):  # type: ignore[override, no-untyped-def]
         logger.debug("Creating OSS Servie")
         oss_type = os.getenv("OSS_TYPE", "ifly_gateway_storage")
         if oss_type == "s3":
             pass
         else:
-            self.client = IFlyGatewayStorageClient(
+            self.client = IFlyGatewayStorageClient(  # type: ignore[assignment]
                 endpoint=os.getenv("OSS_ENDPOINT", ""),
                 access_key_id=os.getenv("OSS_ACCESS_KEY_ID", ""),
                 access_key_secret=os.getenv("OSS_ACCESS_KEY_SECRET", ""),

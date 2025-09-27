@@ -4,15 +4,14 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from memory.database.api.schemas.exec_ddl_types import ExecDDLInput
+from memory.database.api.v1.exec_ddl import (_ddl_split, _reset_uid, exec_ddl,
+                                             is_ddl_allowed)
+from memory.database.exceptions.error_code import CodeEnum
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from memory.database.api.schemas.exec_ddl_types import ExecDDLInput
-from memory.database.api.v1.exec_ddl import (_ddl_split, _reset_uid,
-                           exec_ddl, is_ddl_allowed)
-from memory.database.exceptions.error_code import CodeEnum
 
-
-def test_is_ddl_allowed_allowed_statements():
+def test_is_ddl_allowed_allowed_statements() -> None:
     """Test allowed DDL statements (CREATE TABLE/ALTER TABLE etc)."""
     allowed_sql_cases = [
         "CREATE TABLE users (id INT);",
@@ -32,7 +31,7 @@ def test_is_ddl_allowed_allowed_statements():
 
 
 @pytest.mark.asyncio
-async def test_reset_uid_with_valid_space_id_reset_success():
+async def test_reset_uid_with_valid_space_id_reset_success() -> None:
     """Test _reset_uid with valid space_id resets to new uid."""
     mock_db = AsyncMock(spec=AsyncSession)
     mock_span_context = MagicMock()
@@ -41,7 +40,8 @@ async def test_reset_uid_with_valid_space_id_reset_success():
     # Use non-string type to test type conversion
     mock_new_uid = 123
     with patch(
-        "memory.database.api.v1.exec_ddl.check_space_id_and_get_uid", new_callable=AsyncMock
+        "memory.database.api.v1.exec_ddl.check_space_id_and_get_uid",
+        new_callable=AsyncMock,
     ) as mock_check_space:
         # Return format needs to match actual code [(uid,)] structure
         mock_check_space.return_value = ([(mock_new_uid,)], None)
@@ -65,11 +65,7 @@ async def test_reset_uid_with_valid_space_id_reset_success():
 
         # Verify check_space_id_and_get_uid call parameters
         mock_check_space.assert_called_once_with(
-            mock_db,
-            database_id,
-            space_id,
-            mock_span_context,
-            mock_meter
+            mock_db, database_id, space_id, mock_span_context, mock_meter
         )
 
         # Verify meter was not called incorrectly
@@ -77,7 +73,7 @@ async def test_reset_uid_with_valid_space_id_reset_success():
 
 
 @pytest.mark.asyncio
-async def test_ddl_split_success():
+async def test_ddl_split_success() -> None:
     """Test successful DDL splitting (multiple valid statements)."""
     mock_span_context = MagicMock()
     mock_meter = MagicMock()
@@ -90,9 +86,7 @@ async def test_ddl_split_success():
         """
         uid = "u1"
 
-        ddls, error_resp = await _ddl_split(
-            raw_ddl, uid, mock_span_context, mock_meter
-        )
+        ddls, error_resp = await _ddl_split(raw_ddl, uid, mock_span_context, mock_meter)
 
         assert error_resp is None
         assert len(ddls) == 3
@@ -100,12 +94,14 @@ async def test_ddl_split_success():
         assert ddls[1].strip() == "ALTER TABLE users ADD COLUMN name TEXT"
         assert ddls[2].strip() == "DROP TABLE old_users"
 
-        mock_span_context.add_info_event.assert_any_call(f"Split DDL statements: {ddls}")
+        mock_span_context.add_info_event.assert_any_call(
+            f"Split DDL statements: {ddls}"
+        )
         mock_meter.in_error_count.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_exec_ddl_success():
+async def test_exec_ddl_success() -> None:
     """Test successful exec_ddl endpoint (valid DDL + database exists)."""
     mock_db = AsyncMock(spec=AsyncSession)
     mock_db.commit = AsyncMock(return_value=None)
@@ -127,13 +123,12 @@ async def test_exec_ddl_success():
 
     with patch("memory.database.api.v1.exec_ddl.Span") as mock_span_cls:
         mock_span_instance = MagicMock()
-        mock_span_instance.start.return_value.__enter__.return_value = (
-            fake_span_context
-        )
+        mock_span_instance.start.return_value.__enter__.return_value = fake_span_context
         mock_span_cls.return_value = mock_span_instance
 
         with patch(
-            "memory.database.api.v1.exec_ddl.check_database_exists_by_did_uid", new_callable=AsyncMock
+            "memory.database.api.v1.exec_ddl.check_database_exists_by_did_uid",
+            new_callable=AsyncMock,
         ) as mock_check_db:
             mock_check_db.return_value = ([["prod_u1_3001"], ["test_u1_3001"]], None)
 
@@ -149,31 +144,45 @@ async def test_exec_ddl_success():
                 )
 
                 with patch(
-                    "memory.database.api.v1.exec_ddl.set_search_path_by_schema", new_callable=AsyncMock
+                    "memory.database.api.v1.exec_ddl.set_search_path_by_schema",
+                    new_callable=AsyncMock,
                 ) as mock_set_search:
                     mock_set_search.return_value = None
 
                     with patch(
-                        "memory.database.api.v1.exec_ddl.exec_sql_statement", new_callable=AsyncMock
+                        "memory.database.api.v1.exec_ddl.exec_sql_statement",
+                        new_callable=AsyncMock,
                     ) as mock_exec_sql:
                         mock_exec_sql.return_value = None
 
-                        with patch("memory.database.api.v1.exec_ddl.get_otlp_metric_service") as mock_metric_service_func:
-                            with patch("memory.database.api.v1.exec_ddl.get_otlp_span_service") as mock_span_service_func:
+                        with patch(
+                            "memory.database.api.v1.exec_ddl.get_otlp_metric_service"
+                        ) as mock_metric_service_func:
+                            with patch(
+                                "memory.database.api.v1.exec_ddl.get_otlp_span_service"
+                            ) as mock_span_service_func:
                                 # Mock meter instance
                                 mock_meter_inst = MagicMock()
                                 mock_meter_inst.in_success_count = MagicMock()
 
                                 # Mock metric service
                                 mock_metric_service = MagicMock()
-                                mock_metric_service.get_meter.return_value = lambda func: mock_meter_inst
-                                mock_metric_service_func.return_value = mock_metric_service
+                                mock_metric_service.get_meter.return_value = (
+                                    lambda func: mock_meter_inst
+                                )
+                                mock_metric_service_func.return_value = (
+                                    mock_metric_service
+                                )
 
                                 # Mock span service and instance
                                 mock_span_instance = MagicMock()
-                                mock_span_instance.start.return_value.__enter__.return_value = fake_span_context
+                                mock_span_instance.start.return_value.__enter__.return_value = (
+                                    fake_span_context
+                                )
                                 mock_span_service = MagicMock()
-                                mock_span_service.get_span.return_value = lambda uid: mock_span_instance
+                                mock_span_service.get_span.return_value = (
+                                    lambda uid: mock_span_instance
+                                )
                                 mock_span_service_func.return_value = mock_span_service
 
                                 response = await exec_ddl(test_input, mock_db)
@@ -184,4 +193,6 @@ async def test_exec_ddl_success():
                                 assert "sid" in response_body
 
                                 assert response_body["code"] == CodeEnum.Successes.code
-                                assert response_body["message"] == CodeEnum.Successes.msg
+                                assert (
+                                    response_body["message"] == CodeEnum.Successes.msg
+                                )

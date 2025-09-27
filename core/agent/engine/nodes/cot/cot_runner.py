@@ -7,7 +7,7 @@ from pydantic import Field
 from api.schemas.agent_response import AgentResponse, CotStep
 from api.schemas.llm_message import LLMMessage, LLMMessages
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import Node, NodeData, NodeDataUsage, NodeTrace, Span
 from domain.models.base import BaseLLMModel
 from engine.nodes.base import RunnerBase, Scratchpad
@@ -141,6 +141,8 @@ class CotRunner(RunnerBase):
             node_data_usage = NodeDataUsage()
 
             async for chunk in self.model.stream(messages.list(), True, sp):
+                if not chunk.choices:
+                    continue
                 delta = chunk.choices[0].delta.model_dump()
                 reasoning_content = delta.get("reasoning_content", "") or ""
                 content: str = delta.get("content", "") or ""
@@ -220,90 +222,162 @@ class CotRunner(RunnerBase):
                     model=self.model.name,
                 )
 
+    async def _create_messages(
+        self, system_prompt: str, user_prompt_template: str
+    ) -> LLMMessages:
+        """Create LLM messages for current iteration"""
+        user_prompt = user_prompt_template.replace(
+            "{scratchpad}",
+            await self.scratchpad.template(),  # pylint: disable=no-member
+        )
+
+        return LLMMessages(
+            messages=[
+                LLMMessage(role="system", content=system_prompt),
+                LLMMessage(role="user", content=user_prompt),
+            ]
+        )
+
+    async def _process_agent_response(
+        self, msgs: LLMMessages, is_first_loop: bool, sp: Span, node_trace: NodeTrace
+    ) -> AsyncIterator[tuple[bool, CotStep, AgentResponse | None]]:
+        """Process agent response and yield responses with final result"""
+        cot_step: CotStep = default_cot_step
+        yield_answer = False
+
+        async for agent_response in self.read_response(
+            msgs, is_first_loop, sp, node_trace
+        ):
+            if agent_response.typ in ["reasoning_content", "log"]:
+                yield yield_answer, cot_step, agent_response
+            elif agent_response.typ == "content":
+                yield_answer = True
+                yield yield_answer, cot_step, agent_response
+            elif agent_response.typ == "cot_step":
+                if isinstance(agent_response.content, CotStep):
+                    cot_step = agent_response.content
+
+        yield yield_answer, cot_step, None
+
+    async def _handle_finished_cot(
+        self, cot_step: CotStep, sp: Span, node_trace: NodeTrace
+    ) -> AsyncIterator[AgentResponse]:
+        """Handle finished CoT step"""
+        self.scratchpad.steps.append(cot_step)  # pylint: disable=no-member
+        async for agent_response in self.process_runner.run(
+            self.scratchpad, sp, node_trace
+        ):
+            yield agent_response
+
+    async def _handle_plugin_execution(
+        self, cot_step: CotStep, plugin: Any, sp: Span, span: Span
+    ) -> AsyncIterator[AgentResponse]:
+        """Handle plugin execution"""
+        if plugin and plugin.typ == "workflow":
+            async for agent_response in self.run_workflow_plugin(plugin, cot_step, sp):
+                yield agent_response
+        elif plugin:
+            cot_step.tool_type = "tool"
+            plugin_response = await self.run_plugin(cot_step, span)
+            if plugin.run_result is not None:
+                plugin.run_result = plugin_response
+            cot_step.action_output = plugin_response.result
+            yield AgentResponse(typ="cot_step", content=cot_step, model=self.model.name)
+
+    async def _run_single_loop(
+        self,
+        loop_count: int,
+        system_prompt: str,
+        user_prompt_template: str,
+        sp: Span,
+        node_trace: NodeTrace,
+        span: Span,
+    ) -> AsyncIterator[tuple[bool, bool, AgentResponse | None]]:
+        """Run a single iteration of the CoT loop"""
+        msgs = await self._create_messages(system_prompt, user_prompt_template)
+
+        yield_answer = False
+        cot_step = default_cot_step
+
+        async for (
+            is_answer,
+            current_step,
+            agent_response,
+        ) in self._process_agent_response(msgs, loop_count == 1, sp, node_trace):
+            if agent_response:
+                yield False, False, agent_response
+            yield_answer = is_answer
+            cot_step = current_step
+
+        if yield_answer:
+            yield True, False, None
+            return
+
+        if cot_step.finished_cot:
+            async for agent_response in self._handle_finished_cot(
+                cot_step, sp, node_trace
+            ):
+                yield False, False, agent_response
+            yield True, False, None
+            return
+
+        if cot_step.empty:
+            raise cot_exc.CotFormatIncorrectExc
+
+        plugin = await self.get_plugin(cot_step)
+        cot_step.plugin = plugin
+
+        async for agent_response in self._handle_plugin_execution(
+            cot_step, plugin, sp, span
+        ):
+            yield False, False, agent_response
+
+        if not cot_step.action_output:
+            yield True, False, None
+            return
+
+        self.scratchpad.steps.append(cot_step)  # pylint: disable=no-member
+        yield False, True, None
+
     async def run(
         self, span: Span, node_trace: NodeTrace
     ) -> AsyncIterator[AgentResponse]:
         """CoT run"""
 
         with span.start("RunCotAgent") as sp:
-
             system_prompt = await self.create_system_prompt()
             user_prompt_template = await self.create_user_prompt()
-
-            # sp.add_info_events({"system": system_prompt})
 
             loop_count = 0
             while self.max_loop > loop_count:
                 loop_count += 1
-                user_prompt = user_prompt_template.replace(
-                    "{scratchpad}",
-                    await self.scratchpad.template(),  # pylint: disable=no-member
-                )
 
-                # sp.add_info_events({"user": user_prompt})
+                should_return = False
+                should_continue = False
 
-                msgs = LLMMessages(
-                    messages=[
-                        LLMMessage(role="system", content=system_prompt),
-                        LLMMessage(role="user", content=user_prompt),
-                    ]
-                )
-
-                cot_step: CotStep = default_cot_step
-
-                yield_answer = False
-                async for agent_response in self.read_response(
-                    msgs, loop_count == 1, sp, node_trace
+                async for (
+                    return_flag,
+                    continue_flag,
+                    agent_response,
+                ) in self._run_single_loop(
+                    loop_count,
+                    system_prompt,
+                    user_prompt_template,
+                    sp,
+                    node_trace,
+                    span,
                 ):
-                    if agent_response.typ in ["reasoning_content", "log"]:
+                    if agent_response:
                         yield agent_response
-                    elif agent_response.typ == "content":
-                        yield agent_response
-                        yield_answer = True
-                    elif agent_response.typ == "cot_step":
-                        if isinstance(agent_response.content, CotStep):
-                            cot_step = agent_response.content
+                    if return_flag:
+                        should_return = True
+                    if continue_flag:
+                        should_continue = True
 
-                if yield_answer:
+                if should_return:
                     return
-
-                if cot_step.finished_cot:
-                    self.scratchpad.steps.append(cot_step)  # pylint: disable=no-member
-                    async for agent_response in self.process_runner.run(
-                        self.scratchpad, sp, node_trace
-                    ):
-                        yield agent_response
-                    return
-
-                if cot_step.empty:
-                    raise cot_exc.CotFormatIncorrectExc
-
-                plugin = await self.get_plugin(cot_step)
-                cot_step.plugin = plugin
-
-                if plugin and plugin.typ == "workflow":
-                    async for agent_response in self.run_workflow_plugin(
-                        plugin, cot_step, sp
-                    ):
-                        yield agent_response
-                elif plugin:
-                    cot_step.tool_type = "tool"
-                    plugin_response = await self.run_plugin(cot_step, span)
-                    if plugin.run_result is not None:
-                        plugin.run_result = plugin_response
-                    cot_step.action_output = plugin_response.result
-                    # yield AgentResponse(typ="log", content=plugin_response.log,
-                    #                     model=self.model.name)
-                    yield AgentResponse(
-                        typ="cot_step", content=cot_step, model=self.model.name
-                    )
-
-                if not cot_step.action_output:
-                    return
-
-                # sp.add_info_events({"cot_step": cot_step.model_dump_json()})
-
-                self.scratchpad.steps.append(cot_step)  # pylint: disable=no-member
+                if not should_continue:
+                    break
 
             async for agent_response in self.process_runner.run(
                 self.scratchpad, sp, node_trace

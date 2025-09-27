@@ -7,25 +7,27 @@ and telemetry tracking.
 
 import json
 import os
+import time
 
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service
 from loguru import logger
-from xingchen_utils.otlp.trace.span import Span
-from xingchen_utils.otlp.metric.meter import Meter
-from xingchen_utils.otlp.node_trace.node_trace import NodeTrace
-from xingchen_utils.otlp.node_trace.node import TraceStatus
-
-from api.schemas.enterprise.extension_schema import (
+from plugin.link.api.schemas.community.deprecated.management_schema import (
+    ToolManagerResponse,
+)
+from plugin.link.api.schemas.enterprise.extension_schema import (
     MCPManagerRequest,
     MCPManagerResponse,
 )
-from api.schemas.community.deprecated.management_schema import ToolManagerResponse
-from consts import const
-from domain.models.manager import get_db_engine
-from infra.tool_crud.process import ToolCrudOperation
-from utils.errors.code import ErrCode
-from utils.json_schemas.schema_validate import api_validate
-from utils.json_schemas.read_json_schemas import get_mcp_register_schema
-from utils.snowflake.gen_snowflake import gen_id
+from plugin.link.consts import const
+from plugin.link.domain.models.manager import get_db_engine
+from plugin.link.infra.tool_crud.process import ToolCrudOperation
+from plugin.link.utils.errors.code import ErrCode
+from plugin.link.utils.json_schemas.read_json_schemas import get_mcp_register_schema
+from plugin.link.utils.json_schemas.schema_validate import api_validate
+from plugin.link.utils.snowflake.gen_snowflake import gen_id
 
 
 def register_mcp(mcp_info: MCPManagerRequest):
@@ -45,7 +47,7 @@ def register_mcp(mcp_info: MCPManagerRequest):
     """
     try:
         run_params_list = mcp_info.model_dump()
-        app_id = run_params_list.get("app_id", os.getenv(const.APP_ID_KEY))
+        app_id = run_params_list.get("app_id", os.getenv(const.DEFAULT_APPID_KEY))
         flow_id = run_params_list.get("flow_id", "")
         span = Span(app_id=app_id, uid=flow_id)
         with span.start(func_name="register_mcp") as span_context:
@@ -61,33 +63,30 @@ def register_mcp(mcp_info: MCPManagerRequest):
                 {"usr_input": json.dumps(run_params_list, ensure_ascii=False)}
             )
 
-            node_trace = NodeTrace(
-                flow_id="",
+            node_trace = NodeTraceLog(
+                service_id="",
                 sid=span_context.sid,
                 app_id=span_context.app_id,
                 uid=span_context.uid,
-                bot_id="/mcp",
                 chat_id=span_context.sid,
                 sub="spark-link",
                 caller="",
                 log_caller="mcp",
                 question=json.dumps(run_params_list, ensure_ascii=False),
             )
-            node_trace.record_start()
             m = Meter(app_id=span_context.app_id, func="register_mcp")
             validate_err = api_validate(get_mcp_register_schema(), run_params_list)
             if validate_err:
-                if os.getenv(const.enable_otlp_key, "false").lower() == "true":
+                if os.getenv(const.OTLP_ENABLE_KEY, "false").lower() == "true":
                     m.in_error_count(ErrCode.JSON_PROTOCOL_PARSER_ERR.code)
                     node_trace.answer = validate_err
-                    node_trace.upload(
-                        status=TraceStatus(
-                            code=ErrCode.JSON_PROTOCOL_PARSER_ERR.code,
-                            message=validate_err,
-                        ),
-                        log_caller="mcp",
-                        span=span_context,
+                    node_trace.status = Status(
+                        code=ErrCode.JSON_PROTOCOL_PARSER_ERR.code,
+                        message=validate_err,
                     )
+                    kafka_service = get_kafka_producer_service()
+                    node_trace.start_time = int(round(time.time() * 1000))
+                    kafka_service.send(os.getenv(const.KAFKA_TOPIC_KEY), node_trace.to_json())
                 return MCPManagerResponse(
                     code=ErrCode.JSON_PROTOCOL_PARSER_ERR.code,
                     message=validate_err,
@@ -121,17 +120,17 @@ def register_mcp(mcp_info: MCPManagerRequest):
             crud_inst = ToolCrudOperation(get_db_engine())
             crud_inst.add_mcp(tool_info)
             resp_data = {"name": mcp_name, "id": tool_id}
-            if os.getenv(const.enable_otlp_key, "false").lower() == "true":
+            if os.getenv(const.OTLP_ENABLE_KEY, "false").lower() == "true":
                 m.in_success_count()
                 node_trace.answer = json.dumps(resp_data, ensure_ascii=False)
-                node_trace.flow_id = str(tool_id)
-                node_trace.upload(
-                    status=TraceStatus(
-                        code=ErrCode.SUCCESSES.code, message=ErrCode.SUCCESSES.msg
-                    ),
-                    log_caller="mcp",
-                    span=span_context,
+                node_trace.service_id = str(tool_id)
+                node_trace.status = Status(
+                    code=ErrCode.SUCCESSES.code,
+                    message=ErrCode.SUCCESSES.msg,
                 )
+                kafka_service = get_kafka_producer_service()
+                node_trace.start_time = int(round(time.time() * 1000))
+                kafka_service.send(os.getenv(const.KAFKA_TOPIC_KEY), node_trace.to_json())
             return ToolManagerResponse(
                 code=ErrCode.SUCCESSES.code,
                 message=ErrCode.SUCCESSES.msg,
@@ -140,14 +139,16 @@ def register_mcp(mcp_info: MCPManagerRequest):
             )
     except Exception as err:
         logger.error(f"failed to create tools, reason {err}")
-        if os.getenv(const.enable_otlp_key, "false").lower() == "true":
+        if os.getenv(const.OTLP_ENABLE_KEY, "false").lower() == "true":
             m.in_error_count(ErrCode.COMMON_ERR.code)
             node_trace.answer = str(err)
-            node_trace.upload(
-                status=TraceStatus(code=ErrCode.COMMON_ERR.code, message=str(err)),
-                log_caller="mcp",
-                span=span_context,
+            node_trace.status = Status(
+                code=ErrCode.COMMON_ERR.code,
+                message=str(err),
             )
+            kafka_service = get_kafka_producer_service()
+            node_trace.start_time = int(round(time.time() * 1000))
+            kafka_service.send(os.getenv(const.KAFKA_TOPIC_KEY), node_trace.to_json())
         return ToolManagerResponse(
             code=ErrCode.COMMON_ERR.code,
             message=str(err),

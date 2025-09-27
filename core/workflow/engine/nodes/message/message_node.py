@@ -5,9 +5,9 @@ This module provides the MessageNode class which handles intermediate message ou
 during workflow execution. It supports template-based message generation and streaming output.
 """
 
-import time
 from typing import Any, Dict, Optional
 
+from pydantic import Field
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_running_status import NodeRunningStatus
@@ -33,40 +33,8 @@ class MessageNode(BaseOutputNode):
     streaming output capabilities.
     """
 
-    template: str
+    template: str = Field(...)
     startFrameEnabled: Optional[bool] = None
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration dictionary for this message node.
-
-        :return: Dictionary containing node configuration parameters
-        """
-        return {
-            "template": self.template,
-            "startFrameEnabled": self.startFrameEnabled,
-            "streamOutput": self.streamOutput,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method for the message node.
-
-        This method is not implemented as message nodes are designed to run asynchronously.
-
-        :param variable_pool: Pool of variables available to the node
-        :param span: Tracing span for observability
-        :param event_log_node_trace: Optional node trace logging instance
-        :param kwargs: Additional keyword arguments including callback methods
-        :return: NodeRunResult containing execution results
-        """
-        raise NotImplementedError
 
     async def async_execute(
         self,
@@ -92,7 +60,6 @@ class MessageNode(BaseOutputNode):
         content = ""
         reasoning_content = ""
         inputs = {}
-        start_time = time.time()
 
         try:
             # Extract dependency information and node run status
@@ -171,7 +138,6 @@ class MessageNode(BaseOutputNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
             # Notify callbacks that node execution has completed
@@ -189,8 +155,7 @@ class MessageNode(BaseOutputNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
@@ -199,8 +164,10 @@ class MessageNode(BaseOutputNode):
             node_run_result = NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
                 inputs=inputs,
-                error=f"{err}",
-                error_code=CodeEnum.MessageNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.MESSAGE_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,

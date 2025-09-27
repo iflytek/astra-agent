@@ -1,27 +1,28 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import ip
 
 
 class XChenUtilsConfig(BaseSettings):
     # metrics
-    metric_endpoint: str = Field(default="127.0.0.1:4317")
-    metric_timeout: int = Field(default=3000)
-    metric_export_interval_millis: int = Field(default=3000)
-    metric_export_timeout_millis: int = Field(default=3000)
+    OTLP_ENDPOINT: str = Field(default="127.0.0.1:4317")
+    OTLP_METRIC_TIMEOUT: int = Field(default=3000)
+    OTLP_METRIC_EXPORT_INTERVAL_MILLIS: int = Field(default=3000)
+    OTLP_METRIC_EXPORT_TIMEOUT_MILLIS: int = Field(default=3000)
 
     # sid
-    sid_sub: str = Field(default="sag")
-    sid_location: str = Field(default="dx")
-    sid_local_ip: str = Field(default=ip)
-    sid_local_port: str = Field(default="17870")
+    SID_LOCAL_IP: str = Field(default=ip)
 
     # trace
-    trace_endpoint: str = Field(default="127.0.0.1:4317")
-    trace_timeout: int = Field(default=3000)
-    trace_max_queue_size: int = Field(default=2048)
-    trace_schedule_delay_millis: int = Field(default=3000)
-    trace_max_export_batch_size: int = Field(default=500)
-    trace_export_timeout_millis: int = Field(default=3000)
+    OTLP_TRACE_TIMEOUT: int = Field(default=3000)
+    OTLP_TRACE_MAX_QUEUE_SIZE: int = Field(default=2048)
+    OTLP_TRACE_SCHEDULE_DELAY_MILLIS: int = Field(default=3000)
+    OTLP_TRACE_MAX_EXPORT_BATCH_SIZE: int = Field(default=500)
+    OTLP_TRACE_EXPORT_TIMEOUT_MILLIS: int = Field(default=3000)
+
+    # kafka for node tracing
+    KAFKA_SERVERS: str = Field(default="")
+    KAFKA_TIMEOUT: int = Field(default=10)
+    KAFKA_TOPIC: str = Field(default="spark-agent-builder")

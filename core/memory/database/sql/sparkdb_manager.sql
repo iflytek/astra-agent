@@ -5,8 +5,11 @@
 -- The database specified by POSTGRES_DB environment variable is already created at container startup
 \c sparkdb_manager
 
+-- Create schema
+CREATE SCHEMA sparkdb_manager;
+
 -- Create database metadata table
-CREATE TABLE IF NOT EXISTS database_meta (
+CREATE TABLE IF NOT EXISTS sparkdb_manager.database_meta (
   id bigint primary key not null,
   app_id character varying,
   uid character varying(64) not null,
@@ -20,16 +23,16 @@ CREATE TABLE IF NOT EXISTS database_meta (
 );
 
 -- Create indexes
-CREATE INDEX IF NOT EXISTS database_meta_app_id_index ON database_meta USING btree (app_id);
-CREATE INDEX IF NOT EXISTS database_meta_uid_index ON database_meta USING btree (uid);
-CREATE INDEX IF NOT EXISTS database_meta_space_id_index ON database_meta USING btree (space_id);
-CREATE UNIQUE INDEX IF NOT EXISTS unique_uid_name_space_id ON database_meta USING btree (uid, name, space_id);
+CREATE INDEX IF NOT EXISTS database_meta_app_id_index ON sparkdb_manager.database_meta USING btree (app_id);
+CREATE INDEX IF NOT EXISTS database_meta_uid_index ON sparkdb_manager.database_meta USING btree (uid);
+CREATE INDEX IF NOT EXISTS database_meta_space_id_index ON sparkdb_manager.database_meta USING btree (space_id);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_uid_name_space_id ON sparkdb_manager.database_meta USING btree (uid, name, space_id);
 
 -- Add table comments
-COMMENT ON COLUMN database_meta.space_id IS 'team space id';
+COMMENT ON COLUMN sparkdb_manager.database_meta.space_id IS 'team space id';
 
 -- Create schema metadata table
-CREATE TABLE IF NOT EXISTS schema_meta (
+CREATE TABLE IF NOT EXISTS sparkdb_manager.schema_meta (
   id bigint primary key not null,
   database_id bigint not null,
   schema_name character varying not null,

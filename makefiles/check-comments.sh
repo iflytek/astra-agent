@@ -273,32 +273,40 @@ main() {
     local source_files=()
 
     # Go files
-    if [ -d "backend-go" ]; then
-        while IFS= read -r -d '' file; do
-            source_files+=("$file")
-        done < <(find backend-go -name "*.go" -print0 2>/dev/null || true)
-    fi
+    for go_dir in core/tenant; do
+        if [ -d "$go_dir" ]; then
+            while IFS= read -r -d '' file; do
+                source_files+=("$file")
+            done < <(find "$go_dir" -name "*.go" -print0 2>/dev/null || true)
+        fi
+    done
 
     # Java files
-    if [ -d "backend-java" ]; then
-        while IFS= read -r -d '' file; do
-            source_files+=("$file")
-        done < <(find backend-java -name "*.java" -print0 2>/dev/null || true)
-    fi
+    for java_dir in console/backend; do
+        if [ -d "$java_dir" ]; then
+            while IFS= read -r -d '' file; do
+                source_files+=("$file")
+            done < <(find "$java_dir" -name "*.java" -print0 2>/dev/null || true)
+        fi
+    done
 
     # Python files
-    if [ -d "backend-python" ]; then
-        while IFS= read -r -d '' file; do
-            source_files+=("$file")
-        done < <(find backend-python -name "*.py" -print0 2>/dev/null || true)
-    fi
+    for python_dir in core/memory/database core/plugin/rpa core/plugin/link core/plugin/aitools core/agent core/knowledge core/workflow; do
+        if [ -d "$python_dir" ]; then
+            while IFS= read -r -d '' file; do
+                source_files+=("$file")
+            done < <(find "$python_dir" -name "*.py" -print0 2>/dev/null || true)
+        fi
+    done
 
     # TypeScript files
-    if [ -d "frontend-ts" ]; then
-        while IFS= read -r -d '' file; do
-            source_files+=("$file")
-        done < <(find frontend-ts -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | head -20 | tr '\n' '\0' || true)
-    fi
+    for ts_dir in console/frontend; do
+        if [ -d "$ts_dir" ]; then
+            while IFS= read -r -d '' file; do
+                source_files+=("$file")
+            done < <(find "$ts_dir" -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" | grep -v node_modules | head -20 | tr '\n' '\0' 2>/dev/null || true)
+        fi
+    done
 
     if [ ${#source_files[@]} -eq 0 ]; then
         echo -e "${YELLOW}No source files found to check${RESET}"

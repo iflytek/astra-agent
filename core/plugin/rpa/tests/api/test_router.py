@@ -1,23 +1,23 @@
-"""测试主路由模块。"""
+"""Test main router module."""
 
-from api.router import router
+from plugin.rpa.api.router import router
 
 
 def test_router_creation() -> None:
-    """测试路由器创建。"""
+    """Test router creation."""
     assert router is not None
     assert router.prefix == "/rpa/v1"
 
 
 def test_router_includes_execution_routes() -> None:
-    """测试路由器包含执行路由。"""
-    # 检查路由是否包含执行相关的路由
+    """Test router includes execution routes."""
+    # Check if router contains execution-related routes
     found_exec_route = False
     for route in router.routes:
         if hasattr(route, "path_regex") and "/exec" in str(route.path_regex.pattern):
             found_exec_route = True
             break
-        elif hasattr(route, "path") and "/exec" in route.path:
+        if hasattr(route, "path") and "/exec" in route.path:
             found_exec_route = True
             break
 

@@ -1,7 +1,6 @@
 from typing import Any
 
 from langchain_sandbox import PyodideSandbox
-
 from workflow.engine.nodes.code.executor.base_executor import BaseExecutor
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
@@ -38,7 +37,7 @@ class LangchainExecutor(BaseExecutor):
             if result.status == "success":
                 return result.stdout if result.stdout else ""
             raise CustomException(
-                err_code=CodeEnum.CodeExecutionError,
+                err_code=CodeEnum.CODE_EXECUTION_ERROR,
                 err_msg=result.stderr if result.stderr else "",
             )
 
@@ -47,6 +46,6 @@ class LangchainExecutor(BaseExecutor):
 
         except Exception as e:
             raise CustomException(
-                err_code=CodeEnum.CodeExecutionError,
+                err_code=CodeEnum.CODE_EXECUTION_ERROR,
                 cause_error=e,
             ) from e

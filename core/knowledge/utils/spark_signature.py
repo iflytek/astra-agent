@@ -1,7 +1,9 @@
 import base64
 import hashlib
 import hmac
+
 from loguru import logger
+
 from knowledge.exceptions.exception import ThirdPartyException
 
 

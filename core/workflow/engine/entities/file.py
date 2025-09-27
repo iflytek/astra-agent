@@ -5,7 +5,6 @@ from typing import Tuple
 
 import requests  # type: ignore
 from pydantic import BaseModel
-
 from workflow.engine.entities.node_entities import NodeType
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
@@ -88,7 +87,7 @@ class File(BaseModel):
                             )
                         else:
                             raise CustomException(
-                                err_code=CodeEnum.FileVariableProtocolError,
+                                err_code=CodeEnum.FILE_VARIABLE_PROTOCOL_ERROR,
                                 err_msg="Error: fileType field is incorrect",
                             )
         except CustomException as err:
@@ -129,7 +128,7 @@ class File(BaseModel):
             )  # File size in bytes
             if not content_length:
                 raise CustomException(
-                    err_code=CodeEnum.FileInvalidTypeError,
+                    err_code=CodeEnum.FILE_INVALID_TYPE_ERROR,
                     cause_error="File content is empty",
                 )
             return content_length
@@ -137,7 +136,7 @@ class File(BaseModel):
             raise err
         except Exception as e:
             raise CustomException(
-                err_code=CodeEnum.FileInvalidTypeError, cause_error=str(e)
+                err_code=CodeEnum.FILE_INVALID_TYPE_ERROR, cause_error=str(e)
             ) from e
 
     @classmethod
@@ -161,13 +160,12 @@ class File(BaseModel):
                     f"File size: {file_size}, exceeds {FILE_SIZE_LIMIT} bytes"
                 )
                 raise CustomException(
-                    err_code=CodeEnum.FileInvalidError,
+                    err_code=CodeEnum.FILE_INVALID_ERROR,
                     err_msg="Error: File size exceeds limit",
                 )
 
             file_extension = ""
             # Regular expression to match file extensions (e.g., .jpg, .png, .pdf, etc.)
-            # pattern = rf"{os.getenv('FILE_REGEX_PATTERN')}"
             if os.getenv("FILE_REGEX_PATTERN"):
                 pattern = rf"{os.getenv('FILE_REGEX_PATTERN')}"
             else:
@@ -178,20 +176,19 @@ class File(BaseModel):
                     '{"image":["jpg","jpeg","png","bmp"],"pdf":["pdf"],"doc":["docx","doc"],"ppt":["ppt","pptx"],"excel":["xls","xlsx","csv"],"txt":["txt"]}',
                 )
             )
-            # ALLOWED_FILE_TYPE=json.loads(os.getenv("ALLOWED_FILE_TYPE"))
             # Find file extension
             match = re.search(pattern, input_file_url)
             if match:
                 file_extension = match.group(2).lower()
             else:
                 span_context.add_error_event("Failed to match file type")
-                raise CustomException(err_code=CodeEnum.FileInvalidError)
+                raise CustomException(err_code=CodeEnum.FILE_INVALID_ERROR)
             if file_extension not in ALLOWED_FILE_TYPE[allowed_file_type]:
                 span_context.add_error_event(
                     f"File type does not meet requirements. User uploaded file type: {file_extension}, allowed file types: {ALLOWED_FILE_TYPE[allowed_file_type]}"
                 )
                 raise CustomException(
-                    err_code=CodeEnum.FileInvalidError,
+                    err_code=CodeEnum.FILE_INVALID_ERROR,
                     err_msg="Error: Unsupported file extension",
                 )
         except Exception as e:

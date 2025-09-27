@@ -2,12 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.model.ModelCategoryMapper">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.model.ModelCategoryMapper">
     <!--
         General mapping: includes 'source'
         Maps database columns to ModelCategory entity fields.
     -->
-    <resultMap id="CategoryItemMap" type="com.iflytek.astra.console.toolkit.entity.table.model.ModelCategory">
+    <resultMap id="CategoryItemMap" type="com.iflytek.astron.console.toolkit.entity.table.model.ModelCategory">
         <id     property="id"         column="id"/>
         <result property="pid"        column="pid"/>
         <result property="key"        column="key"/>
@@ -203,7 +203,7 @@
         Query all categories (for building full tree)
         @return list of ModelCategory
     -->
-    <select id="listAllTree" resultType="com.iflytek.astra.console.toolkit.entity.table.model.ModelCategory">
+    <select id="listAllTree" resultType="com.iflytek.astron.console.toolkit.entity.table.model.ModelCategory">
         SELECT id, pid, `key`, `name`, is_delete, create_time, update_time, sort_order
         FROM model_category
         WHERE is_delete = 0

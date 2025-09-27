@@ -6,21 +6,30 @@ including document splitting, knowledge chunk saving, updating, deleting, queryi
 """
 
 import json
-from typing import Any, Callable, Tuple
-from loguru import logger
+from typing import Any, Callable, Tuple, Union
+
 from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_otlp_metric_service, get_otlp_span_service
 from fastapi import APIRouter, Depends, Request
+from loguru import logger
+
 from knowledge.consts.error_code import CodeEnum
 from knowledge.domain.entity.chunk_dto import (
-    ChunkDeleteReq, ChunkQueryReq, ChunkSaveReq, ChunkUpdateReq,
-    FileSplitReq, QueryDocReq)
+    ChunkDeleteReq,
+    ChunkQueryReq,
+    ChunkSaveReq,
+    ChunkUpdateReq,
+    FileSplitReq,
+    QueryDocReq,
+)
 from knowledge.domain.response import ErrorResponse, SuccessDataResponse
 from knowledge.exceptions.exception import (
-    CustomException, ProtocolParamException, ThirdPartyException)
+    CustomException,
+    ProtocolParamException,
+    ThirdPartyException,
+)
 from knowledge.service.rag_strategy_factory import RAGStrategyFactory
-
-from common.service import get_otlp_metric_service, get_otlp_span_service
-from common.otlp.trace.span import Span
 
 rag_router = APIRouter(prefix="/knowledge/v1")
 
@@ -32,7 +41,7 @@ def get_app_id(request: Request) -> str:
 
 
 def get_span_and_metric(
-        app_id: str, function_name: str = "unknown_function"
+    app_id: str, function_name: str = "unknown_function"
 ) -> Tuple[Span, Meter]:
     """Dependency function to create and return Span and Meter instances"""
 
@@ -43,11 +52,13 @@ def get_span_and_metric(
     return span, metric
 
 
-def set_safe_attribute(span_context, key, value):
+def set_safe_attribute(span_context: Span, key: str, value: Any) -> None:
     """Safely set attributes, handling complex types"""
     if isinstance(value, (dict, list)):
         # Convert complex types to JSON string
-        span_context.set_attribute(key, json.dumps(value, ensure_ascii=False, default=str))
+        span_context.set_attribute(
+            key, json.dumps(value, ensure_ascii=False, default=str)
+        )
     elif isinstance(value, (str, int, float, bool, bytes)) or value is None:
         # Basic types, set directly
         span_context.set_attribute(key, value)
@@ -58,12 +69,12 @@ def set_safe_attribute(span_context, key, value):
 
 # --- Helper Functions ---
 async def handle_rag_operation(
-        *,
-        span_context: Span,
-        metric: Meter,
-        operation_callable: Callable[..., Any],
-        **operation_kwargs: Any,
-) -> Any:
+    *,
+    span_context: Span,
+    metric: Meter,
+    operation_callable: Callable[..., Any],
+    **operation_kwargs: Any,
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Unified handling of RAG operations, response logging, metric counting, and exception handling.
 
@@ -101,14 +112,18 @@ async def handle_rag_operation(
         logger.error(error_msg)
         span_context.record_exception(e)
         metric.in_error_count(code=e.code)
-        return ErrorResponse(code_enum=e, message=e.message)
+        # Create a CodeEnum-like object for the response
+        error_code = type("ErrorCode", (), {"code": e.code, "msg": e.message})()
+        return ErrorResponse(code_enum=error_code, message=e.message)
 
     except CustomException as e:
         error_msg = f"{operation_callable.__name__} err (Custom), reason {e}"
         logger.error(error_msg)
         span_context.record_exception(e)
         metric.in_error_count(code=e.code)
-        return ErrorResponse(code_enum=e, message=e.message)
+        # Create a CodeEnum-like object for the response
+        error_code = type("ErrorCode", (), {"code": e.code, "msg": e.message})()
+        return ErrorResponse(code_enum=error_code, message=e.message)
 
     except Exception as e:  # pylint: disable=W0718
         # Intentionally catch all exceptions here as part of global exception handling
@@ -124,7 +139,9 @@ async def handle_rag_operation(
 
 # --- Route Handler Functions ---
 @rag_router.post("/document/split")
-async def file_split(split_request: FileSplitReq, app_id: str = Depends(get_app_id)) -> Any:
+async def file_split(
+    split_request: FileSplitReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Parse the text provided by the user first, then perform chunking.
 
@@ -161,7 +178,9 @@ async def file_split(split_request: FileSplitReq, app_id: str = Depends(get_app_
 
 
 @rag_router.post("/chunks/save")
-async def chunk_save(save_request: ChunkSaveReq, app_id: str = Depends(get_app_id)) -> Any:
+async def chunk_save(
+    save_request: ChunkSaveReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Save the chunked data to the database, or add new chunks.
 
@@ -194,8 +213,8 @@ async def chunk_save(save_request: ChunkSaveReq, app_id: str = Depends(get_app_i
 
 @rag_router.post("/chunk/update")
 async def chunk_update(
-        update_request: ChunkUpdateReq, app_id: str = Depends(get_app_id)
-) -> Any:
+    update_request: ChunkUpdateReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Update knowledge chunks.
 
@@ -228,8 +247,8 @@ async def chunk_update(
 
 @rag_router.post("/chunk/delete")
 async def chunk_delete(
-        delete_request: ChunkDeleteReq, app_id: str = Depends(get_app_id)
-) -> Any:
+    delete_request: ChunkDeleteReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Delete knowledge chunks.
 
@@ -259,7 +278,9 @@ async def chunk_delete(
 
 
 @rag_router.post("/chunk/query")
-async def chunk_query(query_request: ChunkQueryReq, app_id: str = Depends(get_app_id)) -> Any:
+async def chunk_query(
+    query_request: ChunkQueryReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Retrieve similar document chunks based on user input content.
 
@@ -293,7 +314,9 @@ async def chunk_query(query_request: ChunkQueryReq, app_id: str = Depends(get_ap
 
 
 @rag_router.post("/document/chunk")
-async def query_doc(query_request: QueryDocReq, app_id: str = Depends(get_app_id)) -> Any:
+async def query_doc(
+    query_request: QueryDocReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Query document chunk information.
 
@@ -319,7 +342,9 @@ async def query_doc(query_request: QueryDocReq, app_id: str = Depends(get_app_id
 
 
 @rag_router.post("/document/name")
-async def query_doc_name(query_request: QueryDocReq, app_id: str = Depends(get_app_id)) -> Any:
+async def query_doc_name(
+    query_request: QueryDocReq, app_id: str = Depends(get_app_id)
+) -> Union[SuccessDataResponse, ErrorResponse]:
     """
     Query document name information.
 

@@ -11,7 +11,7 @@ from api.v1.bot_config_mgr_api import bot_config_mgr_router
 from api.v1.openapi import openapi_router
 from api.v1.workflow_agent import workflow_agent_router
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import initialize_services, logger, sid_generator2
 from infra.config import agent_config
 
@@ -57,11 +57,11 @@ if __name__ == "__main__":
 
     uvicorn_server = uvicorn.Server(
         uvicorn.Config(
-            app=agent_config.uvicorn_app,
-            host=agent_config.uvicorn_host,
-            port=agent_config.uvicorn_port,
-            workers=agent_config.uvicorn_workers,
-            reload=agent_config.uvicorn_reload,
+            app=agent_config.SERVICE_APP,
+            host=agent_config.SERVICE_HOST,
+            port=agent_config.SERVICE_PORT,
+            workers=agent_config.SERVICE_WORKERS,
+            reload=agent_config.SERVICE_RELOAD,
             ws_ping_interval=None,
             ws_ping_timeout=None,
         )

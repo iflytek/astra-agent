@@ -1,12 +1,20 @@
 FROM python:3.11-slim
 
-WORKDIR /opt/rpa-server
+WORKDIR /opt/rpa
 
-ENV PATH=$PATH:/opt/rpa-server
-ENV PYTHONPATH /opt/rpa-server
+ENV PATH=$PATH:/opt/rpa
+ENV PYTHONPATH /opt/rpa
+ENV UV_NO_CACHE=1
 
-COPY . .
+RUN pip install uv --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
-RUN pip install -r requirements.txt
+COPY core/plugin/rpa/pyproject.toml ./
+COPY core/plugin/rpa/uv.lock ./
 
-CMD ["python", "main.py"]
+RUN uv sync -i https://pypi.tuna.tsinghua.edu.cn/simple/
+
+COPY core/common ./common
+RUN mkdir ./plugin
+COPY core/plugin/rpa ./plugin/rpa
+
+CMD ["uv", "run", "plugin/rpa/main.py"]

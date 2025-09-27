@@ -1,25 +1,30 @@
-FROM artifacts.iflytek.com/cbg-docker-private/xfyun_webdev/eclipse-temurin:21-jre
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /backend
+
+COPY console/backend/pom.xml ./
+COPY console/backend/commons/pom.xml commons/pom.xml
+COPY console/backend/hub/pom.xml hub/pom.xml
+COPY console/backend/toolkit/pom.xml toolkit/pom.xml
+
+COPY console/backend/ .
+RUN mvn -DskipTests package -pl hub -am
+
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# Set timezone to China mainland timezone
-ENV TZ=Asia/Shanghai
-RUN ln -snf /usr/share/zoneinfo/"$TZ" /etc/localtime && echo "$TZ" > /etc/timezone
+RUN apt-get update && \
+    apt-get install -y locales tzdata && \
+    locale-gen zh_CN.UTF-8 && \
+    ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set Chinese UTF-8 environment
+ENV TZ=Asia/Shanghai
 ENV LANG=zh_CN.UTF-8
 ENV LANGUAGE=zh_CN:zh
 ENV LC_ALL=zh_CN.UTF-8
 
-# Change apt source to USTC mirror and install Chinese language pack and fonts
-#RUN apt-get update && \
-#    apt-get install -y fonts-dejavu-core fonts-wqy-microhei locales && \
-#    sed -i '/zh_CN.UTF-8/s/^# //g' /etc/locale.gen && \
-#    locale-gen && \
-#    apt-get clean && \
-#    rm -rf /var/lib/apt/lists/*
-
-COPY console/backend/hub/target/hub-0.0.1.jar /app/app.jar
+COPY --from=build /backend/hub/target/hub-server.jar /app/app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
-
-
+ENTRYPOINT ["java","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]

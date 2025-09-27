@@ -7,7 +7,7 @@ import (
 
 func TestLoad(*testing.T) {
 	cfg := &Config{}
-	loader := NewLocalLoader("./config.toml")
+	loader := NewLocalLoader("../config.toml")
 	if err := loader.Load(cfg); err != nil {
 		panic(err)
 	}

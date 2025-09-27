@@ -7,10 +7,10 @@ Defines custom exception classes used in Knowledge Service
 
 from .exception import (
     BaseCustomException,
+    CustomException,
     ProtocolParamException,
     ServiceException,
     ThirdPartyException,
-    CustomException
 )
 
 __all__ = [

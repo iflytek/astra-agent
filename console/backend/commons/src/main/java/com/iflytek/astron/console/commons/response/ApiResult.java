@@ -1,0 +1,61 @@
+package com.iflytek.astron.console.commons.response;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.iflytek.astron.console.commons.constant.ResponseEnum;
+import com.iflytek.astron.console.commons.exception.BusinessException;
+import com.iflytek.astron.console.commons.util.I18nUtil;
+
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public record ApiResult<T>(int code, String message, T data, Long timestamp) {
+    public static <T> ApiResult<T> of(ResponseEnum responseEnum, T data) {
+        return new ApiResult<>(
+                responseEnum.getCode(),
+                I18nUtil.getMessage(responseEnum.getMessageKey()),
+                data,
+                System.currentTimeMillis());
+    }
+
+    /** Success response with data */
+    public static <T> ApiResult<T> success(T data) {
+        return of(ResponseEnum.SUCCESS, data);
+    }
+
+    /** Success response without data */
+    public static <T> ApiResult<T> success() {
+        return of(ResponseEnum.SUCCESS, null);
+    }
+
+    /** Error response */
+    public static <T> ApiResult<T> error(ResponseEnum responseEnum) {
+        return new ApiResult<>(
+                responseEnum.getCode(),
+                I18nUtil.getMessage(responseEnum.getMessageKey()),
+                null,
+                System.currentTimeMillis());
+    }
+
+    public static <T> ApiResult<T> error(ResponseEnum responseEnum, String... args) {
+        return new ApiResult<>(
+                responseEnum.getCode(),
+                I18nUtil.getMessage(responseEnum.getMessageKey(), args),
+                null,
+                System.currentTimeMillis());
+    }
+
+    public static <T> ApiResult<T> error(BusinessException e) {
+        return new ApiResult<>(
+                e.getCode(),
+                I18nUtil.getMessage(e.getMessageKey(), e.getArgs()),
+                null,
+                System.currentTimeMillis()
+        );
+    }
+
+    public static <T> ApiResult<T> error(int code, String messageKey) {
+        return error(code, messageKey, null);
+    }
+
+    public static <T> ApiResult<T> error(int code, String messageKey, String[] args) {
+        return new ApiResult<>(code, I18nUtil.getMessage(messageKey, args), null, System.currentTimeMillis());
+    }
+}

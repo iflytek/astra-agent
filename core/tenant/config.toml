@@ -1,14 +1,14 @@
-[server]
+[service]
 port = 5052
 location = "ss"
 
 [database]
 dbType = "mysql"
-username = ""
-password = ""
-url = ""
+username = "root"
+password = "123456"
+url = "(localhost:3306)/tenant"
 maxOpenConns = 10
 maxIdleConns = 5
 
 [log]
-logFile = "./logs/app.log"
+path = "./logs/app.log"

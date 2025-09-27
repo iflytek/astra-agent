@@ -5,9 +5,8 @@ This module contains Pydantic models for drop database operation input validatio
 
 from typing import Optional
 
-from pydantic import Field
-
 from memory.database.api.schemas.common_types import DidUidCommon
+from pydantic import Field
 
 
 class DropDBInput(DidUidCommon):  # pylint: disable=too-few-public-methods
@@ -18,5 +17,6 @@ class DropDBInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         uid: User ID (required, 1-64 chars, no Chinese or special characters)
         space_id: Optional team space ID
     """
+
     # space_id: Optional
     space_id: Optional[str] = Field(default="", description="Team space ID")

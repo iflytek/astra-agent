@@ -5,7 +5,7 @@ Utility module for getting the host IP address.
 import socket
 
 
-def get_host_ip():
+def get_host_ip() -> str:
     """
     Query local IP address
     :return: ip
@@ -17,7 +17,7 @@ def get_host_ip():
     finally:
         s.close()
 
-    return ip_address
+    return ip_address  # type: ignore[no-any-return]
 
 
 ip = get_host_ip()

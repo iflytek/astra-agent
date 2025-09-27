@@ -1,0 +1,2 @@
+# uvicorn keys
+SERVICE_PORT_KEY = "SERVICE_PORT"

@@ -12,7 +12,7 @@ class Service(ABC):
     Base class for all services.
     """
 
-    name: str
+    name: "ServiceType"
     ready: bool = False
 
     def teardown(self) -> None:
@@ -33,10 +33,10 @@ class ServiceFactory:
 
     """
 
-    def __init__(self, service_class: Service):
+    def __init__(self, service_class: Service) -> None:
         self.service_class = service_class
 
-    def create(self, *args: tuple, **kwargs: dict) -> Service:
+    def create(self, *args: tuple, **kwargs: dict) -> Service:  # type: ignore[report-unknown-return-type]
         """
         Create a service instance.
         """

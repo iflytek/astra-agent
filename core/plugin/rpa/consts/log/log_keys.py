@@ -1,4 +1,4 @@
-"""日志相关常量键."""
+"""Log related constant keys."""
 
-LOG_LEVEL_KEY = "log_level"
-LOG_PATH_KEY = "log_path"
+LOG_LEVEL_KEY = "LOG_LEVEL"
+LOG_PATH_KEY = "LOG_PATH"

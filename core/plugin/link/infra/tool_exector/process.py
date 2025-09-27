@@ -4,18 +4,20 @@ This module provides HTTP request execution functionality with various
 authentication methods and security validations.
 """
 
+import ipaddress
 import json
 import os
 import re
-import ipaddress
-from urllib.parse import urljoin, urlparse, urlunparse, quote
+from urllib.parse import quote, urljoin, urlparse, urlunparse
 
 import aiohttp
-
-from exceptions.sparklink_exceptions import CallThirdApiException
-from utils.errors.code import ErrCode
-from consts import const
-from infra.tool_exector.http_auth import public_query_url, assemble_ws_auth_url
+from plugin.link.consts import const
+from plugin.link.exceptions.sparklink_exceptions import CallThirdApiException
+from plugin.link.infra.tool_exector.http_auth import (
+    assemble_ws_auth_url,
+    public_query_url,
+)
+from plugin.link.utils.errors.code import ErrCode
 
 
 class HttpRun:
@@ -74,6 +76,100 @@ class HttpRun:
         except Exception:
             self._is_in_blacklist = False
 
+    def _validate_blacklist(self):
+        """Validate server is not blacklisted.
+
+        Raises:
+            CallThirdApiException: When server is blacklisted
+        """
+        if self._is_in_blacklist:
+            raise CallThirdApiException(
+                code=ErrCode.SERVER_VALIDATE_ERR.code,
+                err_pre=ErrCode.SERVER_VALIDATE_ERR.msg,
+                err="Request tool path hostname is in blacklist",
+            )
+
+    def _build_url(self):
+        """Build request URL with authentication and query parameters.
+
+        Returns:
+            str: Complete URL for the request
+        """
+        url = self.server
+
+        # URL path construction
+        path_res = [frag for _, frag in self.path.items()]
+        if self.path:
+            url = urljoin(url, path_res[0])
+
+        # Authentication method selection and URL construction
+        if self._is_authorization_md5:
+            url = public_query_url(url)
+            if self.query:
+                url = url + "&" + "&".join([f"{k}={v}" for k, v in self.query.items()])
+        elif self._is_auth_hmac:
+            url, headers = assemble_ws_auth_url(
+                url, self.method, self.auth_con_js, self.body
+            )
+            self.header = headers
+        else:
+            if self.query:
+                url = url + "?" + "&".join([f"{k}={v}" for k, v in self.query.items()])
+
+        return url
+
+    def _get_error_codes(self):
+        """Get appropriate error codes based on API type.
+
+        Returns:
+            tuple: (error_code, error_message_prefix)
+        """
+        if self._is_official:
+            return (
+                ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.code,
+                ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.msg,
+            )
+        return (
+            ErrCode.THIRD_API_REQUEST_FAILED_ERR.code,
+            ErrCode.THIRD_API_REQUEST_FAILED_ERR.msg,
+        )
+
+    async def _execute_request(self, url, span_context):
+        """Execute the HTTP request.
+
+        Args:
+            url: Request URL
+            span_context: Tracing span context
+
+        Returns:
+            tuple: (response_text, status_code)
+        """
+        try:
+            self.header.pop("@type")
+        except Exception:
+            pass
+
+        encoded_url = quote(url, safe="/:?=&")
+        span_context.add_info_event(f"raw_url: {url}, encoded_url: {encoded_url}")
+        span_context.add_info_event(
+            f"encoded_url: {encoded_url}, header: {self.header}, " f"body: {self.body}"
+        )
+
+        kwargs = {
+            "headers": self.header if self.header else None,
+            "json": self.body if self.body else None,
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.request(self.method, encoded_url, **kwargs) as response:
+                response_text = await response.text()
+                status_code = response.status
+
+        span_context.add_info_event(f"{status_code}")
+        span_context.add_info_event(f"{response_text}")
+
+        return response_text, status_code
+
     async def do_call(self, span):
         """Execute the HTTP request with proper authentication and validation.
 
@@ -86,96 +182,30 @@ class HttpRun:
         Raises:
             CallThirdApiException: When request fails or server is blacklisted
         """
-        url = self.server
+        self._validate_blacklist()
+        url = self._build_url()
 
-        # DECISION TREE: Security validation - block blacklisted servers immediately
-        if self._is_in_blacklist:
-            raise CallThirdApiException(
-                code=ErrCode.SERVER_VALIDATE_ERR.code,
-                err_pre=ErrCode.SERVER_VALIDATE_ERR.msg,
-                err="Request tool path hostname is in blacklist",
-            )
-
-        # BRANCH 1: URL path construction
-        path_res = [frag for _, frag in self.path.items()]
-        if self.path:
-            url = urljoin(url, path_res[0])
-
-        # DECISION TREE: Authentication method selection and URL construction
-        if self._is_authorization_md5:
-            # BRANCH 2A: MD5 Authentication flow
-            url = public_query_url(url)
-            if self.query:
-                url = url + "&" + "&".join([f"{k}={v}" for k, v in self.query.items()])
-        elif self._is_auth_hmac:
-            # BRANCH 2B: HMAC Authentication flow
-            url, headers = assemble_ws_auth_url(
-                url, self.method, self.auth_con_js, self.body
-            )
-            self.header = headers
-        else:
-            # BRANCH 2C: No authentication - standard query parameter handling
-            if self.query:
-                url = url + "?" + "&".join([f"{k}={v}" for k, v in self.query.items()])
-
-        third_result = ""
         with span.start(func_name="http_run") as span_context:
             try:
-                try:
-                    self.header.pop("@type")
-                except Exception:
-                    pass
-
-                encoded_url = quote(url, safe="/:?=&")
-                span_context.add_info_event(
-                    f"raw_url: {url}, encoded_url: {encoded_url}"
+                third_result, status_code = await self._execute_request(
+                    url, span_context
                 )
-                span_context.add_info_event(
-                    f"encoded_url: {encoded_url}, header: {self.header}, "
-                    f"body: {self.body}"
-                )
-                # third_result = request(self.method, encoded_url, \
-                #                       headers=self.header, json=self.body)
-                status_code = 0
-                third_result = ""
-                kwargs = {}
-                kwargs["headers"] = self.header if self.header else None
-                kwargs["json"] = self.body if self.body else None
-                async with aiohttp.ClientSession() as session:
-                    async with session.request(
-                        self.method, encoded_url, **kwargs
-                    ) as response:
-                        third_result = await response.text()
-                        status_code = response.status
-
-                span_context.add_info_event(f"{status_code}")
-                span_context.add_info_event(f"{third_result}")
             except Exception as err:
                 span.add_error_event(str(err))
-
-                # DECISION TREE: Error code selection based on API type
-                code_return = ErrCode.THIRD_API_REQUEST_FAILED_ERR.code
-                err_pre_return = ErrCode.THIRD_API_REQUEST_FAILED_ERR.msg
-                if self._is_official:
-                    # BRANCH 3A: Official API error handling
-                    code_return = ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.code
-                    err_pre_return = ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.msg
+                code_return, err_pre_return = self._get_error_codes()
                 raise CallThirdApiException(
                     code=code_return, err_pre=err_pre_return, err=err
                 ) from err
 
-        # DECISION TREE: Status code validation and error response handling
         if status_code != 200:
-            err_reason = f"Request error code: {status_code}, error message {third_result}"
-            code_return = ErrCode.THIRD_API_REQUEST_FAILED_ERR.code
-            err_pre_return = ErrCode.THIRD_API_REQUEST_FAILED_ERR.msg
-            if self._is_official:
-                # BRANCH 4: Official API status error handling
-                code_return = ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.code
-                err_pre_return = ErrCode.OFFICIAL_API_REQUEST_FAILED_ERR.msg
+            err_reason = (
+                f"Request error code: {status_code}, error message {third_result}"
+            )
+            code_return, err_pre_return = self._get_error_codes()
             raise CallThirdApiException(
                 code=code_return, err_pre=err_pre_return, err=err_reason
             )
+
         return third_result
 
     @staticmethod
@@ -218,7 +248,7 @@ class HttpRun:
                     ix = authorization.index(":")
                     auth_prefix = authorization[:ix]
                     if auth_prefix == "HMAC":
-                        auth_con = authorization[ix + 1:].strip()
+                        auth_con = authorization[ix + 1 :].strip()
                         try:
                             auth_con_js = json.loads(auth_con)
                             return True, auth_con_js
@@ -280,6 +310,69 @@ class HttpRun:
         return False
 
     @staticmethod
+    def _get_blacklist_config():
+        """Get blacklist configuration from environment variables.
+
+        Returns:
+            tuple: (segment_blacklist, ip_blacklist)
+        """
+        segment_black_list = []
+        for black_i in os.getenv(const.SEGMENT_BLACK_LIST_KEY).split(","):
+            segment_black_list.append(ipaddress.ip_network(black_i))
+        ip_black_list = os.getenv(const.IP_BLACK_LIST_KEY).split(",")
+        return segment_black_list, ip_black_list
+
+    @staticmethod
+    def _extract_ip_from_url(url):
+        """Extract IP address from URL.
+
+        Args:
+            url: URL to extract IP from
+
+        Returns:
+            str or None: IP address if found, None otherwise
+        """
+        if not url:
+            return None
+
+        match = re.search(r"://([^/?#]+)", url)
+        if not match:
+            return None
+
+        host = match.group(1)
+        # Handle cases that might include port numbers
+        if ":" in host:
+            return host.split(":")[0]
+        return host
+
+    @staticmethod
+    def _is_ip_blacklisted(ip, ip_black_list, segment_black_list):
+        """Check if IP is in blacklist or blacklisted network segments.
+
+        Args:
+            ip: IP address to check
+            ip_black_list: List of blacklisted IPs
+            segment_black_list: List of blacklisted network segments
+
+        Returns:
+            bool: True if IP is blacklisted
+        """
+        # Check IP blacklist
+        for i_ip in ip_black_list:
+            if ip == i_ip:
+                return True
+
+        # Check network segment validation
+        try:
+            ip_obj = ipaddress.ip_address(ip)
+            for subnet in segment_black_list:
+                if ip_obj in subnet:
+                    return True
+            return False
+        except ValueError:
+            return False
+
+    @staticmethod
     def is_in_blacklist(url):
         """Check if URL is in IP or network segment blacklist.
 
@@ -289,48 +382,21 @@ class HttpRun:
         Returns:
             bool: True if URL is blacklisted
         """
-        # SECTION 1: Domain-based blacklist validation
-        # Domain blacklist filtering
+        # Domain-based blacklist validation
         if HttpRun.is_in_black_domain(str(url)):
             return True
 
-        # SECTION 2: URL parsing and normalization
-        # Get real request URL
+        # URL parsing and normalization
         parsed = urlparse(url)
         url = urlunparse((parsed.scheme, parsed.hostname, parsed.path, "", "", ""))
 
-        # SECTION 3: Blacklist configuration loading
-        # Pull blacklist network segments and IPs from online configuration
-        segment_black_list = []
-        for black_i in os.getenv(const.SEGMENT_BLACK_LIST_KEY).split(","):
-            segment_black_list.append(ipaddress.ip_network(black_i))
-        ip_black_list = os.getenv(const.IP_BLACK_LIST_KEY).split(",")
-
-        # SECTION 4: IP extraction and validation
-        if url:
-            match = re.search(r"://([^/?#]+)", url)
-            if match:
-                host = match.group(1)
-                # Handle cases that might include port numbers
-                if ":" in host:
-                    ip = host.split(":")[0]
-                else:
-                    ip = host
-
-                # SECTION 5: IP blacklist checking
-                for i_ip in ip_black_list:
-                    if ip == i_ip:
-                        return True
-
-                # SECTION 6: Network segment validation
-                try:
-                    ipaddress.ip_address(ip)
-                    ip_obj = ipaddress.ip_address(ip)
-                    for subnet in segment_black_list:
-                        if ip_obj in subnet:
-                            return True
-                    return False
-                except ValueError:
-                    return False
+        # Extract IP from URL
+        ip = HttpRun._extract_ip_from_url(url)
+        if not ip:
             return False
-        return False
+
+        # Get blacklist configuration
+        segment_black_list, ip_black_list = HttpRun._get_blacklist_config()
+
+        # Check if IP is blacklisted
+        return HttpRun._is_ip_blacklisted(ip, ip_black_list, segment_black_list)

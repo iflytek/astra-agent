@@ -13,10 +13,10 @@ work_id = int(round(t * 1000)) % 1024
 gen = SnowflakeGenerator(work_id)
 
 
-def get_id():
+def get_id() -> int:
     """Generate and return a new Snowflake ID.
 
     Returns:
         int: A unique Snowflake ID
     """
-    return next(gen)
+    return next(gen)  # type: ignore[no-any-return]

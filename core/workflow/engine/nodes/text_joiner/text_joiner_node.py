@@ -1,8 +1,9 @@
 # Standard library imports
 import json
-import time
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Literal, Union
+
+from pydantic import Field
 
 # Workflow engine imports
 from workflow.engine.entities.variable_pool import VariablePool
@@ -12,9 +13,11 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.util.prompt import prompt_template_replace
+
 # Exception handling imports
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
+
 # Logging and tracing imports
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
@@ -50,42 +53,9 @@ class TextJoinerNode(BaseNode):
         separator: Delimiter used for text splitting in SEPARATE_MODE
     """
 
-    mode: int = 0  # Text processing mode (0=JOIN, 1=SEPARATE)
-    prompt: str = ""  # Template for text concatenation
-    separator: str = ""  # Delimiter for text separation
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Retrieve the current node configuration.
-
-        Returns a dictionary containing the node's configuration parameters
-        including processing mode, prompt template, and separator.
-
-        :return: Dictionary containing node configuration parameters
-        """
-        return {"mode": self.mode, "prompt": self.prompt, "separator": self.separator}
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented).
-
-        This method is part of the BaseNode interface but is not implemented
-        for TextJoinerNode as it only supports asynchronous execution.
-
-        :param variable_pool: Pool containing workflow variables
-        :param span: Tracing span for monitoring execution
-        :param event_log_node_trace: Optional node logging trace
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution results
-        :raises NotImplementedError: Always raises as sync execution is not supported
-        """
-        raise NotImplementedError("TextJoinerNode only supports async execution")
+    mode: Literal[0, 1] = Field(default=0)  # Text processing mode (0=JOIN, 1=SEPARATE)
+    prompt: str = Field(default="")  # Template for text concatenation
+    separator: str = Field(default="")  # Delimiter for text separation
 
     async def async_execute(
         self,
@@ -112,7 +82,6 @@ class TextJoinerNode(BaseNode):
         try:
             inputs: Dict[str, Any] = {}
             final_res: Union[str, List[str]] = ""
-            start_time = time.time()
 
             if self.mode == TextProcessModeEnum.JOIN_MODE.value:
                 # Text concatenation mode - combine multiple inputs using template
@@ -154,7 +123,6 @@ class TextJoinerNode(BaseNode):
                     else json.dumps(final_res, ensure_ascii=False)
                 ),
                 outputs={self.output_identifier[0]: final_res},
-                time_cost=str(round(time.time() - start_time, 3)),
             )
         except CustomException as err:
             # Handle workflow-specific custom exceptions
@@ -164,8 +132,7 @@ class TextJoinerNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
@@ -176,6 +143,8 @@ class TextJoinerNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.TextJoinerNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.TEXT_JOINER_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )

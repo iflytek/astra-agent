@@ -7,11 +7,10 @@ setting up distributed tracing to OTLP-compatible backends.
 
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
-from utils.sid.sid_generator2 import get_host_ip
+from plugin.link.utils.sid.sid_generator2 import get_host_ip
 
 
 def init_trace(
@@ -28,10 +27,14 @@ def init_trace(
     :param endpoint:        OTLP endpoint
     :param service_name:    Service name
     :param timeout:         Timeout duration
-    :param max_queue_size:          Maximum queue size for BatchSpanProcessor data export. Default: 2048
-    :param schedule_delay_millis:   Delay interval between two consecutive exports in BatchSpanProcessor. Default: 5000
-    :param max_export_batch_size:   Maximum batch size for BatchSpanProcessor data export. Default: 512
-    :param export_timeout_millis:   Maximum allowed time for data export from BatchSpanProcessor. Default: 30000
+    :param max_queue_size:          Maximum queue size for BatchSpanProcessor
+                                    data export. Default: 2048
+    :param schedule_delay_millis:   Delay interval between two consecutive exports in
+                                    BatchSpanProcessor. Default: 5000
+    :param max_export_batch_size:   Maximum batch size for BatchSpanProcessor
+                                    data export. Default: 512
+    :param export_timeout_millis:   Maximum allowed time for data export from
+                                    BatchSpanProcessor. Default: 30000
     :return:
     """
     assert endpoint is not None, "otlp endpoint is None"

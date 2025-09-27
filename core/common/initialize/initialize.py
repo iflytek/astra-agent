@@ -4,7 +4,7 @@ from common.service import service_manager
 from common.service.utils import get_factories_and_deps
 
 
-def initialize_services(services: list | None = None):
+def initialize_services(services: list | None = None) -> None:
     """
     Initialize all the services needed.
     """

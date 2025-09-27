@@ -1,333 +1,104 @@
-# Astra Agent - Agent Platform
+# Astron Agent - Agent Platform
 
-A comprehensive microservices-based platform for building and deploying AI agents, featuring a modular architecture with multi-language support and advanced CI/CD toolchain.
+<div align="center">
 
-## Overview
+![Logo](docs/logo.svg)
 
-Astra Agent is a Stellar Agent platform built on Spring Boot microservices architecture with multi-module Maven structure, supporting comprehensive multi-language CI/CD development toolchain. The platform provides intelligent agent creation, management, deployment capabilities along with enterprise-grade security and scalability features.
+**An enterprise-ready AI agent development platform combining intelligent RPA, enabling agents to not only think but also act—automating workflows across digital and desktop environments.**
 
-## Architecture
+[![License](https://img.shields.io/badge/license-apache2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/github/v/release/iflytek/astron-agent)](https://github.com/iflytek/astron-agent/releases)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/iflytek/astron-agent/ci.yml)](https://github.com/iflytek/astron-agent/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/iflytek/astron-agent)](https://codecov.io/gh/iflytek/astron-agent)
+[![GitHub Stars](https://img.shields.io/github/stars/iflytek/astron-agent?style=social)](https://github.com/iflytek/astron-agent/stargazers)
 
-### Core Modules
-- **commons**: Common module containing shared utilities and base components
-- **hub**: Core service module handling main business logic
-- **toolkit**: Toolkit module providing various tool functionalities
-- **auth**: Authentication and authorization module for user management and permissions
+English | [简体中文](README-zh.md)
 
-### Technology Stack
-- **Backend**: Java 21, Spring Boot 3.5.4, MyBatis Plus 3.5.7, MySQL
-- **Frontend**: React 18+, TypeScript, Vite, Tailwind CSS
-- **Build Tools**: Maven, npm/pnpm
-- **Infrastructure**: Docker, Redis, MinIO
-- **Quality Tools**: Checkstyle, PMD, SpotBugs, ESLint
+</div>
 
-## Project Structure
+## 📑 Table of Contents
 
-```
-astra-agent/
-├── console/                    # Console subsystem (Backend + Frontend)
-│   ├── backend/               # Java Spring Boot multi-modules
-│   │   ├── auth/              # Authentication module
-│   │   ├── commons/           # Common utilities and DTOs
-│   │   ├── hub/               # Main business domain
-│   │   ├── toolkit/           # Toolkit services
-│   │   ├── config/            # Code quality configs
-│   │   └── docker/            # Docker compose services
-│   └── frontend/              # React TypeScript SPA
-├── core/                      # Core platform services
-│   ├── agent/                 # Agent execution engine (Python)
-│   ├── common/                # Shared Python libraries
-│   ├── knowledge/             # Knowledge base service (Python)
-│   ├── memory/                # Memory management
-│   ├── plugin/                # Plugin system
-│   ├── tenant/                # Multi-tenant service (Go)
-│   └── workflow/              # Workflow orchestration (Python)
-├── docs/                      # Documentation
-└── makefiles/                 # Build system components
-```
+- [📋 Overview](#-overview)
+- [🛠️ Tech Stack](#-tech-stack)
+- [🚀 Quick Start](#-quick-start)
+  - [Using Docker](#using-docker)
+- [📖 Usage Guide](#-usage-guide)
+- [📚 Documentation](#-documentation)
+- [🤝 Contributing](#-contributing)
+- [🌟 Star History](#-star-history)
+- [📞 Support](#-support)
+- [📄 License](#-license)
 
-## Quick Start
+## 📋 Overview
 
-### Prerequisites
-- Java 21+
-- Maven 3.8+
-- Node.js 18+
-- Docker & Docker Compose
-- Python 3.9+ (for core services)
-- Go 1.21+ (for tenant service)
+Astron Agent is an enterprise-ready AI agent development platform combining intelligent RPA, enabling agents to not only think but also act—automating workflows across digital and desktop environments. It provides a one-stop AI agent development platform for individuals and small and medium-sized businesses to complete a variety of practical tasks autonomously or collaboratively.
 
-### Environment Setup
+## 🛠️ Tech Stack
+
+- **Backend**: Java 21, Spring Boot 3, Go, Python 3.11
+- **Frontend**: TypeScript 5, React 18
+- **Database**: MySQL 8
+- **Cache**: Redis
+- **Queue**: Apache Kafka
+- **Infrastructure**: Docker, MinIO
+- **Quality Tools**: Checkstyle, PMD, SpotBugs, ESLint, gocyclo, staticcheck, golangci-lint, black, isort, flake8, mypy, pylint
+
+## 🚀 Quick Start
+
+### Using Docker
 
 ```bash
-# One-time development environment setup
-make dev-setup
+# Clone the repository
+git clone https://github.com/iflytek/astron-agent.git
+cd astron-agent
 
-# Or manually install tools
-make install-tools
-
-# Check tool installation status
-make check-tools
+# Start the stack
+docker-compose up -d
 ```
 
-### Backend Development
+- Visit `http://localhost:8080` in your browser.
 
-```bash
-# Compile Java projects
-make fmt-java
-# or directly with Maven
-cd console/backend && mvn compile
+## 📖 Usage Guide
 
-# Run code quality checks
-make check-java
-# or directly with Maven
-cd console/backend && mvn test
+For detailed usage instructions, please refer to [Usage Documentation](docs/USAGE.md)
 
-# Run specific module tests
-mvn test -pl commons
-mvn test -pl hub
-mvn test -pl toolkit
-mvn test -pl auth
-```
+## 📚 Documentation
 
-### Console Development
+- [📖 Usage Documentation](docs/USAGE.md)
+- [🚀 Deployment Guide](docs/DEPLOYMENT.md)
+- [📖 API Reference](docs/API.md)
+- [🔧 Configuration](docs/CONFIGURATION.md)
+- [🐛 Troubleshooting](docs/TROUBLESHOOTING.md)
+- [📝 Changelog](CHANGELOG.md)
 
-```bash
-# Format Console Java backend code
-make fmt-console
+## 🤝 Contributing
 
-# Run Console Java backend quality checks
-make check-console
+We welcome contributions of all kinds! Please see our [Contributing Guide](CONTRIBUTING.md)
 
-# Format Console frontend TypeScript code
-make fmt-console-frontend
+## 🌟 Star History
 
-# Run Console frontend quality checks
-make check-console-frontend
+<div align="center">
+  <img src="https://api.star-history.com/svg?repos=iflytek/astron-agent&type=Date" alt="Star History Chart" width="600">
+</div>
 
-# Direct commands for console backend
-cd console/backend && mvn compile
-cd console/backend && mvn test
+## 📞 Support
 
-# Direct commands for console frontend
-cd console/frontend && npm install
-cd console/frontend && npm run build
-```
+- 💬 Community Discussion: [GitHub Discussions](https://github.com/iflytek/astron-agent/discussions)
+- 🐛 Bug Reports: [Issues](https://github.com/iflytek/astron-agent/issues)
 
-### Core Services Development
+## 📄 License
 
-```bash
-# Python services (agent, knowledge, workflow, etc.)
-cd core/agent && python -m pytest
-cd core/knowledge && python -m pytest
-
-# Go service (tenant)
-cd core/tenant && go test ./...
-cd core/tenant && go build
-```
-
-## Development Commands
-
-### Code Quality and Formatting
-```bash
-# Format all project code
-make fmt
-
-# Run all code quality checks
-make check
-
-# Check code format (without modifying files)
-make fmt-check
-```
-
-### Git Workflow
-```bash
-# Create feature branch
-make new-feature name=feature-name
-
-# Create hotfix branch
-make new-hotfix name=hotfix-name
-
-# Safe push (validates branch naming conventions)
-make safe-push
-
-# Install Git hooks
-make hooks-install
-```
-
-### Project Management
-```bash
-# View project status
-make project-status
-
-# Show help information
-make help
-
-# Check branch naming conventions
-make check-branch
-```
-
-## Features
-
-### Console Features
-- **User Management**: Login, registration, authentication, rate limiting, and auditing
-- **Agent Management**: Create, publish, marketplace display, and sharing
-- **Data & Knowledge**: Dataset management, file handling, and retrieval tracking
-- **Workflow Canvas**: Visual orchestration and template management
-- **Operations**: Statistics, logging, and configuration management
-
-### Core Platform Features
-- **Agent Engine**: Multi-step reasoning, plugin integration, workflow execution
-- **Knowledge Base**: RAG implementation, document processing, semantic search
-- **Memory Management**: Database operations, schema management, data export/import
-- **Plugin System**: Extensible tool integration, RPA automation, external API connections
-- **Multi-tenancy**: Isolated environments, resource management, authentication
-- **Workflow**: Visual flow designer, node-based execution, template library
-
-## Development Standards
-
-### Branch Naming Convention
-- `master`: Main branch
-- `develop`: Development branch
-- `feature-*`: Feature branches
-- `hotfix-*`: Hotfix branches
-
-### Commit Message Convention
-Following Conventional Commits standard:
-- `feat`: New features
-- `fix`: Bug fixes
-- `docs`: Documentation updates
-- `style`: Code formatting
-- `refactor`: Code refactoring
-- `test`: Test-related changes
-- `chore`: Build tools, dependency updates
-
-Examples:
-```bash
-git commit -m "feat(auth): add OAuth2 authentication support"
-git commit -m "fix(hub): resolve database connection issue"
-```
-
-### Code Quality
-- Uses `checkstyle.xml` for Java code style checking
-- Uses `pmd-ruleset.xml` for code quality analysis
-- Uses `spotbugs-exclude.xml` to exclude known issues
-- Frontend follows ESLint configuration in `eslint.config.js`
-
-## Deployment
-
-### Docker Deployment
-```bash
-# Start services with Docker Compose
-cd console/backend/docker && docker-compose up -d
-
-# Build individual service images
-docker build -t astra-agent/console-auth console/backend/auth/
-docker build -t astra-agent/console-hub console/backend/hub/
-```
-
-### Service Configuration
-- Backend configurations: `src/main/resources/application.yml` in each module
-- Frontend configurations: `.env.example` and `vite.config.js`
-- Environment variable examples provided in `.env.example`
-
-## Testing
-
-### Backend Testing
-```bash
-cd console/backend
-mvn test
-
-# Or run specific module tests
-cd console/backend/auth && mvn test
-cd console/backend/hub && mvn test
-```
-
-### Frontend Testing
-```bash
-cd console/frontend
-npm test  # or yarn test
-```
-
-### Core Services Testing
-```bash
-# Python services
-cd core/agent && python -m pytest
-cd core/knowledge && python -m pytest
-
-# Go service
-cd core/tenant && go test ./...
-```
-
-## Common Development Tasks
-
-### Adding New Modules
-1. Add module declaration in `console/backend/pom.xml`
-2. Create module directory and `pom.xml`
-3. Follow existing module structure and naming conventions
-
-### Running Individual Services
-```bash
-# Authentication service
-cd console/backend/auth && mvn spring-boot:run
-
-# Core hub service
-cd console/backend/hub && mvn spring-boot:run
-
-# Toolkit service
-cd console/backend/toolkit && mvn spring-boot:run
-```
-
-### Database Operations
-- Configuration files located in each module's `src/main/resources/application.yml`
-- Uses MyBatis Plus for database operations
-- Database configuration examples provided in `.env.example`
-
-## Important Files
-
-- `Makefile`: Core build and CI tools
-- `CLAUDE.md`: Claude Code assistant instructions
-- `console/backend/pom.xml`: Maven parent project configuration
-- `.env.example`: Environment variable configuration examples
-- `console/backend/checkstyle.xml`: Code style checking configuration
-- `console/backend/pmd-ruleset.xml`: Code quality rules
-- `.cursor/rules/`: Cursor IDE rule configurations
-
-## Contributing
-
-We welcome contributions through Issues and Pull Requests:
-
-1. **Fork the repository** and create a feature branch (recommended naming: `feat/*`, `fix/*`, `docs/*`)
-2. **Ensure quality** by running build and static checks before submission
-3. **Clear descriptions** in PRs about motivation, implementation, and impact scope
-4. **Follow conventions** outlined in this README and CLAUDE.md
-
-### Development Guidelines
-1. **Environment setup**: Run `make dev-setup` for first-time development
-2. **Code submission**: Use provided Git hooks to ensure code quality
-3. **Branch management**: Strictly follow branch naming conventions
-4. **Testing**: Run `make check` before each commit to ensure code quality
-5. **Documentation**: Update relevant documentation for significant changes
-
-## Troubleshooting
-
-### Common Issues
-- **Port conflicts**: Modify backend `server.port` or frontend Vite port
-- **Storage unavailable**: Ensure MinIO/Redis services are started and network accessible
-- **Build failures**: Check JDK/Maven/Node versions meet requirements, clean cache and retry
-
-### Getting Help
-- Check documentation in `docs/` directory
-- Review `Makefile-readme.md` for build system usage
-- Create issues for bug reports or feature requests
-
-## License
-
-This project follows the open source license described in the `LICENSE` file in the repository root directory.
-
-## Acknowledgments
-
-Thanks to all developers and community partners who contribute code, documentation, and feedback to the Astra Agent ecosystem.
+This project is licensed under the [Apache 2.0 License](LICENSE).
 
 ---
 
-*Built with ❤️ by the Astra Agent community*
+<div align="center">
+
+**Developed and maintained by iFLYTEK**
+
+[![Follow](https://img.shields.io/github/followers/iflytek?style=social&label=Follow)](https://github.com/iflytek)
+[![Star](https://img.shields.io/github/stars/iflytek/astron-agent?style=social&label=Star)](https://github.com/iflytek/astron-agent)
+[![Fork](https://img.shields.io/github/forks/iflytek/astron-agent?style=social&label=Fork)](https://github.com/iflytek/astron-agent/fork)
+[![Watch](https://img.shields.io/github/watchers/iflytek/astron-agent?style=social&label=Watch)](https://github.com/iflytek/astron-agent/watchers)
+
+</div>

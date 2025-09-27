@@ -1,11 +1,9 @@
 import json
 import os
 import re
-import time
 from typing import Any, Dict, Literal
 
 from pydantic import Field
-
 from workflow.engine.entities.variable_pool import VariablePool
 from workflow.engine.nodes.base_node import BaseNode
 from workflow.engine.nodes.code.executor.base_executor import CodeExecutorFactory
@@ -14,11 +12,6 @@ from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
-
-# Reference type for variable binding
-REF = "ref"
-# Literal type for direct value assignment
-LITERAL = "literal"
 
 # Python code execution template that wraps user code with main function call
 PYTHON_RUNNER = """{{code}}
@@ -53,19 +46,6 @@ class CodeNode(BaseNode):
     appId: str = Field(..., description="App ID")
     uid: str = Field(..., description="User ID")
 
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get node configuration parameters.
-
-        :return: Dictionary containing node configuration
-        """
-        return {
-            "codeLanguage": self.codeLanguage,
-            "code": self.code,
-            "appId": self.appId,
-            "uid": self.uid,
-        }
-
     def _get_actual_parameter(
         self, variable_pool: VariablePool, span_context: Span
     ) -> Dict[str, Any]:
@@ -88,24 +68,6 @@ class CodeNode(BaseNode):
         )
         return actual_parameters
 
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for code nodes).
-
-        :param variable_pool: Pool containing workflow variables
-        :param span: Tracing span for logging
-        :param event_log_node_trace: Optional node trace logger
-        :param kwargs: Additional keyword arguments
-        :return: Node execution result
-        """
-        raise NotImplementedError
-
     async def async_execute(
         self,
         variable_pool: VariablePool,
@@ -122,7 +84,6 @@ class CodeNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: Node execution result with outputs and timing information
         """
-        start_time = time.time()
         try:
             actual_parameters = self._get_actual_parameter(
                 variable_pool=variable_pool, span_context=span
@@ -143,10 +104,9 @@ class CodeNode(BaseNode):
                 raw_output=(
                     code_result if isinstance(code_result, str) else str(code_result)
                 ),
-                time_cost=round(time.time() - start_time, 3),
             )
         except Exception as err:
-            return self.fail(err, CodeEnum.CodeExecutionError, span)
+            return self.fail(err, CodeEnum.CODE_EXECUTION_ERROR, span)
 
     async def execute_code(self, parameters: dict, span_context: Span) -> dict:
         """
@@ -182,7 +142,14 @@ class CodeNode(BaseNode):
             uid=self.uid,
         )
 
-        return json.loads(result_str)
+        # If the result is not a valid JSON string, return the result as a string
+        try:
+            return json.loads(result_str)
+        except Exception as e:
+            span_context.record_exception(e)
+            return {
+                self.output_identifier[0]: result_str,
+            }
 
     def _check_and_set_variable_pool(
         self, variable_pool: VariablePool, code_result_dict: dict, span: Span
@@ -214,41 +181,41 @@ class CodeNode(BaseNode):
                 case "string":
                     if isinstance(code_result_dict[var_name], str) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not str, please check the type!",
                         )
                 case "integer":
                     if isinstance(code_result_dict[var_name], int) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not integer, please check the type!",
                         )
 
                 case "number":
                     if isinstance(code_result_dict[var_name], (int, float)) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not integer or float, please check the type!",
                         )
 
                 case "boolean":
                     if isinstance(code_result_dict[var_name], bool) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not bool, please check the type!",
                         )
 
                 case "array":
                     if isinstance(code_result_dict[var_name], list) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not array, please check the type!",
                         )
 
                 case "object":
                     if isinstance(code_result_dict[var_name], dict) is False:
                         raise CustomException(
-                            CodeEnum.CodeNodeResultTypeError,
+                            CodeEnum.CODE_NODE_RESULT_TYPE_ERROR,
                             "Code return type is not object, please check the type!",
                         )
 
@@ -281,7 +248,7 @@ def _parser_code_parameter(python_code: str) -> list[str]:
             break
     if not re_parameter:
         raise CustomException(
-            CodeEnum.CodeBuildError,
+            CodeEnum.CODE_BUILD_ERROR,
             err_msg="can not find main function",
             cause_error="can not find main function",
         )

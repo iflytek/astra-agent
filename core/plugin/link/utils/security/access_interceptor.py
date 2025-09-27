@@ -3,7 +3,7 @@ import os
 import re
 from urllib.parse import urlparse, urlunparse
 
-from consts import const
+from plugin.link.consts import const
 
 
 def is_in_black_domain(url: str):
@@ -35,6 +35,71 @@ def is_in_black_domain(url: str):
     return False
 
 
+def _get_blacklist_config():
+    """Get blacklist configuration from environment variables.
+
+    Returns:
+        tuple: (segment_black_list, ip_black_list)
+    """
+    segment_black_list = []
+    for black_seg in os.getenv(const.SEGMENT_BLACK_LIST_KEY).split(","):
+        if black_seg:
+            segment_black_list.append(ipaddress.ip_network(black_seg))
+    ip_black_list = []
+    for black_id in os.getenv(const.IP_BLACK_LIST_KEY).split(","):
+        if black_id:
+            ip_black_list.append(black_id)
+    return segment_black_list, ip_black_list
+
+
+def _extract_host_from_url(url):
+    """Extract host/IP from URL.
+
+    Args:
+        url: The URL to parse
+
+    Returns:
+        str: The host/IP, or None if not found
+    """
+    match = re.search(r"://([^/?#]+)", url)
+    if not match:
+        return None
+
+    host = match.group(1)
+    # Handle cases that may include port numbers
+    if ":" in host:
+        return host.split(":")[0]
+    else:
+        return host
+
+
+def _is_ip_blacklisted(ip, ip_black_list, segment_black_list):
+    """Check if IP is in blacklist or blacklisted network segments.
+
+    Args:
+        ip: IP address to check
+        ip_black_list: List of blacklisted IPs
+        segment_black_list: List of blacklisted network segments
+
+    Returns:
+        bool: True if IP is blacklisted
+    """
+    # Check direct IP blacklist
+    for i_ip in ip_black_list:
+        if ip == i_ip:
+            return True
+
+    # Check network segments
+    try:
+        ip_obj = ipaddress.ip_address(ip)
+        for subnet in segment_black_list:
+            if ip_obj in subnet:
+                return True
+        return False
+    except ValueError:
+        return False
+
+
 def is_in_blacklist(url):
     """Check if URL is in security blacklist (domains, IPs, network segments).
 
@@ -55,36 +120,20 @@ def is_in_blacklist(url):
     # Get actual request URL
     parsed = urlparse(url)
     url = urlunparse((parsed.scheme, parsed.hostname, parsed.path, "", "", ""))
-    # Pull blacklist network segments and IPs from online configuration
-    segment_black_list = []
-    for black_i in os.getenv(const.SEGMENT_BLACK_LIST_KEY).split(","):
-        segment_black_list.append(ipaddress.ip_network(black_i))
-    ip_black_list = os.getenv(const.IP_BLACK_LIST_KEY).split(",")
 
-    if url:
-        match = re.search(r"://([^/?#]+)", url)
-        if match:
-            host = match.group(1)
-            # Handle cases that may include port numbers
-            if ":" in host:
-                ip = host.split(":")[0]
-            else:
-                ip = host
-            for i_ip in ip_black_list:
-                if ip == i_ip:
-                    return True
-
-            try:
-                ipaddress.ip_address(ip)
-                ip_obj = ipaddress.ip_address(ip)
-                for subnet in segment_black_list:
-                    if ip_obj in subnet:
-                        return True
-                return False
-            except ValueError:
-                return False
+    if not url:
         return False
-    return False
+
+    # Get blacklist configuration
+    segment_black_list, ip_black_list = _get_blacklist_config()
+
+    # Extract host/IP from URL
+    ip = _extract_host_from_url(url)
+    if not ip:
+        return False
+
+    # Check if IP is blacklisted
+    return _is_ip_blacklisted(ip, ip_black_list, segment_black_list)
 
 
 # Check if it's a loopback address

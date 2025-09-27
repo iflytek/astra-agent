@@ -1,0 +1,14 @@
+[server]
+port = 5052
+location = "ss"
+
+[database]
+dbType = "mysql"
+username = ""
+password = ""
+url = ""
+maxOpenConns = 10
+maxIdleConns = 5
+
+[log]
+logFile = "./logs/app.log"

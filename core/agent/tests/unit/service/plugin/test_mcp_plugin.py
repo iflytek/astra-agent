@@ -139,7 +139,7 @@ class TestMcpPluginRunner:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.run_mcp_plugin_url = "http://mcp-api/run"
+                mock_config.RUN_MCP_PLUGIN_URL = "http://mcp-api/run"
 
                 # Act
                 result = await mcp_runner.run(action_input, mock_span)
@@ -196,7 +196,7 @@ class TestMcpPluginRunner:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.run_mcp_plugin_url = "http://mcp-api/run"
+                mock_config.RUN_MCP_PLUGIN_URL = "http://mcp-api/run"
 
                 # Act
                 await mcp_runner.run(action_input, mock_span)
@@ -250,7 +250,7 @@ class TestMcpPluginRunner:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.run_mcp_plugin_url = "http://mcp-api/run"
+                mock_config.RUN_MCP_PLUGIN_URL = "http://mcp-api/run"
 
                 # Act & Assert
                 with pytest.raises(Exception):
@@ -283,7 +283,7 @@ class TestMcpPluginRunner:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.run_mcp_plugin_url = "http://mcp-api/run"
+                mock_config.RUN_MCP_PLUGIN_URL = "http://mcp-api/run"
 
                 # Act & Assert
                 with pytest.raises(type(RunMcpPluginExc)):
@@ -326,7 +326,7 @@ class TestMcpPluginRunner:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.run_mcp_plugin_url = "http://mcp-api/run"
+                mock_config.RUN_MCP_PLUGIN_URL = "http://mcp-api/run"
 
                 # Act
                 await mcp_runner.run(action_input, mock_span)
@@ -404,7 +404,7 @@ class TestMcpPluginFactory:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.list_mcp_plugin_url = "http://mcp-api/list"
+                mock_config.LIST_MCP_PLUGIN_URL = "http://mcp-api/list"
 
                 # Act
                 result = await factory.query_servers(mock_span)
@@ -452,7 +452,7 @@ class TestMcpPluginFactory:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.list_mcp_plugin_url = "http://mcp-api/list"
+                mock_config.LIST_MCP_PLUGIN_URL = "http://mcp-api/list"
 
                 # Act
                 await factory.query_servers(mock_span)
@@ -506,7 +506,7 @@ class TestMcpPluginFactory:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.list_mcp_plugin_url = "http://mcp-api/list"
+                mock_config.LIST_MCP_PLUGIN_URL = "http://mcp-api/list"
 
                 # Act & Assert
                 with pytest.raises(type(GetMcpPluginExc)):
@@ -545,7 +545,7 @@ class TestMcpPluginFactory:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.list_mcp_plugin_url = "http://mcp-api/list"
+                mock_config.LIST_MCP_PLUGIN_URL = "http://mcp-api/list"
 
                 # Act & Assert
                 with pytest.raises(Exception):
@@ -577,7 +577,7 @@ class TestMcpPluginFactory:
             "service.plugin.mcp.aiohttp.ClientSession", return_value=session_context
         ):
             with patch("service.plugin.mcp.agent_config") as mock_config:
-                mock_config.list_mcp_plugin_url = "http://mcp-api/list"
+                mock_config.LIST_MCP_PLUGIN_URL = "http://mcp-api/list"
 
                 # Act & Assert
                 with pytest.raises(type(GetMcpPluginExc)):

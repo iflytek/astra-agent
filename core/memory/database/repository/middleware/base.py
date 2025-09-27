@@ -16,13 +16,13 @@ class Service(ABC):
     name: str
     ready: bool = False
 
-    def teardown(self):
+    def teardown(self) -> None:
         """Clean up service resources.
 
         Subclasses should override this method to implement custom cleanup logic.
         """
         pass  # pylint: disable=unnecessary-pass
 
-    def set_ready(self):
+    def set_ready(self) -> None:
         """Mark service as ready for use."""
         self.ready = True

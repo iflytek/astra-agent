@@ -5,9 +5,7 @@ Infrastructure layer module
 Provides infrastructure components for interacting with external services, including AIUI, SparkDesk, and Xinghuo services
 """
 
-from . import aiui
-from . import desk
-from . import xinghuo
+from . import aiui, desk, xinghuo
 
 __all__ = [
     "aiui",

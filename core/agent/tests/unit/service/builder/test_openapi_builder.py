@@ -511,7 +511,7 @@ class TestOpenAPIRunnerBuilder:
                     {
                         "title": "中文文档",
                         "docId": "中文doc1",
-                        "content": "这是中文内容测试",
+                        "content": "这是中文内容test",
                         "references": {},
                     }
                 ]
@@ -533,7 +533,7 @@ class TestOpenAPIRunnerBuilder:
             assert len(metadata_list) == 1
             assert metadata_list[0]["source_id"] == "中文doc1"
             assert "中文文档" in knowledge
-            assert "这是中文内容测试" in knowledge
+            assert "这是中文内容test" in knowledge
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -549,7 +549,7 @@ class TestOpenAPIRunnerBuilder:
         context_manager.__exit__ = Mock(return_value=None)
         mock_span.start = Mock(return_value=context_manager)
 
-        mock_knowledge_response = {"data": {"results": []}}
+        mock_knowledge_response: dict = {"data": {"results": []}}
         mock_knowledge_plugin = Mock()
         mock_knowledge_plugin.run = AsyncMock(return_value=mock_knowledge_response)
 

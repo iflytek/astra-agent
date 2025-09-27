@@ -1,7 +1,17 @@
 import abc
+from enum import Enum
 from typing import Any, Dict
 
 from workflow.extensions.middleware.utils import ServiceType
+
+
+class RedisModel(Enum):
+    """
+    Represents the type of Redis model.
+    """
+
+    SINGLE = 1
+    CLUSTER = 2
 
 
 class BaseCacheService(abc.ABC):

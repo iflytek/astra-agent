@@ -32,9 +32,9 @@ class CodeEnum(Enum):
     # ----------------------------------------------
 
     @property
-    def code(self):
+    def code(self) -> int:
         return self.value[0]
 
     @property
-    def msg(self):
+    def msg(self) -> str:
         return self.value[1]

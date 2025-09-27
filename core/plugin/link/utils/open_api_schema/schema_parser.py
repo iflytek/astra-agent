@@ -6,10 +6,10 @@ extracting parameters, request bodies, and other schema information.
 
 import json
 
-from utils.open_api_schema.types.schema_parser_types import ParamsConfig
-from exceptions.sparklink_exceptions import SparkLinkOpenapiSchemaException
-from utils.errors.code import ErrCode
-from utils.otlp.trace.span import Span
+from plugin.link.exceptions.sparklink_exceptions import SparkLinkOpenapiSchemaException
+from plugin.link.utils.errors.code import ErrCode
+from plugin.link.utils.open_api_schema.types.schema_parser_types import ParamsConfig
+from plugin.link.utils.otlp.trace.span import Span
 
 
 class OpenapiSchemaParser:
@@ -162,6 +162,156 @@ class OpenapiSchemaParser:
                 # return body_schema_res
                 return body_schema
 
+    def _extract_basic_info(self, openapi: dict) -> dict:
+        """Extract basic OpenAPI information."""
+        bundles = {}
+        openapi_info = openapi["info"]
+        openapi_version = openapi["openapi"]
+        bundles.update({"openapi_version": openapi_version})
+        title = openapi_info.get("title", "")
+        bundles.update({"tool_title": title})
+        description = openapi_info.get("description", "")
+        bundles.update({"tool_description": description})
+        return bundles
+
+    def _validate_and_get_server_url(self, openapi: dict) -> str:
+        """Validate server configuration and return server URL."""
+        if len(openapi["servers"]) == 0:
+            raise SparkLinkOpenapiSchemaException(
+                code=ErrCode.OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERR.code,
+                err_pre=ErrCode.OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERR.msg,
+                err="找不到请求服务",
+            )
+        return openapi["servers"][0]["url"]
+
+    def _extract_interfaces(self, openapi: dict) -> list:
+        """Extract all interfaces from OpenAPI paths."""
+        interfaces = []
+        methods = ["get", "post", "put", "delete", "patch", "head", "options", "trace"]
+
+        for path, path_item in openapi["paths"].items():
+            for method in methods:
+                if method in path_item:
+                    interfaces.append(
+                        {
+                            "path": path,
+                            "method": method,
+                            "operation": path_item[method],
+                        }
+                    )
+        return interfaces
+
+    def _process_request_body_refs(self, interface: dict, openapi: dict) -> None:
+        """Process $ref references in request body schemas."""
+        request_body = interface.get("operation", {}).get("requestBody", {})
+        for content_type, content in request_body.get("content", {}).items():
+            if "schema" not in content:
+                continue
+            if "$ref" in content["schema"]:
+                root = openapi
+                reference = content["schema"]["$ref"].split("/")[1:]
+                for ref in reference:
+                    root = root[ref]
+                # overwrite the content
+                interface["operation"]["requestBody"]["content"][content_type][
+                    "schema"
+                ] = root
+
+    def _process_interface_schemas(
+        self, interface: dict, api_key_info: dict, openapi: dict, span_context
+    ) -> dict:
+        """Process all schemas for a single interface."""
+        path_schema = None
+        query_schema = None
+        header_schema = None
+        request_body_schema = None
+        security_info = None
+        security_type = None
+
+        # Process security
+        if "security" in interface["operation"]:
+            security_info = api_key_info
+            for k, _ in interface["operation"]["security"][0].items():
+                security_type = k
+
+        # Process parameters
+        if "parameters" in interface["operation"]:
+            path_schema, query_schema, header_schema = self.schema_params_parser(
+                interface["operation"]["parameters"], span=span_context
+            )
+
+        # Process request body
+        self._process_request_body_refs(interface, openapi)
+        request_body = interface.get("operation", {}).get("requestBody", {})
+        for content_type, content in request_body.get("content", {}).items():
+            if content_type == "application/json":
+                request_body_schema = self.schema_body_json_parser(
+                    content, span=span_context
+                )
+            else:
+                raise SparkLinkOpenapiSchemaException(
+                    code=ErrCode.OPENAPI_SCHEMA_BODY_TYPE_ERR.code,
+                    err_pre=ErrCode.OPENAPI_SCHEMA_BODY_TYPE_ERR.msg,
+                    err=f"openapi schema 当前不支持{content_type}请求体",
+                )
+
+        return {
+            "path_schema": path_schema,
+            "query_schema": query_schema,
+            "header_schema": header_schema,
+            "request_body_schema": request_body_schema,
+            "security_info": security_info,
+            "security_type": security_type,
+        }
+
+    def _build_operation_bundle(
+        self, interface: dict, schemas: dict, server_url: str
+    ) -> tuple:
+        """Build operation bundle for a single interface."""
+        path = interface["path"]
+        method = interface["method"]
+        operation_id = interface["operation"]["operationId"]
+
+        if "description" in interface["operation"]:
+            operation_description = interface["operation"]["description"]
+        elif "summary" in interface["operation"]:
+            operation_description = interface["operation"]["summary"]
+        else:
+            operation_description = ""
+
+        full_server_url = server_url + path
+
+        operation_bundle = {
+            "server_url": full_server_url,
+            "method": method,
+            "operation_description": operation_description,
+            "header": (
+                schemas["header_schema"].to_dict()
+                if schemas["header_schema"] and schemas["header_schema"].properties
+                else {}
+            ),
+            "path": (
+                schemas["path_schema"].to_dict()
+                if schemas["path_schema"] and schemas["path_schema"].properties
+                else {}
+            ),
+            "query": (
+                schemas["query_schema"].to_dict()
+                if schemas["query_schema"] and schemas["query_schema"].properties
+                else {}
+            ),
+            "body": (
+                schemas["request_body_schema"]
+                if schemas["request_body_schema"]
+                and schemas["request_body_schema"].get("properties", {})
+                else {}
+            ),
+            "security": schemas["security_info"],
+            "security_type": schemas["security_type"],
+        }
+
+        return operation_id, operation_bundle
+
     def schema_parser(self):
         """
         解析 schema
@@ -172,139 +322,36 @@ class OpenapiSchemaParser:
             func_name="OpenapiSchemaParser.schema_parser"
         ) as span_context:
             openapi = self.schema
-            bundles = {}
 
-            openapi_info = openapi["info"]
-            openapi_version = openapi["openapi"]
-            bundles.update({"openapi_version": openapi_version})
-            title = openapi_info.get("title", "")
-            bundles.update({"tool_title": title})
-            description = openapi_info.get("description", "")
-            bundles.update({"tool_description": description})
-            if len(openapi["servers"]) == 0:
-                raise SparkLinkOpenapiSchemaException(
-                    code=ErrCode.OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERR.code,
-                    err_pre=ErrCode.OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERR.msg,
-                    err="找不到请求服务",
-                )
+            # Extract basic information
+            bundles = self._extract_basic_info(openapi)
 
-            server_url = openapi["servers"][0]["url"]
+            # Validate and get server URL
+            server_url = self._validate_and_get_server_url(openapi)
 
             # Get authentication information from components
             components = openapi.get("components", {})
             api_key_info = components.get("securitySchemes", {})
 
-            interfaces = []
-            for path, path_item in openapi["paths"].items():
-                methods = [
-                    "get",
-                    "post",
-                    "put",
-                    "delete",
-                    "patch",
-                    "head",
-                    "options",
-                    "trace",
-                ]
-                for method in methods:
-                    if method in path_item:
-                        interfaces.append(
-                            {
-                                "path": path,
-                                "method": method,
-                                "operation": path_item[method],
-                            }
-                        )
+            # Extract all interfaces
+            interfaces = self._extract_interfaces(openapi)
 
+            # Process each interface
             operation_ids = []
-
             for interface in interfaces:
-                path_schema = None
-                query_schema = None
-                header_schema = None
-                request_body_schema = None
-                security_info = None
-                security_type = None
-                if "security" in interface["operation"]:
-                    # Check if there is authentication, only api_key authentication method supported
-                    security_info = api_key_info
-                    for k, _ in interface["operation"]["security"][0].items():
-                        security_type = k
-
-                if "parameters" in interface["operation"]:
-                    path_schema, query_schema, header_schema = (
-                        self.schema_params_parser(
-                            interface["operation"]["parameters"], span=span_context
-                        )
-                    )
-
-                request_body = interface.get("operation", {}).get("requestBody", {})
-                for content_type, content in request_body.get("content", {}).items():
-                    if "schema" not in content:
-                        continue
-                    if "$ref" in content["schema"]:
-                        root = openapi
-                        reference = content["schema"]["$ref"].split("/")[1:]
-                        for ref in reference:
-                            root = root[ref]
-                        # overwrite the content
-                        interface["operation"]["requestBody"]["content"][content_type][
-                            "schema"
-                        ] = root
-                for content_type, content in request_body.get("content", {}).items():
-                    if content_type == "application/json":
-                        request_body_schema = self.schema_body_json_parser(
-                            content, span=span_context
-                        )
-                    else:
-                        raise SparkLinkOpenapiSchemaException(
-                            code=ErrCode.OPENAPI_SCHEMA_BODY_TYPE_ERR.code,
-                            err_pre=ErrCode.OPENAPI_SCHEMA_BODY_TYPE_ERR.msg,
-                            err=f"openapi schema 当前不支持{content_type}请求体",
-                        )
-                path = interface["path"]
-                method = interface["method"]
-                operation_id = interface["operation"]["operationId"]
-                if "description" in interface["operation"]:
-                    operation_description = interface["operation"]["description"]
-                elif "summary" in interface["operation"]:
-                    operation_description = interface["operation"]["summary"]
-                else:
-                    operation_description = ""
-                server_url = server_url + path
-                operation_ids.append(operation_id)
-                bundles.update(
-                    {
-                        operation_id: {
-                            "server_url": server_url,
-                            "method": method,
-                            "operation_description": operation_description,
-                            "header": (
-                                header_schema.to_dict()
-                                if header_schema and header_schema.properties
-                                else {}
-                            ),
-                            "path": (
-                                path_schema.to_dict()
-                                if path_schema and path_schema.properties
-                                else {}
-                            ),
-                            "query": (
-                                query_schema.to_dict()
-                                if query_schema and query_schema.properties
-                                else {}
-                            ),
-                            "body": (
-                                request_body_schema
-                                if request_body_schema
-                                and request_body_schema.get("properties", {})
-                                else {}
-                            ),
-                            "security": security_info,
-                            "security_type": security_type,
-                        }
-                    }
+                # Process schemas for this interface
+                schemas = self._process_interface_schemas(
+                    interface, api_key_info, openapi, span_context
                 )
+
+                # Build operation bundle
+                operation_id, operation_bundle = self._build_operation_bundle(
+                    interface, schemas, server_url
+                )
+
+                operation_ids.append(operation_id)
+                bundles.update({operation_id: operation_bundle})
+
             bundles.update({"operation_ids": operation_ids})
             span_context.add_info_events(
                 {"bundles": json.dumps(bundles, ensure_ascii=False)}

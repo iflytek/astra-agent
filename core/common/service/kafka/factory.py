@@ -7,9 +7,9 @@ from common.service.kafka.kafka_service import KafkaProducerService
 
 class KafkaProducerServiceFactory(ServiceFactory):
     def __init__(self) -> None:
-        super().__init__(KafkaProducerService)
+        super().__init__(KafkaProducerService)  # type: ignore[arg-type]
 
-    def create(self, servers: Optional[str] = None, **kwargs):
+    def create(self, servers: Optional[str] = None, **kwargs: dict) -> KafkaProducerService:  # type: ignore[override, no-untyped-def]
         """
         创建 KafkaProducerService 实例
         :param servers: Kafka bootstrap.servers

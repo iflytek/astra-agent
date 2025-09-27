@@ -1,4 +1,5 @@
 import json
+import os
 from enum import Enum
 from typing import Any, Sequence
 
@@ -13,7 +14,6 @@ from opentelemetry.sdk.trace.export import (
     SpanExportResult,
 )
 from opentelemetry.trace import StatusCode
-
 from workflow.extensions.otlp.util.ip import ip
 
 
@@ -111,21 +111,20 @@ def init_trace(
         }
     )
 
-    # Create OTLP exporter for remote trace export
-    exporter = OTLPSpanExporter(insecure=True, endpoint=endpoint, timeout=timeout)
-
-    # Create batch processor for OTLP export
-    processor = BatchSpanProcessor(
-        exporter,
-        max_queue_size=max_queue_size,
-        schedule_delay_millis=schedule_delay_millis,
-        max_export_batch_size=max_export_batch_size,
-        export_timeout_millis=export_timeout_millis,
-    )
-
     # Create tracer provider and add OTLP processor
     provider = TracerProvider(resource=resource, span_limits=span_limits)
-    provider.add_span_processor(processor)
+
+    # Create OTLP exporter for remote trace export
+    if os.getenv("OTLP_ENABLE", "0") == "1":
+        exporter = OTLPSpanExporter(insecure=True, endpoint=endpoint, timeout=timeout)
+        processor = BatchSpanProcessor(
+            exporter,
+            max_queue_size=max_queue_size,
+            schedule_delay_millis=schedule_delay_millis,
+            max_export_batch_size=max_export_batch_size,
+            export_timeout_millis=export_timeout_millis,
+        )
+        provider.add_span_processor(processor)
 
     # Add file exporter for local persistence
     file_exporter = FileSpanExporter()

@@ -6,18 +6,15 @@ for setting up telemetry data collection to OTLP-compatible backends.
 """
 
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
-from opentelemetry.metrics import set_meter_provider, get_meter_provider
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.metrics import get_meter_provider, set_meter_provider
 from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import (
-    PeriodicExportingMetricReader,
-)
-
-from utils.otlp.metric.consts import (
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from plugin.link.utils.otlp.metric.consts import (
     SERVER_REQUEST_DESC,
     SERVER_REQUEST_TIME_DESC,
-    SERVER_REQUEST_TOTAL,
     SERVER_REQUEST_TIME_MICROSECONDS,
+    SERVER_REQUEST_TOTAL,
 )
 
 # SDK metric reporting interval, recommended < 30000ms, default 1000ms
@@ -46,8 +43,10 @@ def init_metric(
     :param endpoint:                OpenTelemetry address
     :param service_name:            Service name
     :param timeout:                 Default server connection time in ms, default 5000ms
-    :param export_interval_millis:  SDK metric reporting interval, recommended < 30000ms, default 1000ms
-    :param export_timeout_millis:   Default metric reporting server timeout in ms, default 5000ms
+    :param export_interval_millis:  SDK metric reporting interval,
+                                    recommended < 30000ms, default 1000ms
+    :param export_timeout_millis:   Default metric reporting server timeout in ms,
+                                    default 5000ms
     :return:
     """
 

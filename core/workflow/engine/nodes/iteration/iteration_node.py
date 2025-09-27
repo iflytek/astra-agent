@@ -1,7 +1,5 @@
 import asyncio
 import copy
-import time
-import traceback
 from typing import Any, Dict
 
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
@@ -33,32 +31,6 @@ class IterationNode(BaseNode):
     # Node ID of the first node in the workflow subgraph within this iteration
     IterationStartNodeId: str
 
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration parameters for this iteration node.
-
-        :return: Dictionary containing the iteration start node ID
-        """
-        return {"IterationStartNodeId": self.IterationStartNodeId}
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for iteration nodes).
-
-        :param variable_pool: Pool of variables for the workflow execution
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node-level event logging
-        :param kwargs: Additional keyword arguments including callback methods
-        :return: NodeRunResult containing execution status and outputs
-        """
-        raise NotImplementedError
-
     async def async_execute(
         self,
         variable_pool: VariablePool,
@@ -86,7 +58,6 @@ class IterationNode(BaseNode):
         with span.start(
             func_name="async_execute", add_source_function_name=True
         ) as span_context:
-            start_time = time.time()
             callbacks: ChatCallBacks = kwargs.get("callbacks", {})
             event_log_trace: WorkflowLog = kwargs.get("event_log_trace", {})
             node_run_status: Dict[str, NodeRunningStatus] = kwargs.get(
@@ -102,6 +73,7 @@ class IterationNode(BaseNode):
                         self.node_id
                     ]
                 )
+                built_nodes = copy.deepcopy(iteration_one_engine.engine_ctx.built_nodes)
 
                 batch_datas = variable_pool.get_variable(
                     node_id=self.node_id,
@@ -114,6 +86,7 @@ class IterationNode(BaseNode):
                 batch_result_dict: dict[str, list] = {}
                 temp_variable_pool = copy.deepcopy(variable_pool)
                 for batch_data in batch_datas:
+                    iteration_one_engine.engine_ctx.built_nodes = built_nodes
                     res = await self._process_single_batch(
                         batch_data,
                         temp_variable_pool,
@@ -141,20 +114,20 @@ class IterationNode(BaseNode):
                 return NodeRunResult(
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=inputs,
-                    error=f"{err}",
-                    error_code=err.code,
+                    error=err,
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
                 )
             except Exception as err:
-                traceback.print_exc()
                 span_context.record_exception(err)
                 return NodeRunResult(
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=inputs,
-                    error=f"{err}",
-                    error_code=CodeEnum.IterationExecutionError.code,
+                    error=CustomException(
+                        CodeEnum.ITERATION_EXECUTION_ERROR,
+                        cause_error=err,
+                    ),
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
@@ -169,7 +142,6 @@ class IterationNode(BaseNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
     async def _process_single_batch(
@@ -282,32 +254,6 @@ class IterationStartNode(BaseNode):
     in the iteration workflow.
     """
 
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration parameters for this iteration start node.
-
-        :return: Empty dictionary as this node has no specific configuration
-        """
-        return {}
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for iteration start nodes).
-
-        :param variable_pool: Pool of variables for the workflow execution
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node-level event logging
-        :param kwargs: Additional keyword arguments including callback methods
-        :return: NodeRunResult containing execution status and outputs
-        """
-        raise NotImplementedError
-
     async def async_execute(
         self,
         variable_pool: VariablePool,
@@ -327,7 +273,6 @@ class IterationStartNode(BaseNode):
         :param kwargs: Additional keyword arguments
         :return: NodeRunResult containing execution status and retrieved variables
         """
-        start_time = time.time()
         outputs: dict = {}  # node outputs
         try:
             for key in self.output_identifier:
@@ -345,14 +290,15 @@ class IterationStartNode(BaseNode):
         except Exception as e:
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{e}",
-                error_code=CodeEnum.IterationExecutionError.code,
+                error=CustomException(
+                    CodeEnum.ITERATION_EXECUTION_ERROR,
+                    cause_error=e,
+                ),
                 inputs=outputs,
                 outputs={},
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
 
 
@@ -367,32 +313,6 @@ class IterationEndNode(BaseNode):
 
     template: str = ""
     outputMode: int
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration parameters for this iteration end node.
-
-        :return: Dictionary containing template and output mode configuration
-        """
-        return {"template": self.template, "outputMode": self.outputMode}
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for iteration end nodes).
-
-        :param variable_pool: Pool of variables for the workflow execution
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node-level event logging
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution status and outputs
-        """
-        raise NotImplementedError
 
     async def async_execute(
         self,
@@ -415,7 +335,6 @@ class IterationEndNode(BaseNode):
         :return: NodeRunResult containing execution status and processed outputs
         """
         prompt_template = self.template
-        start_time = time.time() * 1000
         inputs: dict = {}
         outputs: dict = {}
         try:
@@ -436,10 +355,6 @@ class IterationEndNode(BaseNode):
                     variable_pool=variable_pool,
                     span_context=span,
                 )
-                # Apply template variable replacement
-                # prompt_template = replace_variables(prompt_template, replacements_str)
-                # outputs.update({"res": prompt_template})
-            # elif self.outputMode == 0:
 
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.SUCCEEDED,
@@ -449,7 +364,6 @@ class IterationEndNode(BaseNode):
                 node_answer_content=prompt_template,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(time.time() * 1000 - start_time),
             )
         except Exception as err:
             span.record_exception(err)
@@ -458,6 +372,8 @@ class IterationEndNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.EndNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.END_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )

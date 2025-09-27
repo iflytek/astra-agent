@@ -8,35 +8,42 @@ import json
 import os
 import sys
 from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator
 
 import uvicorn
+from common.initialize.initialize import initialize_services
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
-from starlette.middleware.cors import CORSMiddleware
-
-from common.initialize.initialize import initialize_services
-
 from memory.database.api import router
 from memory.database.domain.entity.views.http_resp import format_response
 from memory.database.exceptions.error_code import CodeEnum
+from starlette.middleware.cors import CORSMiddleware
 
 
-async def initialize_extensions():
-    os.environ["CONFIG_ENV_PATH"] = (
-        "./memory/database/config.env"
-    )
+async def initialize_extensions() -> None:
+    """Initialize required extensions and services for the application."""
+    os.environ["CONFIG_ENV_PATH"] = "./memory/database/config.env"
 
-    need_init_services = ["settings_service", "log_service", "otlp_sid_service", "otlp_span_service", "otlp_metric_service"]
+    need_init_services = [
+        "settings_service",
+        "log_service",
+        "otlp_sid_service",
+        "otlp_span_service",
+        "otlp_metric_service",
+    ]
     initialize_services(services=need_init_services)
 
-    from repository.middleware.initialize import initialize_services as rep_initialize_services
+    from repository.middleware.initialize import \
+        initialize_services as \
+        rep_initialize_services  # pylint: disable=import-outside-toplevel
+
     await rep_initialize_services()
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Async context manager for application lifespan events.
 
     Args:
@@ -52,15 +59,16 @@ async def lifespan(app: FastAPI):
         # Execute after application startup
         route_infos = []
         for route in app.routes:
-            route_infos.append(
-                {
-                    "path": route.path,
-                    "name": route.name,
-                    "methods": (
-                        list(route.methods) if hasattr(route, "methods") else "chat"
-                    ),
-                }
-            )
+            if hasattr(route, "path") and hasattr(route, "name"):
+                route_infos.append(
+                    {
+                        "path": route.path,
+                        "name": route.name,
+                        "methods": (
+                            list(route.methods) if hasattr(route, "methods") else "chat"
+                        ),
+                    }
+                )
         logger.info("Registered routes:")
         for route_info in route_infos:
             logger.info(json.dumps(route_info, ensure_ascii=False))
@@ -68,7 +76,7 @@ async def lifespan(app: FastAPI):
         logger.exception(f"Failed during lifespan startup.\n{e}")
 
 
-def create_app():
+def create_app() -> FastAPI:
     """Create and configure the FastAPI application.
 
     Returns:
@@ -92,7 +100,7 @@ def create_app():
         @app.exception_handler(RequestValidationError)
         async def global_validation_exception_handler(
             _request: Request, exc: RequestValidationError
-        ):
+        ) -> JSONResponse:
             """Global validation exception handler.
 
             Args:
@@ -107,13 +115,16 @@ def create_app():
                 f"field: {'.'.join(map(str, err['loc']))}, message: {err['msg']}"
                 for err in exc.errors()
             ]
-            return format_response(
-                code=CodeEnum.ParamError.code, message=f"Parameter validation failed: {error_details}"
+            return format_response(  # type: ignore[no-any-return]
+                code=CodeEnum.ParamError.code,
+                message=f"Parameter validation failed: {error_details}",
             )
 
         # Register global exception handler
         @app.exception_handler(Exception)
-        async def global_exception_handler(_request: Request, exc: Exception):
+        async def global_exception_handler(
+            _request: Request, exc: Exception
+        ) -> JSONResponse:
             """Global exception handler.
 
             Args:
@@ -123,15 +134,16 @@ def create_app():
             Returns:
                 JSONResponse: Formatted error response.
             """
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 code=CodeEnum.HttpError.code, message=f"{str(exc.__cause__)}"
             )
 
         # Register custom exception handler
-        from api import CustomException  # pylint: disable=import-outside-toplevel
+        from api import \
+            CustomException  # pylint: disable=import-outside-toplevel
 
         @app.exception_handler(CustomException)
-        async def custom_exception_handler(_request: Request, exc: CustomException):
+        async def custom_exception_handler(_request: Request, exc: Any) -> JSONResponse:
             """Custom exception handler.
 
             Args:
@@ -163,7 +175,7 @@ if __name__ == "__main__":
     uvicorn.run(
         app="main:create_app",
         host="0.0.0.0",
-        port=7990,
+        port=int(os.getenv("SERVICE_PORT", "7990")),
         workers=(
             None
             if sys.platform in ["win", "win32", "darwin"]

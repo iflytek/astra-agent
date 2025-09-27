@@ -4,6 +4,7 @@ from typing import Literal, cast
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.trace.span import Span
+
 from ..audit_api.base import ContentType, Stage
 from ..base import FrameAuditResult, InputFrameAudit, OutputFrameAudit
 from ..enums import Status
@@ -365,7 +366,7 @@ class TextAuditStrategy(AuditStrategy):
         except Exception as e:
             span.add_error_event(f"Audit API call exception: {str(e)}")
             frame_audit_result.error = CustomException(
-                CodeEnum.AuditError, cause_error=f"Audit result exception: {str(e)}"
+                CodeEnum.AUDIT_ERROR, cause_error=f"Audit result exception: {str(e)}"
             )
             await self.context.output_queue_put(frame_audit_result, span)
         finally:

@@ -1,16 +1,16 @@
-"""错误码定义模块。
-本模块定义了 RPA 服务中使用的所有错误码。"""
+"""Error code definition module.
+This module defines all error codes used in the RPA service."""
 
 from enum import Enum
 
 
 class ErrorCode(Enum):
-    """RPA 服务的错误码定义。"""
+    """Error code definitions for RPA service."""
 
-    # 定义成功和失败的错误码
+    # Define success and failure error codes
     SUCCESS = (0, "Success")
     FAILURE = (55000, "Failure")
-    # 错误码范围, 55000 - 59999
+    # Error code range, 55000 - 59999
 
     CREATE_TASK_ERROR = (55001, "Create task error")
     QUERY_TASK_ERROR = (55002, "Query task error")
@@ -18,16 +18,16 @@ class ErrorCode(Enum):
 
     UNKNOWN_ERROR = (55999, "Unknown error")
 
-    # 返回错误码
+    # Return error code
     @property
     def code(self) -> int:
-        """返回错误码。"""
+        """Return error code."""
         return self.value[0]
 
-    # 返回错误信息
+    # Return error message
     @property
     def message(self) -> str:
-        """返回错误信息。"""
+        """Return error message."""
         return self.value[1]
 
     def __str__(self) -> str:

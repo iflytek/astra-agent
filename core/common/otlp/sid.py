@@ -17,13 +17,12 @@ class SidInfo(BaseModel):
 sid_generator2: Optional["SidGenerator2"] = None
 
 
-def init_sid(sid_info: SidInfo):
+def init_sid(sid_info: SidInfo) -> None:
     global sid_generator2
     sid_generator2 = SidGenerator2(sid_info=sid_info)
 
 
 class SidGenerator2:
-    # 2.0架构专用后缀
     sid2 = 2
 
     def __init__(self, sid_info: SidInfo):
@@ -42,7 +41,7 @@ class SidGenerator2:
         if len(self.sid_info.local_port) < 4:
             raise ValueError("Bad Port!! " + self.sid_info.local_port)
 
-    def gen(self):
+    def gen(self) -> str:
         pid = os.getpid() & 0xFF
         self.index = (self.sid_info.index + 1) & 0xFFFF
         tm_int = int(time.time() * 1000)

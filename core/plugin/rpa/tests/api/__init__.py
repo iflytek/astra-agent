@@ -1,1 +1,1 @@
-"""API测试模块。"""
+"""API test module."""

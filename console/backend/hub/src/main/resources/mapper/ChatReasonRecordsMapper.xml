@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.astra.console.hub.mapper.ChatReasonRecordsMapper">
+<mapper namespace="com.iflytek.astron.console.hub.mapper.ChatReasonRecordsMapper">
 
     <!-- Result mapping -->
-    <resultMap id="BaseResultMap" type="com.iflytek.astra.console.commons.entity.chat.ChatReasonRecords">
+    <resultMap id="BaseResultMap" type="com.iflytek.astron.console.commons.entity.chat.ChatReasonRecords">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="uid" property="uid" jdbcType="BIGINT"/>
         <result column="chat_id" property="chatId" jdbcType="BIGINT"/>

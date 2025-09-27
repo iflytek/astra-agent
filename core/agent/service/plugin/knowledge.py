@@ -58,7 +58,7 @@ class KnowledgePluginFactory(BaseModel):
                 async with aiohttp.ClientSession() as session:
                     timeout = aiohttp.ClientTimeout(total=40)
                     async with session.post(
-                        agent_config.chunk_query_url, json=data, timeout=timeout
+                        agent_config.CHUNK_QUERY_URL, json=data, timeout=timeout
                     ) as response:
 
                         sp.add_info_events(

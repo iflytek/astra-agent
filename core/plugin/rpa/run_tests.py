@@ -1,56 +1,60 @@
 #!/usr/bin/env python3
-"""测试运行脚本。
+"""Test runner script.
 
-这个脚本用于运行项目的各种测试套件。
+This script is used to run various test suites for the project.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path
 
 
 def run_command(command: str, description: str) -> bool:
-    """运行命令并返回结果。"""
+    """Run command and return result."""
     print(f"\n{'='*50}")
-    print(f"运行: {description}")
-    print(f"命令: {command}")
+    print(f"Running: {description}")
+    print(f"Command: {command}")
     print("=" * 50)
 
     try:
         result = subprocess.run(
             command, shell=True, check=True, capture_output=True, text=True
         )
-        print("✅ 成功")
+        print("✅ Success")
         if result.stdout:
-            print("输出:")
+            print("Output:")
             print(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        print("❌ 失败")
+        print("❌ Failed")
         if e.stdout:
-            print("标准输出:")
+            print("Standard output:")
             print(e.stdout)
         if e.stderr:
-            print("错误输出:")
+            print("Error output:")
             print(e.stderr)
         return False
 
 
 def main() -> int:
-    """主函数。"""
-    print("🚀 开始运行 RPA 服务器测试套件")
+    """Main function."""
+    print("🚀 Starting RPA server test suite")
 
-    # 切换到项目目录
+    # Switch to project directory
     project_dir = Path(__file__).parent
     os.chdir(project_dir)
 
     test_commands = [
-        ("python -m pytest tests/api/test_schemas.py -v", "API Schemas 测试"),
-        ("python -m pytest tests/errors/test_error_code.py -v", "错误码测试"),
-        ("python -m pytest tests/exceptions/test_config_exceptions.py -v", "异常测试"),
-        ("python -m pytest tests/consts/test_const.py -v", "常量测试"),
-        ("python -m pytest tests/utils/test_utl_util.py -v", "工具函数测试"),
-        ("python -m pytest tests/api/test_router.py -v", "路由测试"),
+        ("python -m pytest tests/api/test_schemas.py -v", "API Schemas test"),
+        ("python -m pytest tests/errors/test_error_code.py -v", "Error code test"),
+        (
+            "python -m pytest tests/exceptions/test_config_exceptions.py -v",
+            "Exception test",
+        ),
+        ("python -m pytest tests/consts/test_const.py -v", "Constants test"),
+        ("python -m pytest tests/utils/test_utl_util.py -v", "Utility functions test"),
+        ("python -m pytest tests/api/test_router.py -v", "Router test"),
     ]
 
     passed = 0
@@ -63,21 +67,19 @@ def main() -> int:
             failed += 1
 
     print(f"\n{'='*50}")
-    print("🎯 测试总结")
+    print("🎯 Test Summary")
     print(f"{'='*50}")
-    print(f"✅ 通过: {passed}")
-    print(f"❌ 失败: {failed}")
-    print(f"📊 总计: {passed + failed}")
+    print(f"✅ Passed: {passed}")
+    print(f"❌ Failed: {failed}")
+    print(f"📊 Total: {passed + failed}")
 
     if failed == 0:
-        print("\n🎉 所有测试都通过了！")
+        print("\n🎉 All tests passed!")
         return 0
 
-    print(f"\n⚠️  有 {failed} 个测试套件失败")
+    print(f"\n⚠️  {failed} test suites failed")
     return 1
 
 
 if __name__ == "__main__":
-    import os
-
     sys.exit(main())

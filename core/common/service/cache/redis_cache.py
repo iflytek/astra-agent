@@ -1,8 +1,10 @@
 import pickle
 import re
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from loguru import logger
+from redis import Redis  # type: ignore[import-untyped, import-not-found]
+from rediscluster import RedisCluster  # type: ignore[import-untyped, import-not-found]
 
 from common.service.base import Service, ServiceType
 from common.service.cache.base_cache import BaseCacheService, RedisModel
@@ -14,19 +16,19 @@ class RedisCache(BaseCacheService, Service):
 
     def __init__(
         self,
-        addr=None,
-        password=None,
-        expiration_time=60 * 60,
+        addr: Optional[str] = None,
+        password: Optional[str] = None,
+        expiration_time: int = 60 * 60,
         model: RedisModel = RedisModel.CLUSTER,
     ):
         if model == RedisModel.CLUSTER:
-            self._client = self.init_redis_cluster(addr, password)
+            self._client = self.init_redis_cluster(addr, password)  # type: ignore[arg-type]
         else:
-            self._client = self.init_redis(addr, password)
+            self._client = self.init_redis(addr, password)  # type: ignore[arg-type]
         logger.debug("redis init success")
         self.expiration_time = expiration_time
 
-    def init_redis_cluster(self, cluster_addr, password):
+    def init_redis_cluster(self, cluster_addr: str, password: str) -> RedisCluster:
         """
         初始化 redis 集群连接
         :param cluster_addr: 格式如下 addr1:port1,addr2:port2,addr3:port3
@@ -34,7 +36,6 @@ class RedisCache(BaseCacheService, Service):
         :return:
         """
         logger.debug("redis cluster init in progress")
-        from rediscluster import RedisCluster
 
         host_port_pairs = cluster_addr.split(",")
         cluster_nodes = []
@@ -46,7 +47,7 @@ class RedisCache(BaseCacheService, Service):
                 cluster_nodes.append({"host": host, "port": port})
         return RedisCluster(startup_nodes=cluster_nodes, password=password)
 
-    def init_redis(self, addr: str, password: str):
+    def init_redis(self, addr: str, password: str) -> Redis:
         """
         初始化 redis 连接
         :param addr:
@@ -54,13 +55,12 @@ class RedisCache(BaseCacheService, Service):
         :return:
         """
         logger.debug("redis init in progress")
-        from redis import Redis
 
         host, port = addr.split(":")
         return Redis(host=host, port=int(port), password=password)
 
     # check connection
-    def is_connected(self):
+    def is_connected(self) -> bool:
         """
         Check if the Redis client is connected.
         """
@@ -72,7 +72,7 @@ class RedisCache(BaseCacheService, Service):
         except redis.exceptions.ConnectionError:
             return False
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
         """
         Retrieve an item from the cache.
 
@@ -85,7 +85,7 @@ class RedisCache(BaseCacheService, Service):
         value = self._client.get(key)
         return pickle.loads(value) if value else None
 
-    def set(self, key, value):
+    def set(self, key: str, value: Any) -> None:
         """
         Add an item to the cache.
 
@@ -103,7 +103,7 @@ class RedisCache(BaseCacheService, Service):
                 "RedisCache only accepts values that can be pickled. "
             ) from exc
 
-    def hash_set_ex(self, name, key, value, expire_time):
+    def hash_set_ex(self, name: str, key: str, value: Any, expire_time: int) -> None:
         try:
             if pickled := pickle.dumps(value):
                 result = self._client.hset(name=name, key=key, value=pickled)
@@ -125,7 +125,7 @@ class RedisCache(BaseCacheService, Service):
                 "RedisCache only accepts values that can be pickled. "
             ) from exc
 
-    def hash_get(self, name, key):
+    def hash_get(self, name: str, key: str) -> Any:
         try:
             result = self._client.hget(name=name, key=key)
             # print("result: ", result)
@@ -138,7 +138,7 @@ class RedisCache(BaseCacheService, Service):
                 "RedisCache only accepts values that can be pickled. "
             ) from exc
 
-    def hash_del(self, name, *key):
+    def hash_del(self, name: str, *key: str) -> tuple[bool, dict[str, str]]:  # type: ignore[override]
         try:
             result = self._client.hdel(name, *key)
             need_delete = {}
@@ -158,7 +158,7 @@ class RedisCache(BaseCacheService, Service):
                 "RedisCache only accepts values that can be pickled. "
             ) from exc
 
-    def hash_get_all(self, name):
+    def hash_get_all(self, name: str) -> Dict[str, Any]:
         try:
             return_dict: Dict = {}
             result: Dict = self._client.hgetall(name=name)
@@ -176,7 +176,7 @@ class RedisCache(BaseCacheService, Service):
                 "RedisCache only accepts values that can be pickled. "
             ) from exc
 
-    def upsert(self, key, value):
+    def upsert(self, key: str, value: Any) -> None:
         """
         Inserts or updates a value in the cache.
         If the existing value and the new value are both dictionaries, they are merged.
@@ -196,7 +196,7 @@ class RedisCache(BaseCacheService, Service):
 
         self.set(key, value)
 
-    def delete(self, key):
+    def delete(self, key: str) -> None:
         """
         Remove an item from the cache.
 
@@ -205,41 +205,41 @@ class RedisCache(BaseCacheService, Service):
         """
         self._client.delete(key)
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clear all items from the cache.
         """
         self._client.flushdb()
 
-    def pipeline(self):
+    def pipeline(self) -> Any:
         """
         return redis pipe
         """
         return self._client.pipeline()
 
-    def blpop(self, key, timeout):
+    def blpop(self, key: str, timeout: int) -> Any:
         return self._client.blpop(key, timeout=timeout)
 
-    def hgetall_str(self, name):
+    def hgetall_str(self, name: str) -> Dict[str, str]:
         result = self._client.hgetall(name)
         return {k.decode(): v.decode() for k, v in result.items()} if result else {}
 
-    def __contains__(self, key):
+    def __contains__(self, key: str) -> bool:
         """Check if the key is in the cache."""
         return False if key is None else self._client.exists(key)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str) -> Any:
         """Retrieve an item from the cache using the square bracket notation."""
         return self.get(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any) -> None:
         """Add an item to the cache using the square bracket notation."""
         self.set(key, value)
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: str) -> None:
         """Remove an item from the cache using the square bracket notation."""
         self.delete(key)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a string representation of the RedisCache instance."""
         return f"RedisCache(expiration_time={self.expiration_time})"

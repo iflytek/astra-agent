@@ -1,11 +1,12 @@
 import ctypes
+from typing import Optional
 
 from common.metrology_auth.base import BaseClass
 
 
 class Authorization(BaseClass):
 
-    def __init__(self, ctype_filename):
+    def __init__(self, ctype_filename: str):
         self.lib = self.get_lib(ctype_filename)
 
         class CheckReturnType(ctypes.Structure):
@@ -63,26 +64,36 @@ class Authorization(BaseClass):
 
         self.check_inited = False
 
-    def check_init(self, url, pro, gro, service, version, mode, channel_list, sname):
-        url = url.encode()
-        pro = pro.encode()
-        gro = gro.encode()
-        service = service.encode()
-        version = version.encode()
-        sname = sname.encode()
+    def check_init(
+        self,
+        url: str,
+        pro: str,
+        gro: str,
+        service: str,
+        version: str,
+        mode: int,
+        channel_list: list[str],
+        sname: str,
+    ) -> Optional[str]:
+        b_url = url.encode()
+        b_pro = pro.encode()
+        b_gro = gro.encode()
+        b_service = service.encode()
+        b_version = version.encode()
+        b_sname = sname.encode()
         channel_array = (ctypes.c_char_p * len(channel_list))(
-            *[c.encode("utf-8") for c in channel_list]
+            *[b_c.encode("utf-8") for b_c in channel_list]
         )
         result = self.lib.Check_Init(
-            url,
-            pro,
-            gro,
-            service,
-            version,
+            b_url,
+            b_pro,
+            b_gro,
+            b_service,
+            b_version,
             mode,
             channel_array,
             len(channel_list),
-            sname,
+            b_sname,
         )
         if not result:
             self.check_inited = True
@@ -90,18 +101,20 @@ class Authorization(BaseClass):
         else:
             return result.decode()
 
-    def check(self, appid, uid, channel, func_list, tag):
+    def check(
+        self, appid: str, uid: str, channel: str, func_list: list[str], tag: str
+    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
         # if self.check_inited is False:
         #     raise Exception("check not inited")
-        appid = appid.encode()
-        uid = uid.encode()
-        channel = channel.encode()
+        b_appid = appid.encode()
+        b_uid = uid.encode()
+        b_channel = channel.encode()
         func_array = (ctypes.c_char_p * len(func_list))(
-            *[f.encode() for f in func_list]
+            *[b_f.encode() for b_f in func_list]
         )
-        tag = tag.encode()
+        b_tag = tag.encode()
         check_result = self.lib.Check(
-            appid, uid, channel, func_array, len(func_list), tag
+            b_appid, b_uid, b_channel, func_array, len(func_list), b_tag
         )
         return (
             check_result.r0.decode() if check_result.r0 else None,
@@ -109,18 +122,20 @@ class Authorization(BaseClass):
             check_result.r2.decode() if check_result.r2 else None,
         )
 
-    def checkV2(self, appid, uid, channel, func_list, tag):
+    def checkV2(
+        self, appid: str, uid: str, channel: str, func_list: list[str], tag: str
+    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
         # if self.check_inited is False:
         #     raise Exception("check not inited")
-        appid = appid.encode()
-        uid = uid.encode()
-        channel = channel.encode()
+        b_appid = appid.encode()
+        b_uid = uid.encode()
+        b_channel = channel.encode()
         func_array = (ctypes.c_char_p * len(func_list))(
-            *[f.encode() for f in func_list]
+            *[b_f.encode() for b_f in func_list]
         )
-        tag = tag.encode()
+        b_tag = tag.encode()
         check_result = self.lib.CheckV2(
-            appid, uid, channel, func_array, len(func_list), tag
+            b_appid, b_uid, b_channel, func_array, len(func_list), b_tag
         )
         return (
             check_result.r0.decode() if check_result.r0 else None,
@@ -128,5 +143,5 @@ class Authorization(BaseClass):
             check_result.r2.decode() if check_result.r2 else None,
         )
 
-    def check_fini(self):
+    def check_fini(self) -> None:
         self.lib.Check_Fini()

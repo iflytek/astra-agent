@@ -1,7 +1,8 @@
 """HTTP run test script using numbered prefix for test execution order."""
 
-import requests
 import json
+
+import requests
 
 HOST_LOC = "http://localhost:18888"
 HOST_DEV = "http://10.1.87.65:18888"
@@ -18,7 +19,7 @@ payload = json.dumps(
         "header": {"app_id": "12345678"},
         "parameter": {
             "tool_id": "tool@88bc744d0821000",
-            "operation_id": "Weather Query-4x1cmt53",
+            "operation_id": "天气查询-4x1cmt53",
             "version": "V1.0",
         },
         "payload": {"message": {"body": "eyJjaXR5IjogIlx1NTQwOFx1ODBhNSJ9"}},

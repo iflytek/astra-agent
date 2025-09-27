@@ -31,9 +31,9 @@ func AUthPre() {
 			MaxIdleConns int
 		}{
 			DBType:       "mysql",
-			UserName:     "dev_admin",
-			Password:     "Ug7sU%Kx^i^PtskG",
-			Url:          "(km8avzyout43.mysql.hf04.dbaas.private:23350)/app_service",
+			UserName:     "admin",
+			Password:     "123456",
+			Url:          "(localhost:3306)/tenant",
 			MaxOpenConns: 10,
 			MaxIdleConns: 5,
 		}),

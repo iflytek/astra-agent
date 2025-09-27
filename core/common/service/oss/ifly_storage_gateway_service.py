@@ -2,7 +2,7 @@ from typing import Optional
 from urllib.parse import urlencode
 
 # import boto3
-import requests
+import requests  # type: ignore[import-untyped]
 from loguru import logger
 
 from common.exceptions.codes import c9010

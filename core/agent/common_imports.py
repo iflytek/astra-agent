@@ -1,6 +1,6 @@
 """
-统一的 common 包导入配置模块
-在其他文件中只需要 import common_imports 即可使用 common 包的所有模块
+Unified common package import configuration module.
+Other files can import all common package modules by simply importing common_imports.
 """
 
 import os
@@ -13,7 +13,7 @@ if _common_path not in sys.path:
     sys.path.insert(0, _common_path)
 
 try:
-    # 导入 common 包的常用模块，供其他文件使用
+    # Import commonly used modules from common package for use by other files
     from common.exceptions.base import BaseExc
     from common.initialize.initialize import initialize_services
     from common.otlp.ip import local_ip
@@ -27,17 +27,21 @@ try:
     from common.otlp.trace.trace import logger
     from common.settings.polaris import ConfigFilter, Polaris
 
-    # 为了向后兼容，提供别名
+    # Provide aliases for backward compatibility
     NodeTrace = NodeTraceLog
     Node = NodeLog  # xingchen_utils.Node -> common.NodeLog
     NodeData = Data  # xingchen_utils.NodeData -> common.Data
     NodeDataUsage = Usage  # xingchen_utils.NodeDataUsage -> common.Usage
 
-    # 运行时常量 - 为了兼容性创建
-    DevelopmentEnv = "development"
-    ProductionEnv = "production"
+    # Runtime constants - created for compatibility
+    DEVELOPMENT_ENV = "development"
+    PRODUCTION_ENV = "production"
 
-    # IP 别名 - 为了兼容性
+    # Legacy aliases for backwards compatibility
+    DevelopmentEnv = DEVELOPMENT_ENV  # pylint: disable=invalid-name
+    ProductionEnv = PRODUCTION_ENV  # pylint: disable=invalid-name
+
+    # IP alias - for compatibility
     ip = local_ip  # xingchen_utils.otlp.util.ip.ip -> common.otlp.ip.local_ip
 
     __all__ = [
@@ -45,10 +49,10 @@ try:
         "Meter",
         "NodeLog",
         "NodeTraceLog",
-        "NodeTrace",  # 别名
-        "Node",  # 别名
-        "NodeData",  # 别名
-        "NodeDataUsage",  # 别名
+        "NodeTrace",  # alias
+        "Node",  # alias
+        "NodeData",  # alias
+        "NodeDataUsage",  # alias
         "Data",
         "Usage",
         "TraceStatus",
@@ -65,7 +69,8 @@ try:
     ]
 
 except ImportError as e:
-    # 如果导入失败，提供一个更有用的错误信息
+    # If import fails, provide a more useful error message
     raise ImportError(
-        f"Failed to import common modules. Please ensure the common package is properly installed. Error: {e}"
-    )
+        f"Failed to import common modules. "
+        f"Please ensure the common package is properly installed. Error: {e}"
+    ) from e

@@ -1,0 +1,649 @@
+name: Build and Push astron Agent Images
+
+on:
+  push:
+    branches:
+      - master
+      - feature/**
+  pull_request:
+    branches:
+      - master
+      - feature/**
+  workflow_dispatch:
+    inputs:
+      push_images:
+        description: 'Push images to registry'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: build-push-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+
+env:
+  REGISTRY_GHCR: ghcr.io
+
+jobs:
+  # ============================================================================
+  # Stage 1: Project Detection and Metadata
+  # ============================================================================
+  detect-and-prepare:
+    name: 🔍 Detection & Metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      should-push: ${{ steps.meta.outputs.should-push }}
+      platforms: ${{ steps.meta.outputs.platforms }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          # Version is always latest
+          VERSION="latest"
+
+          # Determine if should push (master, feature branches, PR, or manual dispatch)
+          SHOULD_PUSH="false"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/master" ]]; then
+            SHOULD_PUSH="true"
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/heads/feature/* ]]; then
+            SHOULD_PUSH="true"
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            SHOULD_PUSH="true"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.push_images }}" == "true" ]]; then
+            SHOULD_PUSH="true"
+          fi
+
+          # Set platforms (multi-arch builds for better compatibility)
+          PLATFORMS="linux/amd64,linux/arm64"
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "should-push=$SHOULD_PUSH" >> $GITHUB_OUTPUT
+          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
+
+          echo "🏷️ Version: $VERSION"
+          echo "📤 Should push: $SHOULD_PUSH"
+          echo "🏗️ Platforms: $PLATFORMS"
+
+  # ============================================================================
+  # Stage 2: Build astron Agent Docker Images (Parallel Jobs)
+  # ============================================================================
+  build-core-tenant:
+    name: 🏢 Build Core Tenant
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-tenant
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Tenant image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/tenant/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-memory:
+    name: 🧠 Build Core Memory
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-memory
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Memory image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/memory/database/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-rpa:
+    name: 🤖 Build Core RPA
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-rpa
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core RPA image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/plugin/rpa/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-link:
+    name: 🔗 Build Core Link
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-link
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Link image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/plugin/link/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-aitools:
+    name: 🛠️ Build Core AI Tools
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-aitools
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core AI Tools image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/plugin/aitools/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-agent:
+    name: 🤖 Build Core Agent
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-agent
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Agent image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/agent/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-knowledge:
+    name: 📚 Build Core Knowledge
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-knowledge
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Knowledge image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/knowledge/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-core-workflow:
+    name: ⚡ Build Core Workflow
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-workflow
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Core Workflow image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./core/workflow/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-console-frontend:
+    name: 🌐 Build Console Frontend
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-console-frontend
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Console Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./console/frontend/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-console-hub:
+    name: 🎯 Build Console Hub
+    runs-on: ubuntu-latest
+    needs: detect-and-prepare
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        if: needs.detect-and-prepare.outputs.should-push == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-console-hub
+          tags: |
+            type=raw,value=latest
+
+      - name: Build and push Console Hub image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./console/backend/hub/Dockerfile
+          platforms: ${{ needs.detect-and-prepare.outputs.platforms }}
+          push: ${{ needs.detect-and-prepare.outputs.should-push }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.detect-and-prepare.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
+  # ============================================================================
+  # Stage 3: Summary and Notifications
+  # ============================================================================
+  build-summary:
+    name: 📊 Build Summary
+    runs-on: ubuntu-latest
+    needs:
+      - detect-and-prepare
+      - build-core-tenant
+      - build-core-memory
+      - build-core-rpa
+      - build-core-link
+      - build-core-aitools
+      - build-core-agent
+      - build-core-knowledge
+      - build-core-workflow
+      - build-console-frontend
+      - build-console-hub
+    if: always()
+    steps:
+      - name: Generate build summary
+        run: |
+          echo "=== 🐳 astron Agent Multi-Service Docker Build Summary ==="
+          echo ""
+          echo "🔍 Project Detection: ${{ needs.detect-and-prepare.result }}"
+          echo "📊 Version: ${{ needs.detect-and-prepare.outputs.version }}"
+          echo "📤 Push to Registry: ${{ needs.detect-and-prepare.outputs.should-push }}"
+          echo "🏗️ Target Platforms: ${{ needs.detect-and-prepare.outputs.platforms }}"
+          echo ""
+
+          echo "🐳 Docker Build Results:"
+          echo "  🏢 Core Tenant: ${{ needs.build-core-tenant.result }}"
+          echo "  🧠 Core Memory: ${{ needs.build-core-memory.result }}"
+          echo "  🤖 Core RPA: ${{ needs.build-core-rpa.result }}"
+          echo "  🔗 Core Link: ${{ needs.build-core-link.result }}"
+          echo "  🛠️ Core AI Tools: ${{ needs.build-core-aitools.result }}"
+          echo "  🤖 Core Agent: ${{ needs.build-core-agent.result }}"
+          echo "  📚 Core Knowledge: ${{ needs.build-core-knowledge.result }}"
+          echo "  ⚡ Core Workflow: ${{ needs.build-core-workflow.result }}"
+          echo "  🌐 Console Frontend: ${{ needs.build-console-frontend.result }}"
+          echo "  🎯 Console Hub: ${{ needs.build-console-hub.result }}"
+          echo ""
+
+          # Count successful builds
+          SUCCESS_COUNT=0
+          TOTAL_COUNT=10
+
+          [[ "${{ needs.build-core-tenant.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-memory.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-rpa.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-link.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-aitools.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-agent.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-knowledge.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-core-workflow.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-console-frontend.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          [[ "${{ needs.build-console-hub.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+
+          echo "📊 Build Success Rate: $SUCCESS_COUNT/$TOTAL_COUNT images built successfully"
+
+          if [[ "${{ needs.detect-and-prepare.outputs.should-push }}" == "true" ]]; then
+            echo ""
+            echo "🎯 Published Images:"
+            [[ "${{ needs.build-core-tenant.result }}" == "success" ]] && echo "  🏢 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-tenant:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-memory.result }}" == "success" ]] && echo "  🧠 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-memory:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-rpa.result }}" == "success" ]] && echo "  🤖 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-rpa:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-link.result }}" == "success" ]] && echo "  🔗 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-link:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-aitools.result }}" == "success" ]] && echo "  🛠️ ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-aitools:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-agent.result }}" == "success" ]] && echo "  🤖 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-agent:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-knowledge.result }}" == "success" ]] && echo "  📚 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-knowledge:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-core-workflow.result }}" == "success" ]] && echo "  ⚡ ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-core-workflow:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-console-frontend.result }}" == "success" ]] && echo "  🌐 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-console-frontend:${{ needs.detect-and-prepare.outputs.version }}"
+            [[ "${{ needs.build-console-hub.result }}" == "success" ]] && echo "  🎯 ${{ env.REGISTRY_GHCR }}/${{ github.repository }}/astron-agent-console-hub:${{ needs.detect-and-prepare.outputs.version }}"
+          fi
+
+          if [[ "$SUCCESS_COUNT" == "$TOTAL_COUNT" ]]; then
+            echo ""
+            echo "✅ 🎉 All astron Agent Docker images built successfully!"
+            if [[ "${{ needs.detect-and-prepare.outputs.should-push }}" == "true" ]]; then
+              echo "🚀 Images are now available in GitHub Container Registry"
+            else
+              echo "📦 Images built locally (not pushed to registry)"
+            fi
+          else
+            echo ""
+            echo "❌ 🚨 Some Docker builds failed - check individual job results"
+            exit 1
+          fi
+
+          # Additional info for manual workflow dispatch
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo ""
+            echo "🔧 Manual Workflow Dispatch Summary:"
+            echo "  Trigger: ${{ github.actor }}"
+            echo "  Ref: ${{ github.ref }}"
+            echo "  Push Images: ${{ github.event.inputs.push_images }}"
+          fi

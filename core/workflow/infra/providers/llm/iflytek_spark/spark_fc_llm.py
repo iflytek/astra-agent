@@ -11,7 +11,6 @@ from typing import Any, Dict, List, Optional
 
 import websockets
 from pydantic import BaseModel
-
 from workflow.exception.e import CustomException
 from workflow.exception.errors.code_convert import CodeConvert
 from workflow.exception.errors.err_code import CodeEnum
@@ -58,7 +57,7 @@ class SparkFunctionCallAi(BaseModel):
             spark_host = os.getenv("SPARK_HOST", "ws://spark-api.xf-yun.com")
             if not spark_path:
                 raise CustomException(
-                    err_code=CodeEnum.SparkRequestError,
+                    err_code=CodeEnum.SPARK_REQUEST_ERROR,
                     err_msg="Request URL is empty",
                     cause_error="Request URL is empty",
                 )
@@ -124,7 +123,7 @@ class SparkFunctionCallAi(BaseModel):
                 # Check if it's a quick repair: if the last character of sid is '1', it's a quick repair
                 if llm_service_sid[-1] == "1":
                     raise CustomException(
-                        err_code=CodeEnum.SparkQuickRepairError,
+                        err_code=CodeEnum.SPARK_QUICK_REPAIR_ERROR,
                         err_msg="Sensitive content detected, LLM did not find function_call field",
                         cause_error="Sensitive content detected, LLM did not find function_call field",
                     )
@@ -133,7 +132,7 @@ class SparkFunctionCallAi(BaseModel):
                 token_usage = msg["payload"]["usage"]["text"]
                 if "function_call" not in msg["payload"]["choices"]["text"][0]:
                     raise CustomException(
-                        err_code=CodeEnum.SparkFunctionNotChoiceError,
+                        err_code=CodeEnum.SPARK_FUNCTION_NOT_CHOICE_ERROR,
                         err_msg="Cannot find function_call field in LLM response",
                         cause_error="Cannot find function_call field in LLM response",
                     )
@@ -145,13 +144,13 @@ class SparkFunctionCallAi(BaseModel):
                 return name, token_usage, arguments
             except websockets.ConnectionClosed:
                 raise CustomException(
-                    err_code=CodeEnum.SparkRequestError,
+                    err_code=CodeEnum.SPARK_REQUEST_ERROR,
                     err_msg="WebSocket connection closed",
                     cause_error="WebSocket connection closed",
                 )
             except Exception as e:
                 raise CustomException(
-                    err_code=CodeEnum.SparkRequestError,
+                    err_code=CodeEnum.SPARK_REQUEST_ERROR,
                     err_msg=f"{e}",
                     cause_error=f"{e}",
                 )
@@ -180,7 +179,7 @@ class SparkFunctionCallAi(BaseModel):
         # Check if it's a quick repair: if the last character of sid is '1', it's a quick repair
         if llm_service_sid[-1] == "1":
             raise CustomException(
-                err_code=CodeEnum.SparkQuickRepairError,
+                err_code=CodeEnum.SPARK_QUICK_REPAIR_ERROR,
                 err_msg="Sensitive content detected, LLM did not find function_call field",
                 cause_error="Sensitive content detected, LLM did not find function_call field",
             )
@@ -189,7 +188,7 @@ class SparkFunctionCallAi(BaseModel):
         token_usage = msg["payload"]["usage"]["text"]
         if "function_call" not in msg["payload"]["choices"]["text"][0]:
             raise CustomException(
-                err_code=CodeEnum.SparkFunctionNotChoiceError,
+                err_code=CodeEnum.SPARK_FUNCTION_NOT_CHOICE_ERROR,
                 err_msg="Cannot find function_call field in LLM response",
                 cause_error="Cannot find function_call field in LLM response",
             )
@@ -244,14 +243,14 @@ class SparkFunctionCallAi(BaseModel):
         except websockets.ConnectionClosedError as conn_err:
             span.add_error_event(f"WebSocket connection error: {conn_err}")
             raise CustomException(
-                err_code=CodeEnum.SparkRequestError,
+                err_code=CodeEnum.SPARK_REQUEST_ERROR,
                 err_msg=f"WebSocket connection closed abnormally, {conn_err}",
                 cause_error=f"WebSocket connection closed abnormally, {conn_err}",
             )
         except websockets.WebSocketException as err:
             span.add_error_event(f"WebSocket exception: {err}")
             raise CustomException(
-                err_code=CodeEnum.SparkRequestError,
+                err_code=CodeEnum.SPARK_REQUEST_ERROR,
                 err_msg=f"WebSocket connection exception, {err}",
                 cause_error=f"WebSocket connection exception, {err}",
             )

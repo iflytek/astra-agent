@@ -34,8 +34,8 @@ class ProjectSettings(BaseSettings):
 
     remote_settings_source: ClassVar[Optional[Type[BaseRemoteSettings]]] = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, **kwargs: dict):
+        super().__init__(**kwargs)  # type: ignore[arg-type]
         self.__reload_env_file = str(self.model_config.get("env_file", ""))
         if self.__reload_env_file and self.hot_loading:
             self._start_monitor()
@@ -45,15 +45,20 @@ class ProjectSettings(BaseSettings):
         if self.__reload_env_file:
             self.do_sync_env_file_to_environ()
 
-    def sync_fields_to_environ(self):
+    def sync_fields_to_environ(self) -> None:
+        env_keys = os.environ.keys()
         for field, field_info in self.model_fields.items():
-            env_key, env_value = self.dump_field_and_value(field, field_info)
+            env_key, env_value = self.dump_field_and_value(field, field_info)  # type: ignore[no-untyped-def]
+            if env_key in env_keys:
+                continue
             os.environ[env_key] = str(env_value)
 
-    def do_sync_env_file_to_environ(self):
-        load_dotenv(self.__reload_env_file)
+    def do_sync_env_file_to_environ(self) -> None:
+        load_dotenv(self.__reload_env_file, override=False)
 
-    def dump_field_and_value(self, field: str, field_info: FieldInfo):
+    def dump_field_and_value(
+        self, field: str, field_info: FieldInfo
+    ) -> tuple[str, str]:
         value = getattr(self, field)
         if getattr(field_info, "json_schema_extra", None) is None:
             env_key = field
@@ -97,25 +102,24 @@ class ProjectSettings(BaseSettings):
         )
 
     def _reload_settings(self) -> None:
-        new_settings = self.__class__(hot_loading=False)
+        new_settings = self.__class__(hot_loading=False)  # type: ignore[arg-type]
         for field in self.model_fields:
             setattr(self, field, getattr(new_settings, field))
 
     #
-    def _start_monitor(self):
+    def _start_monitor(self) -> None:
         """启动监控线程"""
         if self._running:
             return
 
         self._running = True
 
-        # 启动守护线程
         self._monitor_thread = threading.Thread(
             target=self._monitor_loop, daemon=True, name="SettingsMonitorThread"
         )
         self._monitor_thread.start()
 
-    def _monitor_loop(self):
+    def _monitor_loop(self) -> None:
         """监控循环"""
         while self._running:
             time.sleep(self.reloading_interval)

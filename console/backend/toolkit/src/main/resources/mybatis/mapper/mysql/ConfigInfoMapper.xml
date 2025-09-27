@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.ConfigInfoMapper">
-    <select id="getListByCategory" resultType="com.iflytek.astra.console.toolkit.entity.table.ConfigInfo">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.ConfigInfoMapper">
+    <select id="getListByCategory" resultType="com.iflytek.astron.console.toolkit.entity.table.ConfigInfo">
         select * from config_info where category = #{category} and is_valid = 1 order by update_time desc
     </select>
 
-    <select id="getListByCategoryAndCode" resultType="com.iflytek.astra.console.toolkit.entity.table.ConfigInfo">
+    <select id="getListByCategoryAndCode" resultType="com.iflytek.astron.console.toolkit.entity.table.ConfigInfo">
         select * from config_info where category = #{category} and code = #{code} and is_valid = 1 order by update_time desc
     </select>
 
-    <select id="getByCategoryAndCode" resultType="com.iflytek.astra.console.toolkit.entity.table.ConfigInfo">
+    <select id="getByCategoryAndCode" resultType="com.iflytek.astron.console.toolkit.entity.table.ConfigInfo">
         select * from config_info where category = #{category} and code = #{code} and is_valid = 1 order by update_time desc limit 1
     </select>
 
-    <select id="getTags" resultType="com.iflytek.astra.console.toolkit.entity.table.ConfigInfo">
+    <select id="getTags" resultType="com.iflytek.astron.console.toolkit.entity.table.ConfigInfo">
         select * from config_info
                  where category = #{category}
                  and code = #{code}

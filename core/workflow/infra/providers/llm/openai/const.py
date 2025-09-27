@@ -4,9 +4,6 @@ Constants and enumerations for OpenAI LLM provider.
 
 from enum import Enum
 
-# End frame marker for LLM streaming responses
-LLM_END_FRAME = "stop"
-
 
 class RespFormatEnum(Enum):
     """

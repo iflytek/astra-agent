@@ -1,0 +1,609 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # 中间件服务 (Infrastructure Services)
+  # ============================================================================
+
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:14
+    container_name: astron-agent-postgres
+    environment:
+      POSTGRES_DB: sparkdb_manager
+      POSTGRES_USER: ${POSTGRES_USER:-spark}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-spark123}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./pgsql/:/docker-entrypoint-initdb.d/
+    networks:
+      - astron-agent-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-spark} -d sparkdb_manager"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.4
+    container_name: astron-agent-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/:/docker-entrypoint-initdb.d/
+    networks:
+      - astron-agent-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # Redis 缓存
+  redis:
+    image: redis:7
+    container_name: astron-agent-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - astron-agent-network
+    restart: always
+    command: redis-server ${REDIS_PASSWORD:+--requirepass} ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ${REDIS_PASSWORD:+-a \"$REDIS_PASSWORD\"} ping | grep PONG"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # Elasticsearch 搜索引擎
+  elasticsearch:
+    image: elasticsearch:7.16.2
+    container_name: astron-agent-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}"
+      - xpack.security.enabled=${ELASTICSEARCH_SECURITY_ENABLED:-false}
+      - cluster.name=astron-agent-cluster
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+      - "${ELASTICSEARCH_TRANSPORT_PORT:-9300}:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - astron-agent-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # Kafka 消息队列
+  kafka:
+    image: apache/kafka:3.7.0
+    container_name: astron-agent-kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:${KAFKA_PORT:-9092}
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:${KAFKA_PORT:-9092}
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:29093
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_REPLICATION_FACTOR:-1}
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA_REPLICATION_FACTOR:-1}
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
+    ports:
+      - "${KAFKA_PORT:-9092}:${KAFKA_PORT:-9092}"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - astron-agent-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "netstat -tulpn | grep 9092 || exit 1"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # MinIO 对象存储
+  minio:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    container_name: astron-agent-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - astron-agent-network
+    restart: always
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: ${HEALTH_CHECK_INTERVAL:-30s}
+      timeout: ${HEALTH_CHECK_TIMEOUT:-10s}
+      retries: ${HEALTH_CHECK_RETRIES:-60}
+
+  # ============================================================================
+  # astron-agent 核心服务 (Core Services)
+  # ============================================================================
+
+  # 租户服务
+  core-tenant:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-tenant:latest
+    container_name: astron-agent-core-tenant
+    environment:
+      SERVICE_PORT: "${CORE_TENANT_PORT:-5052}"
+      SERVICE_LOCATION: "${SERVICE_LOCATION:-localhost}"
+      DATABASE_DB_TYPE: "${DATABASE_DB_TYPE:-mysql}"
+      DATABASE_USERNAME: "${DATABASE_USERNAME:-root}"
+      DATABASE_PASSWORD: "${DATABASE_PASSWORD:-root123}"
+      DATABASE_URL: "${DATABASE_URL:-(localhost:3306)/tenant}"
+      DATABASE_MAX_OPEN_CONNS: "${DATABASE_MAX_OPEN_CONNS:-5}"
+      DATABASE_MAX_IDLE_CONNS: "${DATABASE_MAX_IDLE_CONNS:-5}"
+      LOG_PATH: "${LOG_PATH:-log.txt}"
+    ports:
+      - "${CORE_TENANT_PORT:-5052}:${CORE_TENANT_PORT:-5052}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/tenant/logs:/opt/tenant/logs
+      - /home/xingchen-opensource-config/tenant/config.toml:/opt/tenant/config/config.toml
+      - /etc/localtime:/etc/localtime
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # 内存数据库服务
+
+  core-memory:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-memory:latest
+    container_name: astron-agent-core-memory
+    environment:
+      SERVICE_PORT: "${CORE_MEMORY_PORT:-7990}"
+      PGSQL_HOST: "${POSTGRES_HOST:-127.0.0.1}"
+      PGSQL_PORT: "${POSTGRES_PORT:-5432}"
+      PGSQL_USER: "${POSTGRES_USER:-spark}"
+      PGSQL_PASSWORD: "${POSTGRES_PASSWORD:-spark123}"
+      PGSQL_DATABASE: "${MEMORY_POSTGRES_DATABASE:-sparkdb_manager}"
+      OTLP_ENDPOINT: "${OTLP_ENDPOINT:-127.0.0.1:1234}"
+    ports:
+      - "${CORE_MEMORY_PORT:-7990}:${CORE_MEMORY_PORT:-7990}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/database/config.env:/opt/database/memory/database/config.env
+      - /home/xingchen-opensource-config/database/logs/:/opt/database/memory/database/logs
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # RPA 插件服务
+#  core-rpa:
+#    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-rpa:latest
+#    container_name: astron-agent-core-rpa
+#    ports:
+#      - "${CORE_RPA_PORT:-8003}:8000"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      mysql:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#      elasticsearch:
+#        condition: service_healthy
+#      kafka:
+#        condition: service_healthy
+#      minio:
+#        condition: service_healthy
+#    networks:
+#      - astron-agent-network
+#    restart: always
+
+  # 链接插件服务
+  core-link:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-link:latest
+    container_name: astron-agent-core-link
+    environment:
+      MYSQL_HOST: "${MYSQL_HOST:-127.0.0.1}"
+      MYSQL_PORT: "${MYSQL_PORT:-3306}"
+      MYSQL_USER: "${MYSQL_USER:-root}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-root123}"
+      MYSQL_DB: "${LINK_MYSQL_DB:-spark-link}"
+      REDIS_IS_CLUSTER: "${REDIS_IS_CLUSTER:-false}"
+      REDIS_ADDR: "${REDIS_ADDR:-127.0.0.1:6379}"
+      REDIS_CLUSTER_ADDR: "${REDIS_CLUSTER_ADDR}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      OTLP_ENDPOINT: "${OTLP_ENDPOINT:-127.0.0.1:1234}"
+      KAFKA_SERVERS: "${KAFKA_SERVERS}"
+    ports:
+      - "${CORE_LINK_PORT:-18888}:18888"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/link/config.env:/opt/link/config.env
+      - /home/xingchen-opensource-config/link/logs/:/opt/link/logs/
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # AI工具插件服务
+  core-aitools:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-aitools:latest
+    container_name: astron-agent-core-aitools
+    environment:
+      SERVICE_PORT: "${CORE_AITOOLS_PORT:-18668}"
+      OSS_ENDPOINT: "${OSS_ENDPOINT}"
+      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-minioadmin}"
+      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-minioadmin123}"
+      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME}"
+      OSS_TTL: "${OSS_TTL:-157788000}"
+      KAFKA_SERVERS: "${KAFKA_SERVERS}"
+      AI_APP_ID: "${AI_APP_ID}"
+      AI_API_KEY: "${AI_API_KEY}"
+      AI_API_SECRET: "${AI_API_SECRET}"
+    ports:
+      - "${CORE_AITOOLS_PORT:-18668}:${CORE_AITOOLS_PORT:-18668}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/aitools/config.env:/opt/aitools/config.env
+      - /home/xingchen-opensource-config/aitools/logs/:/opt/aitools/logs/
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # Agent 服务
+  core-agent:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-agent:latest
+    container_name: astron-agent-core-agent
+    environment:
+      # Python 环境配置
+      PYTHONUNBUFFERED: "${PYTHONUNBUFFERED:-1}"
+      # 运行环境配置
+      RUN_ENVIRON: "${RUN_ENVIRON:-dev}"
+      USE_POLARIS: "${USE_POLARIS:-false}"
+      # 服务配置
+      SERVICE_NAME: "${SERVICE_NAME:-Agent}"
+      SERVICE_SUB: "${SERVICE_SUB:-sag}"
+      SERVICE_LOCATION: "${SERVICE_LOCATION:-hf}"
+      SERVICE_APP: "${SERVICE_APP:-app:app}"
+      SERVICE_HOST: "${SERVICE_HOST:-0.0.0.0}"
+      SERVICE_PORT: "${CORE_AGENT_PORT:-17870}"
+      SERVICE_WORKERS: "${SERVICE_WORKERS:-1}"
+      SERVICE_RELOAD: "${SERVICE_RELOAD:-false}"
+      SERVICE_WS_PING_INTERVAL: "${SERVICE_WS_PING_INTERVAL:-false}"
+      SERVICE_WS_PING_TIMEOUT: "${SERVICE_WS_PING_TIMEOUT:-false}"
+      # Redis 缓存设置 (当 USE_POLARIS 为 false 时生效)
+      REDIS_CLUSTER_ADDR: "${REDIS_CLUSTER_ADDR}"
+      REDIS_ADDR: "${REDIS_ADDR:-127.0.0.1:6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_EXPIRE: "${REDIS_EXPIRE:-3600}"
+      # MySQL 配置
+      MYSQL_HOST: "${MYSQL_HOST}"
+      MYSQL_PORT: "${MYSQL_PORT}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DB: "${AGENT_MYSQL_DB:-agent}"
+      # 指标配置
+      OTLP_ENDPOINT: "${OTLP_ENDPOINT:-YOUR_METRIC_ENDPOINT:4317}"
+      OTLP_METRIC_TIMEOUT: "${OTLP_METRIC_TIMEOUT:-3000}"
+      OTLP_METRIC_EXPORT_INTERVAL_MILLIS: "${OTLP_METRIC_EXPORT_INTERVAL_MILLIS:-3000}"
+      OTLP_METRIC_EXPORT_TIMEOUT_MILLIS: "${OTLP_METRIC_EXPORT_TIMEOUT_MILLIS:-3000}"
+      # ELK 上传配置
+      UPLOAD_NODE_TRACE: "${UPLOAD_NODE_TRACE:-true}"
+      UPLOAD_METRICS: "${UPLOAD_METRICS:-true}"
+      # 链路追踪配置
+      OTLP_TRACE_TIMEOUT: "${OTLP_TRACE_TIMEOUT:-3000}"
+      OTLP_TRACE_MAX_QUEUE_SIZE: "${OTLP_TRACE_MAX_QUEUE_SIZE:-2048}"
+      OTLP_TRACE_SCHEDULE_DELAY_MILLIS: "${OTLP_TRACE_SCHEDULE_DELAY_MILLIS:-3000}"
+      OTLP_TRACE_MAX_EXPORT_BATCH_SIZE: "${OTLP_TRACE_MAX_EXPORT_BATCH_SIZE:-2048}"
+      OTLP_TRACE_EXPORT_TIMEOUT_MILLIS: "${OTLP_TRACE_EXPORT_TIMEOUT_MILLIS:-3000}"
+      # Kafka 节点追踪配置
+      KAFKA_SERVERS: "${KAFKA_SERVERS:-YOUR_KAFKA_SERVERS}"
+      KAFKA_TIMEOUT: "${KAFKA_TIMEOUT:-10}"
+      KAFKA_TOPIC: "${AGENT_KAFKA_TOPIC:-spark-agent-builder}"
+      # Link 服务 URLs
+      GET_LINK_URL: "${GET_LINK_URL:-http://YOUR_LINK_HOST:18888/api/v1/tools}"
+      VERSIONS_LINK_URL: "${VERSIONS_LINK_URL:-http://YOUR_LINK_HOST:18888/api/v1/tools/versions}"
+      RUN_LINK_URL: "${RUN_LINK_URL:-http://YOUR_LINK_HOST:18888/api/v1/tools/http_run}"
+      # Workflow 服务 URLs
+      GET_WORKFLOWS_URL: "${GET_WORKFLOWS_URL:-http://YOUR_WORKFLOW_HOST:7880/sparkflow/v1/protocol/get}"
+      WORKFLOW_SSE_BASE_URL: "${WORKFLOW_SSE_BASE_URL:-http://YOUR_WORKFLOW_HOST:7880/workflow/v1}"
+      # Knowledge 服务 URLs
+      CHUNK_QUERY_URL: "${CHUNK_QUERY_URL:-http://YOUR_KNOWLEDGE_HOST:10007/knowledge/v1/chunk/query}"
+      # MCP 插件 URLs
+      LIST_MCP_PLUGIN_URL: "${LIST_MCP_PLUGIN_URL:-http://YOUR_MCP_HOST:18888/api/v1/mcp/tool_list}"
+      RUN_MCP_PLUGIN_URL: "${RUN_MCP_PLUGIN_URL:-http://YOUR_MCP_HOST:18888/api/v1/mcp/call_tool}"
+      # 应用认证配置
+      APP_AUTH_HOST: "${APP_AUTH_HOST:-YOUR_APP_AUTH_HOST}"
+      APP_AUTH_ROUTER: "${APP_AUTH_ROUTER:-/api-services/v2/app/details}"
+      APP_AUTH_PROT: "${APP_AUTH_PROT:-http}"
+      APP_AUTH_API_KEY: "${APP_AUTH_API_KEY:-YOUR_APP_AUTH_API_KEY}"
+      APP_AUTH_SECRET: "${APP_AUTH_SECRET:-YOUR_APP_AUTH_SECRET}"
+    ports:
+      - "${CORE_AGENT_PORT:-17870}:${CORE_AGENT_PORT:-17870}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/agent/config.env:/opt/agent/config.env
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # 知识库服务
+  core-knowledge:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-knowledge:latest
+    container_name: astron-agent-core-knowledge
+    environment:
+      SERVICE_PORT: "${CORE_KNOWLEDGE_PORT:-20010}"
+      RAGFLOW_BASE_URL: "${RAGFLOW_BASE_URL}"
+      RAGFLOW_API_TOKEN: "${RAGFLOW_API_TOKEN}"
+      RAGFLOW_TIMEOUT: "${RAGFLOW_TIMEOUT:-60}"
+      RAGFLOW_DEFAULT_GROUP: "${RAGFLOW_DEFAULT_GROUP}"
+    ports:
+      - "${CORE_KNOWLEDGE_PORT:-20010}:${CORE_KNOWLEDGE_PORT:-20010}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/knowledge/config.env:/opt/core/knowledge/config.env
+      - /home/xingchen-opensource-config/knowledge/logs/:/opt/core/knowledge/logs
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # 工作流服务
+  core-workflow:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-core-workflow:latest
+    container_name: astron-agent-core-workflow
+    environment:
+      RUNTIME_ENV: "${RUNTIME_ENV:-dev}"
+      # 服务信息
+      SERVICE_PORT: "${CORE_WORKFLOW_PORT:-7880}"
+      # 数据库配置
+      MYSQL_HOST: "${MYSQL_HOST:-127.0.0.1}"
+      MYSQL_PORT: "${MYSQL_PORT:-3306}"
+      MYSQL_USER: "${MYSQL_USER:-admin}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-admin}"
+      MYSQL_DB: "${WORKFLOW_MYSQL_DB:-workflow}"
+      REDIS_CLUSTER_ADDR: "${REDIS_CLUSTER_ADDR}"
+      REDIS_ADDR: "${REDIS_ADDR:-127.0.0.1:6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_EXPIRE: "${REDIS_EXPIRE:-3600}"
+      OTLP_ENDPOINT: "${OTLP_ENDPOINT:-127.0.0.1:4317}"
+      OTLP_ENABLE: "${OTLP_ENABLE:-1}"
+      OTLP_METRIC_EXPORT_INTERVAL_MILLIS: "${OTLP_METRIC_EXPORT_INTERVAL_MILLIS:-3000}"
+      OTLP_METRIC_EXPORT_TIMEOUT_MILLIS: "${OTLP_METRIC_EXPORT_TIMEOUT_MILLIS:-3000}"
+      OTLP_METRIC_TIMEOUT: "${OTLP_METRIC_TIMEOUT:-3000}"
+      OTLP_TRACE_TIMEOUT: "${OTLP_TRACE_TIMEOUT:-3000}"
+      OTLP_TRACE_MAX_QUEUE_SIZE: "${OTLP_TRACE_MAX_QUEUE_SIZE:-2048}"
+      OTLP_TRACE_SCHEDULE_DELAY_MILLIS: "${OTLP_TRACE_SCHEDULE_DELAY_MILLIS:-3000}"
+      OTLP_TRACE_MAX_EXPORT_BATCH_SIZE: "${OTLP_TRACE_MAX_EXPORT_BATCH_SIZE:-500}"
+      OTLP_TRACE_EXPORT_TIMEOUT_MILLIS: "${OTLP_TRACE_EXPORT_TIMEOUT_MILLIS:-3000}"
+      # 对象存储配置
+      OSS_TYPE: "${OSS_TYPE:-s3}"
+      OSS_ENDPOINT: "${OSS_ENDPOINT:-http://127.0.0.1:9000}"
+      OSS_ACCESS_KEY_ID: "${OSS_ACCESS_KEY_ID:-admin}"
+      OSS_ACCESS_KEY_SECRET: "${OSS_ACCESS_KEY_SECRET:-admin}"
+      OSS_BUCKET_NAME: "${OSS_BUCKET_NAME}"
+      # S3 下载域名，使用 S3 存储类型时必需
+      OSS_DOWNLOAD_HOST: "${OSS_DOWNLOAD_HOST:-http://127.0.0.1:9000}"
+      # 讯飞对象存储的文件有效期（秒）
+      OSS_TTL: "${OSS_TTL:-157788000}"
+
+      # Apache Kafka 配置
+      # 异步处理和事件流的消息队列设置
+      KAFKA_SERVERS: "${KAFKA_SERVERS:-127.0.0.1:9092}"
+      KAFKA_TIMEOUT: "${KAFKA_TIMEOUT:-10}"
+      KAFKA_TOPIC: "${WORKFLOW_KAFKA_TOPIC:-spark-agent-builder}"
+    ports:
+      - "${CORE_WORKFLOW_PORT:-7880}:${CORE_WORKFLOW_PORT:-7880}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    volumes:
+      - /home/xingchen-opensource-config/workflow/config.env:/opt/openstellar/workflow/config.env
+    networks:
+      - astron-agent-network
+    restart: always
+
+  # ============================================================================
+  # astron-agent 控制台服务 (Console Services)
+  # ============================================================================
+
+  # 控制台前端
+  console-frontend:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-console-frontend:latest
+    container_name: astron-agent-console-frontend
+    ports:
+      - "${CONSOLE_FRONTEND_PORT:-1881}:1881"
+    networks:
+      - astron-agent-network
+    restart: always
+
+#   控制台Hub服务
+  console-hub:
+    image: ghcr.io/lyj715824/astron-agent/astron-agent-console-hub:latest
+    container_name: astron-agent-console-hub
+    environment:
+      # Astron Domain
+      ASTRON_DOMAIN: "${ASTRON_DOMAIN:-https://your.deployment.domain}"
+      # 数据库配置 (console 模块)
+      MYSQL_URL: "${MYSQL_URL:-jdbc:mysql://db:3306/astron_console}"
+      MYSQL_USERNAME: "${MYSQL_USER:-root}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-root123}"
+      # Redis 配置 (console 模块)
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_DATABASE: "${REDIS_DATABASE:-0}"
+      # S3/MinIO 配置 (console 模块)
+      S3_ENDPOINT: "${S3_ENDPOINT:-http://minio:9000}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY:-minioadmin}"
+      S3_SECRET_KEY: "${S3_SECRET_KEY:-minioadmin}"
+      S3_BUCKET: "${S3_BUCKET:-astron-project}"
+      S3_PRESIGN_EXPIRY_SECONDS: "${S3_PRESIGN_EXPIRY_SECONDS:-600}"
+      # OAuth2 配置 (console 模块)
+      OAUTH2_ISSUER_URI: "${OAUTH2_ISSUER_URI:-http://auth-server:8000}"
+      OAUTH2_JWK_SET_URI: "${OAUTH2_JWK_SET_URI:-http://auth-server:8000/.well-known/jwks}"
+      OAUTH2_AUDIENCE: "${OAUTH2_AUDIENCE:-your-oauth2-client-id}"
+      # API_AUTH_SECRET
+      API_AUTH_SECRET: "${API_AUTH_SECRET:-secret}"
+      # 公共 appId
+      COMMON_APPID: "${COMMON_APPID:-appid}"
+      COMMON_APIKEY: "${COMMON_APIKEY:-apiKey}"
+      COMMON_API_SECRET: "${COMMON_API_SECRET:-apiSecret}"
+      # toolkit 租户体系
+      TENANT_ID: "${TENANT_ID:-tenantId}"
+      TENANT_KEY: "${TENANT_KEY:-tenantKey}"
+      TENANT_SECRET: "${TENANT_SECRET:-tenantSecret}"
+      # apikey, secret for Toolkit module
+      APP_APIKEY: "${APP_APIKEY:-apikey}"
+      APP_API_SECRET: "${APP_API_SECRET:-apiSecret}"
+      # Toolkit Admin uid
+      ADMIN_UID: "${ADMIN_UID:-9999}"
+      # MaaS Platform Configuration
+      MAAS_APP_ID: "${MAAS_APP_ID:-your-maas-app-id}"
+      MAAS_API_KEY: "${MAAS_API_KEY:-your-maas-api-key}"
+      MAAS_API_SECRET: "${MAAS_API_SECRET:-your-maas-api-secret}"
+      MAAS_CONSUMER_ID: "${MAAS_CONSUMER_ID:-your-maas-consumer-id}"
+      MAAS_CONSUMER_SECRET: "${MAAS_CONSUMER_SECRET:-your-maas-consumer-secret}"
+      MAAS_CONSUMER_KEY: "${MAAS_CONSUMER_KEY:-your-maas-consumer-key}"
+    ports:
+      - "${CONSOLE_HUB_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - astron-agent-network
+    restart: always
+
+# ============================================================================
+# 网络配置
+# ============================================================================
+networks:
+  astron-agent-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${NETWORK_SUBNET:-172.40.0.0/16}
+
+# ============================================================================
+# 存储卷配置
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+  kafka_data:
+    driver: local
+  minio_data:
+    driver: local

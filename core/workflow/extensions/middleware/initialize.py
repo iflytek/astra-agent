@@ -6,7 +6,6 @@ by registering their factories with the service manager.
 """
 
 from loguru import logger
-
 from workflow.extensions.middleware.manager import service_manager
 from workflow.extensions.middleware.utils import get_factories_and_deps
 

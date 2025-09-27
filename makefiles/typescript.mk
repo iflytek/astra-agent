@@ -81,16 +81,22 @@ check-typescript: ## 🔍 Check TypeScript code quality
 		for dir in $(TS_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
-				cd $$dir; \
+				(cd $$dir && \
 				echo "$(YELLOW)    Checking format compliance...$(RESET)" && \
-				prettier --check "**/*.{ts,tsx,js,jsx,json,md}" && \
+				UNFORMATTED=$(npx prettier --list-different "**/*.{ts,tsx,js,jsx,json,md}" 2>/dev/null || true) && \
+				if [ -n "$$UNFORMATTED" ]; then \
+					echo "Files that need formatting:" && \
+					echo "$$UNFORMATTED" && \
+					echo "Run 'npm run format' to fix formatting issues." && \
+					exit 1; \
+				fi && \
 				echo "$(YELLOW)    Running TypeScript type checking...$(RESET)" && \
-				tsc --noEmit && \
+				npx tsc --noEmit --pretty && \
 				echo "$(YELLOW)    Running ESLint...$(RESET)" && \
-				eslint "**/*.{ts,tsx,js,jsx}" || true; \
-				cd - > /dev/null; \
+				npx eslint "**/*.{ts,tsx}" --format=stylish --max-warnings=0) || exit 1; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+				exit 1; \
 			fi; \
 		done; \
 		echo "$(GREEN)TypeScript code quality checks completed$(RESET)"; \
@@ -106,7 +112,11 @@ test-typescript: ## 🧪 Run TypeScript tests
 				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
 				cd $$dir; \
 				if [ -f package.json ] && grep -q '"test"' package.json; then \
-					$(NPM) test; \
+					if grep -q '"test":.*vite.*--host' package.json || grep -q '"test":.*dev' package.json; then \
+						echo "$(BLUE)    Test script appears to be dev server, skipping$(RESET)"; \
+					else \
+						$(NPM) test; \
+					fi; \
 				else \
 					echo "$(BLUE)    No test script found in package.json$(RESET)"; \
 				fi; \

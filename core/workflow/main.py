@@ -7,6 +7,7 @@ extensions including metrics, tracing, and graceful shutdown handling.
 """
 
 import json
+import multiprocessing
 import os
 import sys
 from pathlib import Path
@@ -18,7 +19,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.routing import APIRoute
 from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
-
 from workflow.api.v1.flow.publish_auth import publish_auth_router
 from workflow.api.v1.router import sparkflow_router, workflow_router
 from workflow.cache.event_registry import EventRegistry
@@ -26,58 +26,6 @@ from workflow.consts.runtime_env import RuntimeEnv
 from workflow.exception import handlers
 from workflow.extensions.graceful_shutdown.graceful_shutdown import GracefulShutdown
 from workflow.extensions.middleware.initialize import initialize_services
-from workflow.extensions.otlp.metric.metric import init_metric
-from workflow.extensions.otlp.sid.sid_generator2 import init_sid
-from workflow.extensions.otlp.trace.trace import init_trace
-from workflow.extensions.otlp.util.ip import ip
-
-
-def initialize_extensions() -> None:
-    """
-    Initialize all application extensions including metrics, SID generator, and tracing.
-
-    This function sets up the OpenTelemetry (OTLP) infrastructure for observability,
-    including metrics collection, distributed tracing, and service identification.
-    It also initializes various middleware services required by the application.
-    """
-    # Initialize metrics collection with OTLP configuration
-    init_metric(
-        endpoint=os.getenv("OTLP_ENDPOINT") or "",
-        service_name=os.getenv("OTLP_SERVICE_NAME") or "",
-        timeout=int(os.getenv("OTLP_METRIC_TIMEOUT", "5000")),
-        export_interval_millis=int(
-            os.getenv("OTLP_METRIC_EXPORT_INTERVAL_MILLIS", "3000")
-        ),
-        export_timeout_millis=int(
-            os.getenv("OTLP_METRIC_EXPORT_TIMEOUT_MILLIS", "5000")
-        ),
-    )
-
-    # Initialize service identification generator
-    init_sid(
-        sub=os.getenv("SERVICE_SUB", "spf"),
-        location=os.getenv("SERVICE_LOCATION", "SparkFlow"),
-        localIp=ip,
-        localPort=os.getenv("SERVICE_PORT", "7860"),
-    )
-
-    # Initialize distributed tracing with OTLP configuration
-    init_trace(
-        endpoint=os.getenv("OTLP_ENDPOINT") or "",
-        service_name=os.getenv("OTLP_SERVICE_NAME") or "",
-        timeout=int(os.getenv("OTLP_TRACE_TIMEOUT", "5000")),
-        max_queue_size=int(os.getenv("OTLP_TRACE_MAX_QUEUE_SIZE", "2048")),
-        schedule_delay_millis=int(
-            os.getenv("OTLP_TRACE_SCHEDULE_DELAY_MILLIS", "5000")
-        ),
-        max_export_batch_size=int(os.getenv("OTLP_TRACE_MAX_EXPORT_BATCH_SIZE", "512")),
-        export_timeout_millis=int(
-            os.getenv("OTLP_TRACE_EXPORT_TIMEOUT_MILLIS", "30000")
-        ),
-    )
-
-    # Initialize application services and middleware
-    initialize_services()
 
 
 def create_app() -> FastAPI:
@@ -90,8 +38,8 @@ def create_app() -> FastAPI:
 
     :return: Configured FastAPI application instance
     """
-    # Initialize all application extensions first
-    initialize_extensions()
+    # Initialize application services and middleware
+    initialize_services()
 
     # Create the FastAPI application instance
     app = FastAPI()
@@ -193,7 +141,7 @@ def set_env() -> None:
     """
     try:
         # Determine the runtime environment (defaults to Local)
-        running_env = os.getenv("RUNTIME_ENV", RuntimeEnv.Local.value)
+        running_env = os.getenv("RUNTIME_ENV", "")
 
         # Select the appropriate configuration file based on environment
         if running_env == RuntimeEnv.Local.value:
@@ -205,13 +153,24 @@ def set_env() -> None:
 
         # Load environment variables from the configuration file
         if os.path.exists(env_file):
-            load_dotenv(env_file, override=True)
+            load_dotenv(env_file, override=False)
             logger.debug("Using config.env file.")
         else:
             raise ValueError("No config.env file found.")
     except Exception:
         # Re-raise any exceptions that occur during environment setup
         raise
+
+
+def _get_worker_count() -> int:
+    """
+    Get the number of workers to use for the application.
+    """
+    worker_count: int = int(os.getenv("WORKERS", "0"))
+    if worker_count == 0:
+        worker_count = multiprocessing.cpu_count() + 1
+    logger.debug(f"worker_count: {worker_count}")
+    return worker_count
 
 
 if __name__ == "__main__":
@@ -231,16 +190,14 @@ if __name__ == "__main__":
     uvicorn.run(
         app="main:create_app",  # Reference to the FastAPI app factory function
         host="0.0.0.0",  # Bind to all available network interfaces
-        port=int(os.getenv("SERVICE_PORT", "7880")),  # Default port 7881
-        workers=(
-            None  # Single worker for Windows and macOS (development platforms)
-            if sys.platform in ["win", "win32", "darwin"]
-            else int(
-                os.getenv("WORKERS", "20")
-            )  # Multiple workers for Linux (production)
-        ),
-        reload=True,  # Enable auto-reload for development
-        log_level="error",  # Set log level to error to reduce noise
+        port=int(os.getenv("SERVICE_PORT", "7880")),  # Default port 7880
+        workers=_get_worker_count(),
+        reload=(
+            bool(os.getenv("RELOAD", "False"))
+        ),  # Enable auto-reload for development
+        log_level=os.getenv(
+            "LOG_LEVEL", "error"
+        ).lower(),  # Set log level to error to reduce noise
         ws_ping_interval=None,  # Disable WebSocket ping interval
         ws_ping_timeout=None,  # Disable WebSocket ping timeout
     )

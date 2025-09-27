@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.iflytek.astra.console.toolkit.mapper.trace.ChatInfoMapper">
+<mapper namespace="com.iflytek.astron.console.toolkit.mapper.trace.ChatInfoMapper">
 
 
     <select id="selectUserCount" resultType="java.lang.Long">
@@ -44,7 +44,7 @@
             and #{endDate} > create_time
         </if>
     </select>
-    <select id="getErrorBySidList" resultType="com.iflytek.astra.console.toolkit.entity.vo.WorkflowErrorVo">
+    <select id="getErrorBySidList" resultType="com.iflytek.astron.console.toolkit.entity.vo.WorkflowErrorVo">
         SELECT DISTINCT  status_code as errorCode,'' as errorMsg,create_time as errorTime
         from chat_info
         <where>
@@ -56,7 +56,7 @@
         order by create_time desc
     </select>
     <select id="getUserFeedBackErrorInfo"
-            resultType="com.iflytek.astra.console.toolkit.entity.vo.WorkflowUserFeedbackErrorVo">
+            resultType="com.iflytek.astron.console.toolkit.entity.vo.WorkflowUserFeedbackErrorVo">
         select  uid, status_code as errorCode,'' as errorMsg,create_time as errorTime
         from chat_info
         <where>
@@ -72,7 +72,7 @@
         </where>
         order by create_time desc
     </select>
-    <select id="selectWorkflowUseCount" resultType="com.iflytek.astra.console.toolkit.entity.dto.ToolUseDto">
+    <select id="selectWorkflowUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto">
         SELECT
         JSON_UNQUOTE(JSON_EXTRACT(ni.config, '$.pluginId')) AS toolId,
         COUNT(*) AS useCount
@@ -93,7 +93,7 @@
         GROUP BY
         JSON_UNQUOTE(JSON_EXTRACT(ni.config, '$.pluginId'));
     </select>
-    <select id="selectBotUseCount" resultType="com.iflytek.astra.console.toolkit.entity.dto.ToolUseDto">
+    <select id="selectBotUseCount" resultType="com.iflytek.astron.console.toolkit.entity.dto.ToolUseDto">
         SELECT flow_id as toolId,COUNT(*) AS useCount
         FROM chat_info
         <where>

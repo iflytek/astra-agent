@@ -10,7 +10,6 @@ import time
 from typing import Any, Dict, cast
 
 from sqlmodel import Session  # type: ignore
-
 from workflow.cache import flow as flow_cache
 from workflow.cache.engine import ENGINE_CACHE_PREFIX
 from workflow.domain.entities.flow import FlowUpdate
@@ -29,7 +28,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.flow.flow_node import FlowNode
-from workflow.exception.e import CustomException, CustomExceptionCM
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.cache.base import BaseCacheService
 from workflow.extensions.middleware.database.utils import session_getter
@@ -125,10 +124,13 @@ def get(flow_id: str, session: Session, span: Span) -> Flow:
     :return: The flow object if found
     :raises CustomException: If flow with the given ID is not found
     """
-    # TODO: Implement caching mechanism for better performance
+    db_flow = flow_cache.get_flow_by_id(flow_id)
+    if db_flow:
+        return db_flow
     db_flow = session.query(Flow).filter_by(id=int(flow_id)).first()
     if not db_flow:
-        raise CustomException(CodeEnum.FlowIDNotFound)
+        raise CustomException(CodeEnum.FLOW_NOT_FOUND_ERROR)
+    flow_cache.set_flow_by_id(flow_id, db_flow)
     return db_flow
 
 
@@ -160,22 +162,22 @@ def get_latest_published_flow_by(
     # Query database if not found in cache
     db_flow = session.query(Flow).filter_by(id=int(flow_id)).first()
     if not db_flow:
-        raise CustomException(CodeEnum.FlowIDNotFound)
+        raise CustomException(CodeEnum.FLOW_NOT_FOUND_ERROR)
 
     # Validate license permissions
     lic = license_dao.get_by(db_flow.group_id, app_alias_id, session)
     if not lic:
-        raise CustomException(CodeEnum.AppFlowNotAuthBondErr)
+        raise CustomException(CodeEnum.APP_FLOW_NOT_AUTH_BOND_ERROR)
 
     if not lic.status:
-        raise CustomException(CodeEnum.AppFlowNoLicenseErr)
+        raise CustomException(CodeEnum.APP_FLOW_NO_LICENSE_ERROR)
 
     # Get the latest published version of the flow
     published_flow = flow_dao.get_latest_published_flow_by(
         db_flow.group_id, session, version
     )
     if not published_flow:
-        raise CustomException(CodeEnum.FlowNotPublish)
+        raise CustomException(CodeEnum.FLOW_NOT_PUBLISH_ERROR)
 
     # Cache the result for future requests
     if not version:
@@ -276,8 +278,8 @@ async def node_debug(workflow_dsl: WorkflowDSL, span: Span) -> NodeDebugRespVo:
     res: NodeRunResult = await node_instance.async_execute(variable_pool, span=span)
 
     # Check execution status and raise exception if failed
-    if res.status != WorkflowNodeExecutionStatus.SUCCEEDED:
-        raise CustomExceptionCM(res.error_code or 500, res.error or "Unknown error")
+    if res.status != WorkflowNodeExecutionStatus.SUCCEEDED and res.error:
+        raise res.error
 
     # Calculate execution time
     time_cost = time.time() * 1000 - time_start
@@ -355,7 +357,7 @@ def build(
     except Exception as err:
         # Handle unexpected exceptions
         workflow_trace.set_status(
-            CodeEnum.ProtocolBuildError.code, CodeEnum.ProtocolBuildError.msg
+            CodeEnum.PROTOCOL_BUILD_ERROR.code, CodeEnum.PROTOCOL_BUILD_ERROR.msg
         )
         raise err
     finally:

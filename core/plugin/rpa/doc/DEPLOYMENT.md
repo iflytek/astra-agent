@@ -1,101 +1,99 @@
-# 🚀 部署指南
+# 🚀 Deployment Guide
 
-本文档提供了星辰 RPA 服务器的详细部署指南，包括本地开发、测试环境和生产环境部署。
+This document provides a detailed deployment guide for the Xingchen RPA Server, including local development, testing environments, and production deployments.
 
-## 📋 目录
+## 📋 Table of Contents
 
-- [环境要求](#环境要求)
-- [本地开发部署](#本地开发部署)
-- [Docker 部署](#docker-部署)
-- [生产环境部署](#生产环境部署)
-- [负载均衡配置](#负载均衡配置)
-- [监控和日志](#监控和日志)
-- [故障排除](#故障排除)
+- [Environment Requirements](#environment-requirements)
+- [Local Development Deployment](#local-development-deployment)
+- [Docker Deployment](#docker-deployment)
+- [Production Environment Deployment](#production-environment-deployment)
+- [Load Balancing Configuration](#load-balancing-configuration)
+- [Monitoring and Logging](#monitoring-and-logging)
+- [Troubleshooting](#troubleshooting)
 
-## 🛠️ 环境要求
+## 🛠️ Environment Requirements
 
-### 系统要求
-- **操作系统**: Linux (Ubuntu 20.04+, CentOS 7+), macOS, Windows 10+
-- **Python**: 3.11 或更高版本
-- **内存**: 最小 2GB，推荐 4GB+
-- **磁盘**: 最小 1GB 可用空间
-- **网络**: 需要访问外部 RPA API 服务
+### System Requirements
+- **Operating System**: Linux (Ubuntu 20.04+, CentOS 7+), macOS, Windows 10+
+- **Python**: 3.11 or higher
+- **Memory**: Minimum 2GB, recommended 4GB+
+- **Disk**: Minimum 1GB available space
+- **Network**: Access to external RPA API services required
 
-### 软件依赖
+### Software Dependencies
 - Python 3.11+
-- pip 或 uv 包管理器
-- Git (用于代码管理)
-- 可选: Docker & Docker Compose
+- pip or uv package manager
+- Git (for code management)
+- Optional: Docker & Docker Compose
 
-## 💻 本地开发部署
+## 💻 Local Development Deployment
 
-### 1. 环境准备
+### 1. Environment Setup
 
 ```bash
-# 创建项目目录
+# Create project directory
 mkdir -p ~/projects/rpa-server
 cd ~/projects/rpa-server
 
-# 克隆代码
+# Clone code
 git clone <repository-url> .
 
-# 创建虚拟环境
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate  # Linux/macOS
-# 或 venv\Scripts\activate  # Windows
+# or venv\Scripts\activate  # Windows
 
-# 升级 pip
+# Upgrade pip
 pip install --upgrade pip
 ```
 
-### 2. 安装依赖
+### 2. Install Dependencies
 
 ```bash
-# 安装生产依赖
+# Install production dependencies
 pip install -r requirements.txt
 
-# 安装开发依赖 (可选)
+# Install development dependencies (optional)
 pip install pytest pytest-cov pytest-asyncio black isort mypy
 ```
 
-### 3. 配置环境变量
+### 3. Configure Environment Variables
 
 ```bash
-# 复制环境变量模板
+# Copy environment variable template
 cp .env.example .env
 
-# 编辑配置文件
+# Edit configuration file
 nano .env
 ```
 
-**关键配置项**:
+**Key Configuration Items**:
 ```bash
-# 基础配置
+# Basic configuration
 LOG_LEVEL=DEBUG
 LOG_PATH=./logs
-UVICORN_HOST=127.0.0.1
-UVICORN_PORT=19999
 
-# RPA API 配置 (替换为实际地址)
-RPA_TASK_CREATE_URL=https://your-rpa-api.com/create
-RPA_TASK_QUERY_URL=https://your-rpa-api.com/query
+# RPA API configuration (replace with actual addresses)
+XIAOWU_RPA_TASK_CREATE_URL=https://your-rpa-api.com/create
+XIAOWU_RPA_TASK_QUERY_URL=https://your-rpa-api.com/query
 ```
 
-### 4. 启动开发服务器
+### 4. Start Development Server
 
 ```bash
-# 方式1: 使用应用入口
+# Method 1: Using application entry point
 python main.py
 
-# 方式2: 使用 uvicorn (推荐开发环境)
-uvicorn api.app:xingchen_rap_server_app --reload --host 127.0.0.1 --port 19999
+# Method 2: Using uvicorn (recommended for development)
+uvicorn api.app:rpa_server_app --reload --host 127.0.0.1 --port 19999
 
-# 方式3: 使用自定义启动脚本
+# Method 3: Using custom startup script
 python -c "
 import uvicorn
-from api.app import xingchen_rap_server_app
+from plugin.rpa.api.app import rpa_server_app
 uvicorn.run(
-    xingchen_rap_server_app,
+    rpa_server_app,
     host='127.0.0.1',
     port=19999,
     reload=True,
@@ -103,62 +101,62 @@ uvicorn.run(
 )"
 ```
 
-### 5. 验证部署
+### 5. Verify Deployment
 
 ```bash
-# 检查服务状态
+# Check service status
 curl http://127.0.0.1:19999/rpa/v1/docs
 
-# 运行健康检查
+# Run health check
 curl -X POST http://127.0.0.1:19999/rpa/v1/exec \
   -H "Authorization: Bearer test-token" \
   -H "Content-Type: application/json" \
   -d '{"project_id": "health-check"}'
 ```
 
-## 🐳 Docker 部署
+## 🐳 Docker Deployment
 
-### 1. 创建 Dockerfile
+### 1. Create Dockerfile
 
 ```dockerfile
 # Dockerfile
 FROM python:3.11-slim
 
-# 设置工作目录
+# Set working directory
 WORKDIR /app
 
-# 安装系统依赖
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# Copy dependency files
 COPY requirements.txt .
 
-# 安装 Python 依赖
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制应用代码
+# Copy application code
 COPY . .
 
-# 创建日志目录
+# Create log directory
 RUN mkdir -p logs
 
-# 设置权限
+# Set permissions
 RUN chmod +x main.py
 
-# 暴露端口
+# Expose port
 EXPOSE 19999
 
-# 健康检查
+# Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:19999/rpa/v1/docs || exit 1
 
-# 启动命令
+# Startup command
 CMD ["python", "main.py"]
 ```
 
-### 2. 创建 Docker Compose 配置
+### 2. Create Docker Compose Configuration
 
 ```yaml
 # docker-compose.yml
@@ -172,12 +170,9 @@ services:
     environment:
       - LOG_LEVEL=INFO
       - LOG_PATH=/app/logs
-      - UVICORN_HOST=0.0.0.0
-      - UVICORN_PORT=19999
-      - UVICORN_WORKERS=4
-      - RPA_TIMEOUT=300
-      - RPA_TASK_CREATE_URL=${RPA_TASK_CREATE_URL}
-      - RPA_TASK_QUERY_URL=${RPA_TASK_QUERY_URL}
+      - XIAOWU_RPA_TIMEOUT=300
+      - XIAOWU_RPA_TASK_CREATE_URL=${XIAOWU_RPA_TASK_CREATE_URL}
+      - XIAOWU_RPA_TASK_QUERY_URL=${XIAOWU_RPA_TASK_QUERY_URL}
     volumes:
       - ./logs:/app/logs
       - ./config:/app/config
@@ -189,7 +184,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # 可选: 添加 Nginx 反向代理
+  # Optional: Add Nginx reverse proxy
   nginx:
     image: nginx:alpine
     ports:
@@ -203,50 +198,50 @@ services:
     restart: unless-stopped
 ```
 
-### 3. 构建和运行
+### 3. Build and Run
 
 ```bash
-# 构建镜像
+# Build image
 docker build -t xingchen-rpa-server .
 
-# 使用 Docker Compose 启动
+# Start using Docker Compose
 docker-compose up -d
 
-# 查看日志
+# View logs
 docker-compose logs -f rpa-server
 
-# 停止服务
+# Stop service
 docker-compose down
 ```
 
-### 4. 单容器运行
+### 4. Single Container Run
 
 ```bash
-# 运行单个容器
+# Run single container
 docker run -d \
   --name rpa-server \
   -p 19999:19999 \
   -e LOG_LEVEL=INFO \
-  -e RPA_TASK_CREATE_URL=https://your-api.com/create \
-  -e RPA_TASK_QUERY_URL=https://your-api.com/query \
+  -e XIAOWU_RPA_TASK_CREATE_URL=https://your-api.com/create \
+  -e XIAOWU_RPA_TASK_QUERY_URL=https://your-api.com/query \
   -v $(pwd)/logs:/app/logs \
   xingchen-rpa-server
 
-# 查看容器状态
+# Check container status
 docker ps
 docker logs rpa-server
 ```
 
-## 🏭 生产环境部署
+## 🏭 Production Environment Deployment
 
-### 1. 使用 Gunicorn + Uvicorn Workers
+### 1. Using Gunicorn + Uvicorn Workers
 
 ```bash
-# 安装 Gunicorn
+# Install Gunicorn
 pip install gunicorn
 
-# 启动生产服务器
-gunicorn api.app:xingchen_rap_server_app \
+# Start production server
+gunicorn api.app:rpa_server_app \
   -w 4 \
   -k uvicorn.workers.UvicornWorker \
   --bind 0.0.0.0:19999 \
@@ -256,7 +251,7 @@ gunicorn api.app:xingchen_rap_server_app \
   --preload
 ```
 
-### 2. 创建 Gunicorn 配置文件
+### 2. Create Gunicorn Configuration File
 
 ```python
 # gunicorn.conf.py
@@ -269,28 +264,28 @@ max_requests_jitter = 100
 timeout = 30
 keepalive = 2
 
-# 日志配置
+# Logging configuration
 accesslog = "logs/access.log"
 errorlog = "logs/error.log"
 loglevel = "info"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s'
 
-# 进程管理
+# Process management
 preload_app = True
 worker_tmp_dir = "/dev/shm"
 
-# 安全配置
+# Security configuration
 limit_request_line = 4094
 limit_request_fields = 100
 limit_request_field_size = 8190
 ```
 
-使用配置文件启动:
+Start using configuration file:
 ```bash
-gunicorn -c gunicorn.conf.py api.app:xingchen_rap_server_app
+gunicorn -c gunicorn.conf.py api.app:rpa_server_app
 ```
 
-### 3. Systemd 服务配置
+### 3. Systemd Service Configuration
 
 ```ini
 # /etc/systemd/system/rpa-server.service
@@ -304,12 +299,12 @@ User=rpa
 Group=rpa
 WorkingDirectory=/opt/rpa-server
 Environment=PATH=/opt/rpa-server/venv/bin
-ExecStart=/opt/rpa-server/venv/bin/gunicorn -c gunicorn.conf.py api.app:xingchen_rap_server_app
+ExecStart=/opt/rpa-server/venv/bin/gunicorn -c gunicorn.conf.py api.app:rpa_server_app
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 RestartSec=10
 
-# 安全设置
+# Security settings
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
@@ -319,27 +314,27 @@ ReadWritePaths=/opt/rpa-server/logs
 WantedBy=multi-user.target
 ```
 
-启动服务:
+Start service:
 ```bash
-# 创建用户和目录
+# Create user and directory
 sudo useradd -r -s /bin/false rpa
 sudo mkdir -p /opt/rpa-server
 sudo chown rpa:rpa /opt/rpa-server
 
-# 部署应用
+# Deploy application
 sudo cp -r . /opt/rpa-server/
 sudo chown -R rpa:rpa /opt/rpa-server/
 
-# 启动服务
+# Start service
 sudo systemctl daemon-reload
 sudo systemctl enable rpa-server
 sudo systemctl start rpa-server
 
-# 查看状态
+# Check status
 sudo systemctl status rpa-server
 ```
 
-### 4. PM2 部署 (Node.js 环境)
+### 4. PM2 Deployment (Node.js Environment)
 
 ```javascript
 // ecosystem.config.js
@@ -347,7 +342,7 @@ module.exports = {
   apps: [{
     name: 'rpa-server',
     script: '/opt/rpa-server/venv/bin/gunicorn',
-    args: '-c gunicorn.conf.py api.app:xingchen_rap_server_app',
+    args: '-c gunicorn.conf.py api.app:rpa_server_app',
     cwd: '/opt/rpa-server',
     instances: 1,
     autorestart: true,
@@ -365,26 +360,26 @@ module.exports = {
 };
 ```
 
-使用 PM2 部署:
+Deploy using PM2:
 ```bash
-# 安装 PM2
+# Install PM2
 npm install -g pm2
 
-# 启动应用
+# Start application
 pm2 start ecosystem.config.js
 
-# 查看状态
+# Check status
 pm2 status
 pm2 logs rpa-server
 
-# 设置开机自启
+# Set auto-start on boot
 pm2 startup
 pm2 save
 ```
 
-## ⚖️ 负载均衡配置
+## ⚖️ Load Balancing Configuration
 
-### Nginx 配置
+### Nginx Configuration
 
 ```nginx
 # /etc/nginx/sites-available/rpa-server
@@ -400,7 +395,7 @@ server {
     listen [::]:80;
     server_name rpa.yourdomain.com;
 
-    # 重定向到 HTTPS
+    # Redirect to HTTPS
     return 301 https://$server_name$request_uri;
 }
 
@@ -409,16 +404,16 @@ server {
     listen [::]:443 ssl http2;
     server_name rpa.yourdomain.com;
 
-    # SSL 配置
+    # SSL configuration
     ssl_certificate /path/to/cert.pem;
     ssl_certificate_key /path/to/key.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
 
-    # 客户端最大上传大小
+    # Maximum client upload size
     client_max_body_size 10M;
 
-    # 代理配置
+    # Proxy configuration
     location /rpa/ {
         proxy_pass http://rpa_backend;
         proxy_set_header Host $host;
@@ -426,7 +421,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # SSE 支持
+        # SSE support
         proxy_buffering off;
         proxy_cache off;
         proxy_set_header Connection '';
@@ -434,28 +429,28 @@ server {
         chunked_transfer_encoding off;
     }
 
-    # 健康检查端点
+    # Health check endpoint
     location /health {
         access_log off;
         return 200 "healthy\n";
         add_header Content-Type text/plain;
     }
 
-    # 安全头
+    # Security headers
     add_header X-Frame-Options DENY;
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
 }
 ```
 
-启用配置:
+Enable configuration:
 ```bash
 sudo ln -s /etc/nginx/sites-available/rpa-server /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-### HAProxy 配置
+### HAProxy Configuration
 
 ```
 # /etc/haproxy/haproxy.cfg
@@ -502,9 +497,9 @@ listen stats
     stats admin if TRUE
 ```
 
-## 📊 监控和日志
+## 📊 Monitoring and Logging
 
-### 1. 应用监控
+### 1. Application Monitoring
 
 ```python
 # monitoring.py
@@ -513,7 +508,7 @@ import time
 from pathlib import Path
 
 def get_system_metrics():
-    """获取系统指标"""
+    """Get system metrics"""
     return {
         'cpu_percent': psutil.cpu_percent(),
         'memory_percent': psutil.virtual_memory().percent,
@@ -523,7 +518,7 @@ def get_system_metrics():
     }
 
 def get_app_metrics():
-    """获取应用指标"""
+    """Get application metrics"""
     process = psutil.Process()
     return {
         'memory_mb': process.memory_info().rss / 1024 / 1024,
@@ -534,14 +529,14 @@ def get_app_metrics():
     }
 ```
 
-### 2. 日志聚合
+### 2. Log Aggregation
 
 ```bash
-# 使用 rsyslog 聚合日志
+# Use rsyslog to aggregate logs
 echo "*.* @@log-server:514" >> /etc/rsyslog.conf
 systemctl restart rsyslog
 
-# 使用 Logrotate 轮转日志
+# Use Logrotate to rotate logs
 cat > /etc/logrotate.d/rpa-server << EOF
 /opt/rpa-server/logs/*.log {
     daily
@@ -558,14 +553,14 @@ cat > /etc/logrotate.d/rpa-server << EOF
 EOF
 ```
 
-### 3. Prometheus 指标
+### 3. Prometheus Metrics
 
 ```python
 # metrics.py
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
 from fastapi import Response
 
-# 定义指标
+# Define metrics
 REQUEST_COUNT = Counter('rpa_requests_total', 'Total requests', ['method', 'endpoint'])
 REQUEST_DURATION = Histogram('rpa_request_duration_seconds', 'Request duration')
 ACTIVE_TASKS = Gauge('rpa_active_tasks', 'Active RPA tasks')
@@ -585,56 +580,56 @@ async def get_metrics():
     return Response(generate_latest(), media_type="text/plain")
 ```
 
-## 🔧 故障排除
+## 🔧 Troubleshooting
 
-### 常见问题诊断
+### Common Issue Diagnosis
 
-#### 1. 服务启动失败
+#### 1. Service Startup Failure
 
 ```bash
-# 检查端口占用
+# Check port usage
 sudo netstat -tulpn | grep 19999
 sudo lsof -i :19999
 
-# 检查配置文件
+# Check configuration files
 python -c "
 import os
 from dotenv import load_dotenv
 load_dotenv('.env')
-print('RPA_TASK_CREATE_URL:', os.getenv('RPA_TASK_CREATE_URL'))
+print('XIAOWU_RPA_TASK_CREATE_URL:', os.getenv('XIAOWU_RPA_TASK_CREATE_URL'))
 "
 
-# 检查依赖
+# Check dependencies
 pip check
 ```
 
-#### 2. 连接超时问题
+#### 2. Connection Timeout Issues
 
 ```bash
-# 测试网络连接
-curl -v $RPA_TASK_CREATE_URL
-ping $(echo $RPA_TASK_CREATE_URL | cut -d'/' -f3)
+# Test network connection
+curl -v $XIAOWU_RPA_TASK_CREATE_URL
+ping $(echo $XIAOWU_RPA_TASK_CREATE_URL | cut -d'/' -f3)
 
-# 检查防火墙
+# Check firewall
 sudo ufw status
 sudo iptables -L
 
-# 检查 DNS 解析
-nslookup $(echo $RPA_TASK_CREATE_URL | cut -d'/' -f3)
+# Check DNS resolution
+nslookup $(echo $XIAOWU_RPA_TASK_CREATE_URL | cut -d'/' -f3)
 ```
 
-#### 3. 内存泄漏调试
+#### 3. Memory Leak Debugging
 
 ```bash
-# 监控内存使用
+# Monitor memory usage
 watch -n 1 'ps aux | grep gunicorn'
 
-# 使用 memory_profiler
+# Use memory_profiler
 pip install memory-profiler
 python -m memory_profiler main.py
 ```
 
-### 日志分析脚本
+### Log Analysis Script
 
 ```bash
 #!/bin/bash
@@ -642,45 +637,45 @@ python -m memory_profiler main.py
 
 LOG_FILE="/opt/rpa-server/logs/rpa-server.log"
 
-echo "=== RPA Server 日志分析 ==="
-echo "日志文件: $LOG_FILE"
+echo "=== RPA Server Log Analysis ==="
+echo "Log file: $LOG_FILE"
 echo
 
-# 错误统计
-echo "❌ 错误统计:"
+# Error statistics
+echo "❌ Error Statistics:"
 grep -c "ERROR" $LOG_FILE
 echo
 
-# 最近的错误
-echo "🔍 最近10个错误:"
+# Recent errors
+echo "🔍 Recent 10 Errors:"
 grep "ERROR" $LOG_FILE | tail -10
 echo
 
-# 请求统计
-echo "📊 今日请求统计:"
+# Request statistics
+echo "📊 Today's Request Statistics:"
 grep "$(date '+%Y-%m-%d')" $LOG_FILE | grep "POST /rpa/v1/exec" | wc -l
 echo
 
-# 响应时间分析
-echo "⏱️ 平均响应时间:"
+# Response time analysis
+echo "⏱️ Average Response Time:"
 grep "Process-Time" $LOG_FILE | awk '{print $NF}' | \
   awk '{sum+=$1; count++} END {print sum/count "s"}'
 ```
 
-### 性能调优
+### Performance Tuning
 
 ```bash
-# 系统级优化
+# System-level optimization
 echo 'net.core.somaxconn = 65535' >> /etc/sysctl.conf
 echo 'fs.file-max = 100000' >> /etc/sysctl.conf
 sysctl -p
 
-# 应用级优化
+# Application-level optimization
 export PYTHONOPTIMIZE=1
 export PYTHONDONTWRITEBYTECODE=1
 
-# Gunicorn 调优
-gunicorn api.app:xingchen_rap_server_app \
+# Gunicorn tuning
+gunicorn api.app:rpa_server_app \
   -w $(nproc) \
   --worker-tmp-dir /dev/shm \
   --worker-class uvicorn.workers.UvicornWorker \
@@ -690,10 +685,10 @@ gunicorn api.app:xingchen_rap_server_app \
 
 ---
 
-## 📞 获取帮助
+## 📞 Get Help
 
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/your-org/xingchen-rpa-server/issues)
-- 📖 **详细文档**: [README.md](./README.md)
-- 🔧 **API 示例**: [API_EXAMPLES.md](./API_EXAMPLES.md)
+- 🐛 **Issue Reports**: [GitHub Issues](https://github.com/your-org/xingchen-rpa-server/issues)
+- 📖 **Detailed Documentation**: [README.md](./README.md)
+- 🔧 **API Examples**: [API_EXAMPLES.md](./API_EXAMPLES.md)
 
-这个部署指南涵盖了从开发环境到生产环境的完整部署流程，您可以根据实际需求选择合适的部署方式。
+This deployment guide covers the complete deployment process from development to production environments. You can choose the appropriate deployment method based on your actual requirements.

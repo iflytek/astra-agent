@@ -1,1 +1,1 @@
-"""Service测试模块。"""
+"""Service test module."""

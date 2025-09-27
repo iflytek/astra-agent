@@ -12,7 +12,6 @@ from typing import List, Tuple
 
 import pytest
 from pydantic import BaseModel
-
 from workflow.extensions.otlp.sid.sid_generator2 import init_sid
 from workflow.extensions.otlp.trace.span import Span
 from workflow.extensions.otlp.trace.trace import init_trace

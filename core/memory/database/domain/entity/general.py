@@ -4,13 +4,13 @@ for async database operations.
 """
 
 import re
-
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any, Dict, Optional
 
 from memory.database.exceptions.e import CustomException
 from memory.database.exceptions.error_code import CodeEnum
 from memory.database.utils.retry import retry_on_invalid_cached_statement
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 def extract_sql_params(sql: str) -> set:
@@ -27,7 +27,9 @@ def extract_sql_params(sql: str) -> set:
 
 
 @retry_on_invalid_cached_statement(max_retries=3)
-async def parse_and_exec_sql(session: AsyncSession, sql: str, params: dict = None):
+async def parse_and_exec_sql(
+    session: AsyncSession, sql: str, params: Optional[Dict[str, Any]] = None
+) -> Any:
     """
     Safely parse and execute SQL with automatic parameter binding.
 
@@ -46,14 +48,15 @@ async def parse_and_exec_sql(session: AsyncSession, sql: str, params: dict = Non
     missing = param_names - provided_keys
     if missing:
         raise CustomException(
-            err_code=CodeEnum.SQLParseError.code, err_msg=f"Missing binding parameters: {missing}"
+            err_code=CodeEnum.SQLParseError.code,
+            err_msg=f"Missing binding parameters: {missing}",
         )
 
     return await session.execute(text(sql), params or {})
 
 
 @retry_on_invalid_cached_statement(max_retries=3)
-async def exec_sql_statement(session: AsyncSession, statement: str):
+async def exec_sql_statement(session: AsyncSession, statement: str) -> Any:
     """Execute raw SQL statement
 
     Args:

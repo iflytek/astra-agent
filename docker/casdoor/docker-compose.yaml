@@ -1,0 +1,18 @@
+services:
+  casdoor:
+    image: casbin/casdoor:latest
+    container_name: casdoor
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GIN_MODE=release
+    volumes:
+      - ./conf:/conf
+      - ./logs:/logs
+    networks:
+      - casdoor-network
+
+networks:
+  casdoor-network:
+    driver: bridge

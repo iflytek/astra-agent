@@ -49,27 +49,27 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
 
             chat_params = RunnerParams(
                 model=model,
-                chat_history=self.inputs.messages[:-1],
+                chat_history=self.inputs.get_chat_history(),
                 instruct=self.inputs.instruction.answer,
                 knowledge=knowledge,
-                question=self.inputs.messages[-1].content,
+                question=self.inputs.get_last_message_content(),
             )
             chat_runner = await self.build_chat_runner(chat_params)
             process_params = RunnerParams(
                 model=model,
-                chat_history=self.inputs.messages[:-1],
+                chat_history=self.inputs.get_chat_history(),
                 instruct=self.inputs.instruction.answer,
                 knowledge=knowledge,
-                question=self.inputs.messages[-1].content,
+                question=self.inputs.get_last_message_content(),
             )
             process_runner = await self.build_process_runner(process_params)
             cot_params = CotRunnerParams(
                 model=model,
                 plugins=plugins,
-                chat_history=self.inputs.messages[:-1],
+                chat_history=self.inputs.get_chat_history(),
                 instruct=self.inputs.instruction.reasoning,
                 knowledge=knowledge,
-                question=self.inputs.messages[-1].content,
+                question=self.inputs.get_last_message_content(),
                 process_runner=process_runner,
                 max_loop=self.inputs.max_loop_count,
             )
@@ -201,7 +201,7 @@ class WorkflowAgentRunnerBuilder(BaseApiBuilder):
         span: Span,
     ) -> dict[str, Any]:
         knowledge_plugin = KnowledgePluginFactory(
-            query=self.inputs.messages[-1].content,
+            query=self.inputs.get_last_message_content(),
             top_k=params.top_k,
             repo_ids=params.repo_ids,
             doc_ids=params.doc_ids,

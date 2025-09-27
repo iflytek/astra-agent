@@ -1,0 +1,547 @@
+name: Release Multi-Language CI/CD Tools
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'      # 匹配语义版本号 (v1.0.0, v2.1.3, etc.)
+      - 'v*.*.*-*'    # 匹配预发布版本 (v1.0.0-beta.1, v2.1.0-rc.1, etc.)
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  attestations: write
+  id-token: write
+
+env:
+  REGISTRY_GHCR: ghcr.io
+
+jobs:
+  # ============================================================================
+  # Stage 1: 验证和准备
+  # ============================================================================
+  prepare-release:
+    name: 🚀 准备发布
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      is-prerelease: ${{ steps.meta.outputs.is-prerelease }}
+      has-go: ${{ steps.detect.outputs.has-go }}
+      has-java: ${{ steps.detect.outputs.has-java }}
+      has-python: ${{ steps.detect.outputs.has-python }}
+      has-typescript: ${{ steps.detect.outputs.has-typescript }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史记录用于生成changelog
+
+      - name: 验证标签格式
+        id: meta
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.tag }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/}
+            # 检查是否为预发布版本 (包含 -, alpha, beta, rc 等)
+            if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              IS_PRERELEASE="false"
+            else
+              IS_PRERELEASE="true"
+            fi
+          fi
+          
+          # 验证版本号格式
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "❌ 错误的版本号格式: $VERSION"
+            echo "✅ 正确格式: v1.0.0, v1.0.0-beta.1, v1.0.0-rc.1"
+            exit 1
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is-prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          
+          echo "🏷️ 发布版本: $VERSION"
+          echo "🔖 预发布版本: $IS_PRERELEASE"
+
+      - name: 智能项目检测
+        id: detect
+        run: |
+          echo "🔍 检测项目组件..."
+          
+          HAS_GO="false"
+          HAS_JAVA="false" 
+          HAS_PYTHON="false"
+          HAS_TS="false"
+          
+          if [[ -f "backend-go/go.mod" && -d "backend-go/cmd" && -f "backend-go/Dockerfile" ]]; then
+            HAS_GO="true"
+            echo "✅ Go项目: backend-go/ (可构建Docker镜像)"
+          fi
+          
+          if [[ -f "backend-java/pom.xml" && -f "backend-java/Dockerfile" ]]; then
+            HAS_JAVA="true"
+            echo "✅ Java项目: backend-java/ (可构建Docker镜像)"
+          fi
+          
+          if [[ -f "backend-python/main.py" && -f "backend-python/requirements.txt" && -f "backend-python/Dockerfile" ]]; then
+            HAS_PYTHON="true"
+            echo "✅ Python项目: backend-python/ (可构建Docker镜像)"
+          fi
+          
+          if [[ -f "frontend-ts/package.json" && -f "frontend-ts/tsconfig.json" && -f "frontend-ts/Dockerfile" ]]; then
+            HAS_TS="true"
+            echo "✅ TypeScript项目: frontend-ts/ (可构建Docker镜像)"
+          fi
+          
+          echo "has-go=$HAS_GO" >> $GITHUB_OUTPUT
+          echo "has-java=$HAS_JAVA" >> $GITHUB_OUTPUT
+          echo "has-python=$HAS_PYTHON" >> $GITHUB_OUTPUT
+          echo "has-typescript=$HAS_TS" >> $GITHUB_OUTPUT
+
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          echo "📝 生成变更日志..."
+          
+          # 获取上一个标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          CURRENT_TAG="${{ steps.meta.outputs.version }}"
+          
+          if [[ -z "$PREVIOUS_TAG" ]]; then
+            echo "🆕 这是第一个发布版本"
+            COMMIT_RANGE="HEAD"
+          else
+            echo "📊 对比版本: $PREVIOUS_TAG...$CURRENT_TAG"
+            COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
+          fi
+          
+          # 创建简单的changelog
+          CHANGELOG_FILE="/tmp/changelog.md"
+          
+          # 写入标题
+          echo "## 🚀 主要变更" > "$CHANGELOG_FILE"
+          echo "" >> "$CHANGELOG_FILE"
+          
+          # 获取并分类提交
+          echo "### ✨ 新功能" >> "$CHANGELOG_FILE"
+          if git log --pretty=format:"%s" $COMMIT_RANGE | grep "^feat" | sed 's/^feat[^:]*: /- /' >> "$CHANGELOG_FILE"; then
+            true
+          else
+            echo "- 暂无新功能" >> "$CHANGELOG_FILE"
+          fi
+          
+          echo "" >> "$CHANGELOG_FILE"
+          echo "### 🐛 问题修复" >> "$CHANGELOG_FILE"
+          if git log --pretty=format:"%s" $COMMIT_RANGE | grep "^fix" | sed 's/^fix[^:]*: /- /' >> "$CHANGELOG_FILE"; then
+            true
+          else
+            echo "- 暂无问题修复" >> "$CHANGELOG_FILE"
+          fi
+          
+          echo "" >> "$CHANGELOG_FILE"
+          echo "### 🔧 其他改进" >> "$CHANGELOG_FILE"
+          if git log --pretty=format:"%s" $COMMIT_RANGE | grep -E "^(chore|docs|refactor|test|ci)" | sed 's/^[^:]*: /- /' >> "$CHANGELOG_FILE"; then
+            true
+          else
+            echo "- 暂无其他改进" >> "$CHANGELOG_FILE"
+          fi
+          
+          # 添加Docker镜像信息
+          echo "" >> "$CHANGELOG_FILE"
+          echo "## 📦 Docker镜像" >> "$CHANGELOG_FILE"
+          echo "" >> "$CHANGELOG_FILE"
+          
+          if [[ "${{ steps.detect.outputs.has-go }}" == "true" ]]; then
+            echo "- 🐹 Go服务: ghcr.io/${{ github.repository }}-go:$CURRENT_TAG" >> "$CHANGELOG_FILE"
+          fi
+          if [[ "${{ steps.detect.outputs.has-java }}" == "true" ]]; then
+            echo "- ☕ Java服务: ghcr.io/${{ github.repository }}-java:$CURRENT_TAG" >> "$CHANGELOG_FILE"
+          fi
+          if [[ "${{ steps.detect.outputs.has-python }}" == "true" ]]; then
+            echo "- 🐍 Python服务: ghcr.io/${{ github.repository }}-python:$CURRENT_TAG" >> "$CHANGELOG_FILE"
+          fi
+          if [[ "${{ steps.detect.outputs.has-typescript }}" == "true" ]]; then
+            echo "- 🟦 TypeScript前端: ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG" >> "$CHANGELOG_FILE"
+          fi
+          
+          # 添加使用说明  
+          echo "" >> "$CHANGELOG_FILE"
+          echo "## 📋 使用说明" >> "$CHANGELOG_FILE"
+          echo "" >> "$CHANGELOG_FILE"
+          echo "### 快速开始" >> "$CHANGELOG_FILE"
+          echo '```bash' >> "$CHANGELOG_FILE"
+          echo "git clone https://github.com/${{ github.repository }}.git" >> "$CHANGELOG_FILE"
+          echo "cd remote-ci" >> "$CHANGELOG_FILE"
+          echo "git checkout $CURRENT_TAG" >> "$CHANGELOG_FILE"
+          echo "make setup  # 初始化环境" >> "$CHANGELOG_FILE"
+          echo "make ci     # 完整CI流程" >> "$CHANGELOG_FILE"
+          echo '```' >> "$CHANGELOG_FILE"
+          
+          # 输出到GitHub Output
+          {
+            echo "changelog<<EOF"
+            cat "$CHANGELOG_FILE"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          
+          echo "📄 变更日志已生成"
+
+  # ============================================================================
+  # Stage 2: 构建Docker镜像 (复用build-push的逻辑)
+  # ============================================================================
+  build-go:
+    name: 🐹 构建Go服务
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    if: needs.prepare-release.outputs.has-go == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-go
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=${{ needs.prepare-release.outputs.version }}
+
+      - name: Build and push Go image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend-go
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.prepare-release.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-java:
+    name: ☕ 构建Java服务
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    if: needs.prepare-release.outputs.has-java == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-java
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=${{ needs.prepare-release.outputs.version }}
+
+      - name: Build and push Java image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend-java
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.prepare-release.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-python:
+    name: 🐍 构建Python服务
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    if: needs.prepare-release.outputs.has-python == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-python
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=${{ needs.prepare-release.outputs.version }}
+
+      - name: Build and push Python image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend-python
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.prepare-release.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-typescript:
+    name: 🟦 构建TypeScript前端
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    if: needs.prepare-release.outputs.has-typescript == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-frontend
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=${{ needs.prepare-release.outputs.version }}
+
+      - name: Build and push TypeScript image
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend-ts
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ needs.prepare-release.outputs.version }}
+            GIT_COMMIT=${{ github.sha }}
+            BUILD_TIME=${{ github.run_id }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # Stage 3: 生成发布产物
+  # ============================================================================
+  create-artifacts:
+    name: 📦 生成发布产物
+    runs-on: ubuntu-latest
+    needs: prepare-release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 创建发布包
+        run: |
+          echo "📦 创建发布包..."
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          
+          # 创建发布目录
+          mkdir -p release-artifacts
+          
+          # 打包源代码 (排除不必要的文件)
+          echo "📁 打包源代码..."
+          tar -czf release-artifacts/remote-ci-${VERSION}-source.tar.gz \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='target' \
+            --exclude='*.log' \
+            --exclude='.DS_Store' \
+            --exclude='release-artifacts' \
+            .
+          
+          # 打包Makefile工具链
+          echo "🛠️ 打包Makefile工具链..."
+          tar -czf release-artifacts/remote-ci-${VERSION}-makefiles.tar.gz \
+            Makefile \
+            makefiles/ \
+            README.md \
+            Makefile-readme.md
+          
+          # 生成安装脚本
+          echo "📝 生成安装脚本..."
+          cat > release-artifacts/install.sh << 'INSTALL_EOF'
+          #!/bin/bash
+          set -e
+          
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          REPO="${{ github.repository }}"
+          
+          echo "🚀 安装 Remote CI/CD 工具链 $VERSION"
+          echo ""
+          
+          # 检查必要工具
+          command -v git >/dev/null 2>&1 || { echo "❌ Git 未安装"; exit 1; }
+          command -v make >/dev/null 2>&1 || { echo "❌ Make 未安装"; exit 1; }
+          
+          # 下载并解压
+          echo "📥 下载工具链..."
+          curl -L "https://github.com/$REPO/releases/download/$VERSION/remote-ci-$VERSION-makefiles.tar.gz" | tar -xz
+          
+          echo "✅ 安装完成!"
+          echo ""
+          echo "🎯 快速开始:"
+          echo "  make setup    # 初始化环境"
+          echo "  make status   # 查看项目状态"
+          echo "  make format   # 格式化代码"
+          echo "  make check    # 质量检查"
+          echo "  make test     # 运行测试"
+          echo "  make build    # 构建项目"
+          INSTALL_EOF
+          
+          chmod +x release-artifacts/install.sh
+          
+          # 生成checksums
+          echo "🔐 生成校验文件..."
+          cd release-artifacts
+          sha256sum *.tar.gz *.sh > checksums.txt
+          
+          echo "📊 发布产物列表:"
+          ls -la
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release-artifacts/
+          retention-days: 90
+
+  # ============================================================================
+  # Stage 4: 创建GitHub Release
+  # ============================================================================
+  create-release:
+    name: 🎉 创建GitHub Release
+    runs-on: ubuntu-latest
+    needs: 
+      - prepare-release
+      - build-go
+      - build-java
+      - build-python
+      - build-typescript
+      - create-artifacts
+    if: always() && needs.prepare-release.result == 'success' && needs.create-artifacts.result == 'success'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: ./artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.prepare-release.outputs.version }}
+          name: "Remote CI/CD 工具链 ${{ needs.prepare-release.outputs.version }}"
+          body: ${{ needs.prepare-release.outputs.changelog }}
+          prerelease: ${{ needs.prepare-release.outputs.is-prerelease }}
+          files: |
+            ./artifacts/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 发布总结
+        run: |
+          echo "=== 🎉 发布总结 ==="
+          echo ""
+          echo "🏷️ 版本: ${{ needs.prepare-release.outputs.version }}"
+          echo "🔖 预发布: ${{ needs.prepare-release.outputs.is-prerelease }}"
+          echo "📦 发布页面: https://github.com/${{ github.repository }}/releases/tag/${{ needs.prepare-release.outputs.version }}"
+          echo ""
+          
+          echo "🐳 Docker镜像构建状态:"
+          echo "  🐹 Go服务: ${{ needs.build-go.result }}"
+          echo "  ☕ Java服务: ${{ needs.build-java.result }}"
+          echo "  🐍 Python服务: ${{ needs.build-python.result }}"
+          echo "  🟦 TypeScript前端: ${{ needs.build-typescript.result }}"
+          echo ""
+          
+          echo "📦 发布产物:"
+          ls -la ./artifacts/
+          echo ""
+          
+          echo "🎯 快速安装:"
+          echo "curl -sSL https://github.com/${{ github.repository }}/releases/download/${{ needs.prepare-release.outputs.version }}/install.sh | bash"
+          echo ""
+          
+          echo "✅ 🚀 发布完成!"

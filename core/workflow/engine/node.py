@@ -1,26 +1,24 @@
 import copy
 import json
-import traceback
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 
 from pydantic import BaseModel
-
-from workflow.consts.flow import ErrorHandler
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.chains import Chains
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_entities import NodeType
 from workflow.engine.entities.node_running_status import NodeRunningStatus
+from workflow.engine.entities.retry_config import RetryConfig
 from workflow.engine.entities.variable_pool import VariablePool
-from workflow.engine.entities.workflow_dsl import Node
-from workflow.engine.nodes.base_node import BaseNode, RetryConfig
+from workflow.engine.entities.workflow_dsl import InputItem, Node, OutputItem
+from workflow.engine.nodes.base_node import BaseNode
 from workflow.engine.nodes.cache_node import tool_classes
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
-from workflow.exception.e import CustomException, CustomExceptionCM
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.log_trace.workflow_log import WorkflowLog
@@ -157,16 +155,8 @@ class NodeExecutionTemplate:
 
             try:
                 parameters = self._build_execution_parameters(span_context, **kwargs)
-
                 # Execute node logic
-                span_context.add_info_events(
-                    {
-                        "config": json.dumps(
-                            self.node.node_instance.get_node_config(),
-                            ensure_ascii=False,
-                        )
-                    }
-                )
+                span_context.add_info_events({"config": str(self.node.node_instance)})
                 result = await self.node.node_instance.async_execute(**parameters)
                 self.node.gather_node_event_log(result)
 
@@ -176,7 +166,7 @@ class NodeExecutionTemplate:
                 raise
             except Exception as err:
                 raise CustomException(
-                    CodeEnum.NodeRunErr, err_msg=f"{err}", cause_error=f"{err}"
+                    CodeEnum.NODE_RUN_ERROR, cause_error=f"{err}"
                 ) from err
 
     def _build_execution_parameters(
@@ -242,18 +232,21 @@ class NodeExecutionTemplate:
 
         :param result: Failed node execution result
         :param span_context: Tracing span context
-        :raises CustomExceptionCM: When node execution fails
+        :raises CustomException: When node execution fails
         """
+
+        if not result.error:
+            raise CustomException(
+                CodeEnum.NODE_RUN_ERROR,
+                cause_error=f"node {result.node_id} run failed, not error",
+            )
+
         self.node.node_log.running_status = False
         span_context.add_error_event(
             f"node {result.node_id} run failed, "
-            f"err code {result.error_code}, err reason: {result.error}"
+            f"err code {result.error.code}, err reason: {result.error}"
         )
-        traceback.print_exc()
-        raise CustomExceptionCM(
-            err_code=result.error_code,
-            err_msg=result.error,
-        )
+        raise result.error
 
     async def _handle_successful_result(
         self, result: NodeRunResult, span_context: Span, **kwargs: Any
@@ -364,8 +357,8 @@ class NodeExecutionTemplate:
             )
         except Exception as err:
             raise CustomException(
-                err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_code=CodeEnum.VARIABLE_POOL_SET_PARAMETER_ERROR,
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _add_end_node_variables(
@@ -388,8 +381,8 @@ class NodeExecutionTemplate:
             )
         except Exception as err:
             raise CustomException(
-                err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_code=CodeEnum.VARIABLE_POOL_SET_PARAMETER_ERROR,
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _add_default_node_variables(
@@ -410,8 +403,8 @@ class NodeExecutionTemplate:
             )
         except Exception as err:
             raise CustomException(
-                err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {self.node.node_id}, 错误信息: {err}",
+                err_code=CodeEnum.VARIABLE_POOL_SET_PARAMETER_ERROR,
+                err_msg=f"Node name: {self.node.node_id}, error message: {err}",
             ) from err
 
     def _log_success_result(self, result: NodeRunResult, span_context: Span) -> None:
@@ -601,10 +594,6 @@ class SparkFlowEngineNode(BaseModel):
         if result.token_cost:
             self.node_log.append_usage_data(result.token_cost.dict())
 
-        # Record node configuration (exclude Agent nodes)
-        if self.node_id.split(":")[0] != NodeType.AGENT.value:
-            self.node_log.append_config_data(self.node_instance.get_node_config())
-
         # Record LLM output
         if self.node_id.split(":")[0] in self.llm_nodes:
             self.node_log.llm_output = result.raw_output
@@ -667,9 +656,9 @@ class NodeFactory:
         node_class = tool_classes.get(node.get_node_type())
         if not node_class:
             raise CustomException(
-                CodeEnum.EngNodeProtocolValidateErr,
-                err_msg=f"当前workflow不支持节点类型：{node.get_node_type()}",
-                cause_error=f"当前workflow不支持节点类型：{node.get_node_type()}",
+                CodeEnum.ENG_NODE_PROTOCOL_VALIDATE_ERROR,
+                err_msg=f"Current workflow does not support node type: {node.get_node_type()}",
+                cause_error=f"Current workflow does not support node type: {node.get_node_type()}",
             )
 
         if not node.data:
@@ -680,8 +669,9 @@ class NodeFactory:
         outputs = node.data.outputs
 
         # Build retry configuration
-        retry_config = NodeFactory._build_retry_config(
-            node.data.retryConfig, outputs, span_context
+        retry_config = node.data.retryConfig
+        retry_config.custom_output = NodeFactory._check_custom_output(
+            retry_config.custom_output, outputs, span_context
         )
 
         # Create instance based on node type
@@ -704,15 +694,15 @@ class NodeFactory:
             )
         return SparkFlowEngineNode(
             node_id=node.id,
-            node_type=node.data.nodeMeta.get("nodeType", ""),
-            node_alias_name=node.data.nodeMeta.get("aliasName", ""),
+            node_type=node.data.nodeMeta.nodeType,
+            node_alias_name=node.data.nodeMeta.aliasName,
             node_instance=node_instance,
         )
 
     @staticmethod
-    def _build_retry_config(
-        retry_config_data: Dict, outputs: List, span_context: Span
-    ) -> RetryConfig:
+    def _check_custom_output(
+        custom_output: dict, outputs: List[OutputItem], span_context: Span
+    ) -> dict:
         """Build retry configuration for the node.
 
         :param retry_config_data: Retry configuration data
@@ -721,31 +711,22 @@ class NodeFactory:
         :return: Retry configuration object
         :raises CustomException: When custom output validation fails
         """
-        custom_output = retry_config_data.get("customOutput")
         if custom_output:
             if not NodeFactory._validate_custom_output(custom_output, outputs):
                 span_context.add_error_event(
                     f"custom_output {custom_output} not formatted"
                 )
                 raise CustomException(
-                    CodeEnum.EngNodeProtocolValidateErr,
-                    err_msg=f"节点设定输出内容: {custom_output} 不符合格式",
+                    CodeEnum.ENG_NODE_PROTOCOL_VALIDATE_ERROR,
+                    err_msg=f"Node set output content: {custom_output} does not match format",
                 )
         else:
             custom_output = NodeFactory._create_default_output(outputs)
-        return RetryConfig(
-            timeout=retry_config_data.get("timeout", float(60)),
-            should_retry=retry_config_data.get("shouldRetry", False),
-            max_retries=retry_config_data.get("maxRetries", 0),
-            error_strategy=retry_config_data.get(
-                "errorStrategy", ErrorHandler.Interrupted.value
-            ),
-            custom_output=custom_output,
-        )
+        return custom_output
 
     @staticmethod
     def _validate_custom_output(
-        custom_output: Dict[str, Any], outputs: List[Dict]
+        custom_output: Dict[str, Any], outputs: List[OutputItem]
     ) -> bool:
         """Validate custom output format against output schema.
 
@@ -753,7 +734,7 @@ class NodeFactory:
         :param outputs: Output schema definitions
         :return: True if validation passes, False otherwise
         """
-        declared = {o["name"]: o["schema"] for o in outputs}
+        declared = {o.name: o.output_schema for o in outputs}
 
         # Check for extra fields
         if any(k not in declared for k in custom_output):
@@ -814,7 +795,7 @@ class NodeFactory:
         return True
 
     @staticmethod
-    def _create_default_output(outputs: List[Dict]) -> Dict[str, Any]:
+    def _create_default_output(outputs: List[OutputItem]) -> Dict[str, Any]:
         """Create default output values based on output schema.
 
         :param outputs: Output schema definitions
@@ -822,8 +803,8 @@ class NodeFactory:
         """
         custom_output: Dict[str, Any] = {}
         for output_decl in outputs:
-            name = output_decl["name"]
-            schema = output_decl["schema"]
+            name = output_decl.name
+            schema = output_decl.output_schema
             if "default" in schema:
                 custom_output[name] = schema["default"]
             else:
@@ -841,14 +822,14 @@ class NodeFactory:
                 elif type_str == "object":
                     custom_output[name] = {}
                 else:
-                    custom_output[name] = None  # 未知类型兜底
+                    custom_output[name] = None  # Fallback for unknown types
         return custom_output
 
     @staticmethod
     def _create_question_answer_node(
         node_class: Any,
-        inputs: list,
-        outputs: list,
+        inputs: List[InputItem],
+        outputs: List[OutputItem],
         retry_config: RetryConfig,
         node: Node,
         span_context: Span,
@@ -863,27 +844,27 @@ class NodeFactory:
         :param span_context: Span context for tracing
         :return: Created question-answer node instance
         """
-        input_keys = [node_input.get("name") for node_input in inputs]
-        output_keys = [node_output.get("name") for node_output in outputs]
+        input_keys = [node_input.name for node_input in inputs]
+        output_keys = [node_output.name for node_output in outputs]
 
-        extra_params = []
+        extra_params: list[OutputItem] = []
         default_outputs = {}
         # Get slot extraction values
         SYSTEM_VARIABLE = ["query", "content"]
 
         for node_output in outputs:
-            if node_output.get("name") not in SYSTEM_VARIABLE:
+            if node_output.name not in SYSTEM_VARIABLE:
                 extra_params.append(node_output)
         # Get output default values
         for default_output in outputs:
-            _output = default_output.get("name", "")
+            _output = default_output.name
             if _output not in SYSTEM_VARIABLE:
-                _default_value = default_output.get("schema", {}).get("default", "")
+                _default_value = default_output.output_schema.get("default", "")
                 default_outputs[_output] = _default_value
         return node_class(
             node_id=node.id,
-            alias_name=node.data.nodeMeta.get("aliasName", ""),
-            node_type=node.data.nodeMeta.get("nodeType", ""),
+            alias_name=node.data.nodeMeta.aliasName,
+            node_type=node.data.nodeMeta.nodeType,
             input_identifier=input_keys,
             output_identifier=output_keys,
             retry_config=retry_config,
@@ -896,8 +877,8 @@ class NodeFactory:
     @staticmethod
     def _create_parameter_extractor_node(
         node_class: Any,
-        inputs: list,
-        outputs: list,
+        inputs: List[InputItem],
+        outputs: List[OutputItem],
         retry_config: RetryConfig,
         node: Node,
         span_context: Span,
@@ -912,15 +893,15 @@ class NodeFactory:
         :param span_context: Span context for tracing
         :return: Created parameter extractor node instance
         """
-        input_keys = [node_input.get("name") for node_input in inputs]
-        output_keys = [node_output.get("name") for node_output in outputs]
-        extra_params = []
+        input_keys = [node_input.name for node_input in inputs]
+        output_keys = [node_output.name for node_output in outputs]
+        extra_params: list[OutputItem] = []
         for node_output in outputs:
             extra_params.append(node_output)
         return node_class(
             node_id=node.id,
-            alias_name=node.data.nodeMeta.get("aliasName", ""),
-            node_type=node.data.nodeMeta.get("nodeType", ""),
+            alias_name=node.data.nodeMeta.aliasName,
+            node_type=node.data.nodeMeta.nodeType,
             input_identifier=input_keys,
             output_identifier=output_keys,
             retry_config=retry_config,
@@ -932,8 +913,8 @@ class NodeFactory:
     @staticmethod
     def _create_default_node(
         node_class: Any,
-        inputs: list,
-        outputs: list,
+        inputs: List[InputItem],
+        outputs: List[OutputItem],
         retry_config: RetryConfig,
         node: Node,
         span_context: Span,
@@ -948,25 +929,25 @@ class NodeFactory:
         :param span_context: Span context for tracing
         :return: Created default node instance
         """
-        input_keys = []
-        output_keys = [node_output.get("name") for node_output in outputs]
+        input_keys: list[Any] = []
+        output_keys = [node_output.name for node_output in outputs]
 
         # Special handling for if-else nodes
         if node.get_node_type() == NodeType.IF_ELSE.value:
             id_name_dict = {}
             for node_input in inputs:
-                id_name_dict[node_input.get("id")] = node_input.get("name")
+                id_name_dict[node_input.id] = node_input.name
             input_keys.append(id_name_dict)
         else:
-            input_keys = [node_input.get("name") for node_input in inputs]
+            input_keys = [node_input.name for node_input in inputs]
 
         for node_output in outputs:
-            output_keys.append(node_output.get("name"))
+            output_keys.append(node_output.name)
 
         return node_class(
             node_id=node.id,
-            alias_name=node.data.nodeMeta.get("aliasName", ""),
-            node_type=node.data.nodeMeta.get("nodeType", ""),
+            alias_name=node.data.nodeMeta.aliasName,
+            node_type=node.data.nodeMeta.nodeType,
             input_identifier=input_keys,
             output_identifier=output_keys,
             retry_config=retry_config,

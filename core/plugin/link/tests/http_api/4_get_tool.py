@@ -29,7 +29,7 @@ def force_test():
     import concurrent.futures
 
     params = {
-        "tool_ids": ["tool@89c889936c21000"],
+        "tool_ids": ["tool@8afcca659c21000"],
         "versions": ["V3.0"],
         "app_id": "12345678",
     }

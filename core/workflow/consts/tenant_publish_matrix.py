@@ -115,16 +115,3 @@ class TenantPublishMatrix:
         if isinstance(release_status, ReleaseStatus):
             return TENANT_PUBLISH_MAX[release_status.value][self.plat]
         return TENANT_PUBLISH_MAX[release_status][self.plat]
-
-
-if __name__ == "__main__":
-    assert (
-        TenantPublishMatrix(4).get_publish
-        == TenantPublishMatrix(Platform.AI_UI).get_publish
-    )
-    print(TenantPublishMatrix(4).get_publish)
-    print(TenantPublishMatrix(Platform.AI_UI).get_publish)
-
-    assert TenantPublishMatrix(4).get_release_status(
-        ReleaseStatus.PUBLISH
-    ) == TenantPublishMatrix(4).get_release_status(1)

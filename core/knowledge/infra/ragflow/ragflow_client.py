@@ -7,15 +7,20 @@ Provides functional call interfaces for RAGFlow API with module-level session ma
 """
 
 import asyncio
+import io
+import logging
 import os
+import time
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
 
 import aiohttp
-import time
-from typing import Dict, List, Optional, Any
-from urllib.parse import urljoin
-import logging
-import io
-from ragflow_sdk import RAGFlow
+
+try:
+    from ragflow_sdk import RAGFlow  # type: ignore[import-untyped]
+except ImportError:
+    # Handle missing ragflow_sdk dependency
+    RAGFlow = None  # type: ignore[assignment]
 
 # Import constants module to ensure environment variables are loaded properly
 # from knowledge.consts import constants
@@ -29,20 +34,25 @@ _session_lock = asyncio.Lock()
 _rag_object = None
 
 
-def get_rag_object():
+def get_rag_object() -> Any:
     """
     Get or create RAGFlow client instance with proper configuration loading
     """
     global _rag_object
     if _rag_object is None:
-        # 直接使用 os.getenv 获取环境变量，和 aiui.py 保持一致
-        base_url = os.getenv('RAGFLOW_BASE_URL', '')
-        api_key = os.getenv('RAGFLOW_API_TOKEN', '')
+        if RAGFlow is None:
+            raise ImportError("ragflow_sdk is not available")
+
+        # Use os.getenv directly to get environment variables, consistent with aiui.py
+        base_url = os.getenv("RAGFLOW_BASE_URL", "")
+        api_key = os.getenv("RAGFLOW_API_TOKEN", "")
 
         if not base_url:
             raise ValueError("RAGFLOW_BASE_URL not configured in environment variables")
         if not api_key:
-            raise ValueError("RAGFLOW_API_TOKEN not configured in environment variables")
+            raise ValueError(
+                "RAGFLOW_API_TOKEN not configured in environment variables"
+            )
 
         _rag_object = RAGFlow(api_key=api_key, base_url=base_url)
         print(f"RAGFlow client initialized with base_url: {base_url}")
@@ -67,19 +77,25 @@ def _load_ragflow_config() -> Dict[str, Any]:
             timeout_int = int(timeout_value) if timeout_value else 30
         except (ValueError, TypeError):
             timeout_int = 30
-            logger.warning(f"Invalid RAGFLOW_TIMEOUT value: {timeout_value}, using default: 30")
+            logger.warning(
+                f"Invalid RAGFLOW_TIMEOUT value: {timeout_value}, using default: 30"
+            )
 
         _config_cache = {
-            'base_url': os.getenv("RAGFLOW_BASE_URL", ""),
-            'api_token': os.getenv("RAGFLOW_API_TOKEN", ""),
-            'timeout': timeout_int,
-            'default_group': os.getenv("RAGFLOW_DEFAULT_GROUP", "")
+            "base_url": os.getenv("RAGFLOW_BASE_URL", ""),
+            "api_token": os.getenv("RAGFLOW_API_TOKEN", ""),
+            "timeout": timeout_int,
+            "default_group": os.getenv("RAGFLOW_DEFAULT_GROUP", ""),
         }
 
         # Validate required configuration
-        if not _config_cache['base_url'] or not _config_cache['api_token']:
-            logger.warning("RAGFlow configuration incomplete, please check config.env file")
-            logger.warning("Required configuration: RAGFLOW_BASE_URL and RAGFLOW_API_TOKEN")
+        if not _config_cache["base_url"] or not _config_cache["api_token"]:
+            logger.warning(
+                "RAGFlow configuration incomplete, please check config.env file"
+            )
+            logger.warning(
+                "Required configuration: RAGFLOW_BASE_URL and RAGFLOW_API_TOKEN"
+            )
         else:
             logger.info(f"RAGFlow configuration loaded: {_config_cache['base_url']}")
 
@@ -97,27 +113,29 @@ async def _get_session() -> aiohttp.ClientSession:
 
     async with _session_lock:
         # Create new session if it doesn't exist, is closed, or connector is closed
-        if (_session_cache is None
-                or _session_cache.closed
-                or (_session_cache.connector and _session_cache.connector.closed)):
+        if (
+            _session_cache is None
+            or _session_cache.closed
+            or (_session_cache.connector and _session_cache.connector.closed)
+        ):
 
             config = _load_ragflow_config()
 
-            timeout_config = aiohttp.ClientTimeout(total=config['timeout'])
+            timeout_config = aiohttp.ClientTimeout(total=config["timeout"])
             connector = aiohttp.TCPConnector(
                 limit=100,  # Total connection pool size
                 limit_per_host=30,  # Connections per host
                 keepalive_timeout=600,  # Keep connection time
-                enable_cleanup_closed=True
+                enable_cleanup_closed=True,
             )
 
             _session_cache = aiohttp.ClientSession(
                 connector=connector,
                 timeout=timeout_config,
                 headers={
-                    'Authorization': f'Bearer {config["api_token"]}',
-                    'User-Agent': 'OpenStellar-RAGFlow/1.0'
-                }
+                    "Authorization": f'Bearer {config["api_token"]}',
+                    "User-Agent": "OpenStellar-RAGFlow/1.0",
+                },
             )
 
             logger.debug("RAGFlow HTTP session created and cached")
@@ -139,24 +157,18 @@ async def _create_file_form_data(files: Dict) -> aiohttp.FormData:
 
     for key, file_info in files.items():
         if isinstance(file_info, dict):
-            file_content = file_info['content']
-            filename = file_info['filename']
-            content_type = file_info.get('content_type', 'application/octet-stream')
+            file_content = file_info["content"]
+            filename = file_info["filename"]
+            content_type = file_info.get("content_type", "application/octet-stream")
 
             file_stream = io.BytesIO(file_content)
             form_data.add_field(
-                key,
-                file_stream,
-                filename=filename,
-                content_type=content_type
+                key, file_stream, filename=filename, content_type=content_type
             )
         else:
             file_stream = _create_file_stream(file_info)
             form_data.add_field(
-                key,
-                file_stream,
-                filename='upload.txt',
-                content_type='text/plain'
+                key, file_stream, filename="upload.txt", content_type="text/plain"
             )
 
     return form_data
@@ -175,11 +187,16 @@ def _create_file_stream(file_info: Any) -> io.BytesIO:
     if isinstance(file_info, bytes):
         return io.BytesIO(file_info)
     else:
-        return io.BytesIO(file_info.encode('utf-8'))
+        return io.BytesIO(file_info.encode("utf-8"))
 
 
-async def _send_file_request(session: aiohttp.ClientSession, method: str, url: str,
-                             form_data: aiohttp.FormData, config: Dict[str, Any]) -> Dict[str, Any]:
+async def _send_file_request(
+    session: aiohttp.ClientSession,
+    method: str,
+    url: str,
+    form_data: aiohttp.FormData,
+    config: Dict[str, Any],
+) -> tuple[Dict[str, Any], int]:
     """
     Send file upload request
 
@@ -194,16 +211,23 @@ async def _send_file_request(session: aiohttp.ClientSession, method: str, url: s
         Response data
     """
     upload_headers = {
-        'Authorization': f'Bearer {config["api_token"]}',
-        'User-Agent': 'OpenStellar-RAGFlow/1.0'
+        "Authorization": f'Bearer {config["api_token"]}',
+        "User-Agent": "OpenStellar-RAGFlow/1.0",
     }
 
-    async with session.request(method, url, data=form_data, headers=upload_headers) as response:
+    async with session.request(
+        method, url, data=form_data, headers=upload_headers
+    ) as response:
         return await response.json(), response.status
 
 
-async def _send_json_request(session: aiohttp.ClientSession, method: str, url: str,
-                             data: Optional[Dict], config: Dict[str, Any]) -> Dict[str, Any]:
+async def _send_json_request(
+    session: aiohttp.ClientSession,
+    method: str,
+    url: str,
+    data: Optional[Dict[str, Any]],
+    config: Dict[str, Any],
+) -> tuple[Dict[str, Any], int]:
     """
     Send JSON request
 
@@ -218,12 +242,14 @@ async def _send_json_request(session: aiohttp.ClientSession, method: str, url: s
         Response data
     """
     json_headers = {
-        'Authorization': f'Bearer {config["api_token"]}',
-        'Content-Type': 'application/json',
-        'User-Agent': 'OpenStellar-RAGFlow/1.0'
+        "Authorization": f'Bearer {config["api_token"]}',
+        "Content-Type": "application/json",
+        "User-Agent": "OpenStellar-RAGFlow/1.0",
     }
 
-    async with session.request(method, url, json=data, headers=json_headers) as response:
+    async with session.request(
+        method, url, json=data, headers=json_headers
+    ) as response:
         return await response.json(), response.status
 
 
@@ -240,7 +266,9 @@ def _is_session_closed_error(error: Exception) -> bool:
     return "Event loop is closed" in str(error) or "Session is closed" in str(error)
 
 
-async def _handle_session_error(attempt: int, max_retries: int, error: Exception):
+async def _handle_session_error(
+    attempt: int, max_retries: int, error: Exception
+) -> None:
     """
     Handle session closed errors with retry logic
 
@@ -258,13 +286,14 @@ async def _handle_session_error(attempt: int, max_retries: int, error: Exception
 
     if attempt == max_retries - 1:
         raise Exception(f"Session closed and retry failed: {error}")
+    return None  # This should never be reached but satisfies mypy
 
 
 async def _make_request(
-        method: str,
-        endpoint: str,
-        data: Optional[Dict] = None,
-        files: Optional[Dict] = None,
+    method: str,
+    endpoint: str,
+    data: Optional[Dict[str, Any]] = None,
+    files: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Common function for sending HTTP requests
@@ -284,13 +313,17 @@ async def _make_request(
     for attempt in range(max_retries):
         try:
             session = await _get_session()
-            url = urljoin(config['base_url'], endpoint)
+            url = urljoin(config["base_url"], endpoint)
 
             if files:
                 form_data = await _create_file_form_data(files)
-                result, status = await _send_file_request(session, method, url, form_data, config)
+                result, status = await _send_file_request(
+                    session, method, url, form_data, config
+                )
             else:
-                result, status = await _send_json_request(session, method, url, data, config)
+                result, status = await _send_json_request(
+                    session, method, url, data, config
+                )
 
             logger.debug(f"{method} {endpoint} - Status: {status}")
 
@@ -312,8 +345,11 @@ async def _make_request(
                 logger.error(f"Request data: {data}")
             raise
 
+    # This should never be reached due to exceptions being raised
+    raise Exception("All retry attempts failed")
 
-async def cleanup_session():
+
+async def cleanup_session() -> None:
     """
     Clean up session resources (called when application shuts down)
     """
@@ -325,17 +361,18 @@ async def cleanup_session():
         logger.info("RAGFlow HTTP session cleaned up")
 
 
-def reload_config():
+def reload_config() -> None:
     """
     Reload configuration (called after configuration changes)
     """
     global _config_cache, _rag_object
     _config_cache = None
-    _rag_object = None  # 重置 RAGFlow 客户端实例
+    _rag_object = None  # Reset RAGFlow client instance
     logger.info("RAGFlow configuration cache cleared, will reload on next request")
 
 
 # ==================== Query Related APIs ====================
+
 
 async def retrieval(request_data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -350,7 +387,9 @@ async def retrieval(request_data: Dict[str, Any]) -> Dict[str, Any]:
     return await _make_request("POST", "/api/v1/retrieval", data=request_data)
 
 
-async def retrieval_with_dataset(dataset_id: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+async def retrieval_with_dataset(
+    dataset_id: str, request_data: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Retrieval query API using specified dataset
 
@@ -367,7 +406,10 @@ async def retrieval_with_dataset(dataset_id: str, request_data: Dict[str, Any]) 
 
 # ==================== Dataset Management APIs ====================
 
-async def list_datasets(name: Optional[str] = None, page: int = 1, page_size: int = 30) -> Dict[str, Any]:
+
+async def list_datasets(
+    name: Optional[str] = None, page: int = 1, page_size: int = 30
+) -> Dict[str, Any]:
     """
     List datasets API
 
@@ -379,21 +421,18 @@ async def list_datasets(name: Optional[str] = None, page: int = 1, page_size: in
     Returns:
         Dataset list response
     """
-    params = {
-        'page': page,
-        'page_size': page_size
-    }
+    params: Dict[str, Any] = {"page": page, "page_size": page_size}
     if name:
-        params['name'] = name
+        params["name"] = name
 
     # Build query string
-    query_string = '&'.join([f"{k}={v}" for k, v in params.items()])
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
     endpoint = f"/api/v1/datasets?{query_string}"
 
     return await _make_request("GET", endpoint)
 
 
-async def create_dataset(name: str, **kwargs) -> Dict[str, Any]:
+async def create_dataset(name: str, **kwargs: Any) -> Dict[str, Any]:
     """
     Create dataset API
 
@@ -404,7 +443,7 @@ async def create_dataset(name: str, **kwargs) -> Dict[str, Any]:
     Returns:
         Creation response containing dataset information
     """
-    data = {'name': name}
+    data = {"name": name}
     data.update(kwargs)
 
     return await _make_request("POST", "/api/v1/datasets", data=data)
@@ -412,7 +451,10 @@ async def create_dataset(name: str, **kwargs) -> Dict[str, Any]:
 
 # ==================== Document Management APIs ====================
 
-async def upload_document_to_dataset(dataset_id: str, file_content: bytes, filename: str) -> Dict[str, Any]:
+
+async def upload_document_to_dataset(
+    dataset_id: str, file_content: bytes, filename: str
+) -> List[Any]:
     """
     Upload document to specified dataset API
 
@@ -425,11 +467,17 @@ async def upload_document_to_dataset(dataset_id: str, file_content: bytes, filen
         Upload response containing document ID
     """
 
-    dataset = get_rag_object().list_datasets(name=os.getenv("RAGFLOW_DEFAULT_GROUP", ""))[0]
-    return dataset.upload_documents([{"displayed_name": filename, "blob": file_content}])
+    dataset = get_rag_object().list_datasets(
+        name=os.getenv("RAGFLOW_DEFAULT_GROUP", "")
+    )[0]
+    return dataset.upload_documents(
+        [{"displayed_name": filename, "blob": file_content}]
+    )
 
 
-async def update_document(dataset_id: str, document_id: str, **kwargs) -> Dict[str, Any]:
+async def update_document(
+    dataset_id: str, document_id: str, **kwargs: Any
+) -> Dict[str, Any]:
     """
     Update document configuration API
 
@@ -461,8 +509,9 @@ async def parse_documents(dataset_id: str, document_ids: List[str]) -> Dict[str,
     return await _make_request("POST", endpoint, data=data)
 
 
-async def list_documents_in_dataset(dataset_id: str, doc_id: str, page: int = 1,
-                                    page_size: int = 30, **kwargs) -> Dict[str, Any]:
+async def list_documents_in_dataset(
+    dataset_id: str, doc_id: str, page: int = 1, page_size: int = 30, **kwargs: Any
+) -> Dict[str, Any]:
     """
     List documents in dataset API
 
@@ -476,22 +525,23 @@ async def list_documents_in_dataset(dataset_id: str, doc_id: str, page: int = 1,
     Returns:
         Document list response
     """
-    params = {
-        'page': page,
-        'page_size': page_size,
-        'id': doc_id
-    }
+    params = {"page": page, "page_size": page_size, "id": doc_id}
     params.update(kwargs)
 
     # Build query string
-    query_string = '&'.join([f"{k}={v}" for k, v in params.items()])
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
     endpoint = f"/api/v1/datasets/{dataset_id}/documents?{query_string}"
 
     return await _make_request("GET", endpoint)
 
 
-async def list_document_chunks(dataset_id: str, document_id: str, page: int = 1,
-                               page_size: int = 1024, **kwargs) -> Dict[str, Any]:
+async def list_document_chunks(
+    dataset_id: str,
+    document_id: str,
+    page: int = 1,
+    page_size: int = 1024,
+    **kwargs: Any,
+) -> Dict[str, Any]:
     """
     List document chunks API
 
@@ -505,15 +555,14 @@ async def list_document_chunks(dataset_id: str, document_id: str, page: int = 1,
     Returns:
         Chunk list response
     """
-    params = {
-        'page': page,
-        'page_size': page_size
-    }
+    params = {"page": page, "page_size": page_size}
     params.update(kwargs)
 
     # Build query string
-    query_string = '&'.join([f"{k}={v}" for k, v in params.items()])
-    endpoint = f"/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks?{query_string}"
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    endpoint = (
+        f"/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks?{query_string}"
+    )
 
     return await _make_request("GET", endpoint)
 
@@ -531,12 +580,14 @@ async def get_document_info(dataset_id: str, doc_id: str) -> Optional[Dict[str, 
     """
     try:
         # Do not pass doc_id parameter, get all documents then iterate to find
-        response = await list_documents_in_dataset(dataset_id, doc_id="", page=1, page_size=1000)
+        response = await list_documents_in_dataset(
+            dataset_id, doc_id="", page=1, page_size=1000
+        )
 
-        if response.get('code') == 0:
-            docs = response.get('data', {}).get('docs', [])
+        if response.get("code") == 0:
+            docs = response.get("data", {}).get("docs", [])
             for doc in docs:
-                if doc.get('id') == doc_id:
+                if doc.get("id") == doc_id:
                     return doc
         return None
 
@@ -561,7 +612,9 @@ async def delete_documents(dataset_id: str, document_ids: List[str]) -> Dict[str
     return await _make_request("DELETE", endpoint, data=data)
 
 
-async def delete_chunks(dataset_id: str, document_id: str, chunk_ids: List[str]) -> Dict[str, Any]:
+async def delete_chunks(
+    dataset_id: str, document_id: str, chunk_ids: List[str]
+) -> Dict[str, Any]:
     """
     Delete specific chunks of a document API
 
@@ -582,9 +635,14 @@ async def delete_chunks(dataset_id: str, document_id: str, chunk_ids: List[str])
     return await _make_request("DELETE", endpoint, data=data)
 
 
-async def update_chunk(dataset_id: str, document_id: str, chunk_id: str,
-                       content: str = None, important_keywords: List[str] = None,
-                       available: bool = None) -> Dict[str, Any]:
+async def update_chunk(
+    dataset_id: str,
+    document_id: str,
+    chunk_id: str,
+    content: Optional[str] = None,
+    important_keywords: Optional[List[str]] = None,
+    available: Optional[bool] = None,
+) -> Dict[str, Any]:
     """
     Update content or configuration of specified chunk
 
@@ -603,7 +661,7 @@ async def update_chunk(dataset_id: str, document_id: str, chunk_id: str,
         Success: {"code": 0}
         Failure: {"code": 102, "message": "Can't find this chunk xxx"}
     """
-    data = {}
+    data: Dict[str, Any] = {}
     if content is not None:
         data["content"] = content
     if important_keywords is not None:
@@ -611,12 +669,19 @@ async def update_chunk(dataset_id: str, document_id: str, chunk_id: str,
     if available is not None:
         data["available"] = available
 
-    endpoint = f"/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks/{chunk_id}"
+    endpoint = (
+        f"/api/v1/datasets/{dataset_id}/documents/{document_id}/chunks/{chunk_id}"
+    )
     return await _make_request("PUT", endpoint, data=data)
 
 
-async def add_chunk(dataset_id: str, document_id: str, content: str,
-                    important_keywords: List[str] = None, questions: List[str] = None) -> Dict[str, Any]:
+async def add_chunk(
+    dataset_id: str,
+    document_id: str,
+    content: str,
+    important_keywords: Optional[List[str]] = None,
+    questions: Optional[List[str]] = None,
+) -> Dict[str, Any]:
     """
     Add chunk to specified document
 
@@ -644,7 +709,7 @@ async def add_chunk(dataset_id: str, document_id: str, content: str,
         }
         Failure: {"code": 102, "message": "`content` is required"}
     """
-    data = {"content": content}
+    data: Dict[str, Any] = {"content": content}
     if important_keywords:
         data["important_keywords"] = important_keywords
     if questions:
@@ -656,7 +721,10 @@ async def add_chunk(dataset_id: str, document_id: str, content: str,
 
 # ==================== Helper Functions ====================
 
-async def _check_document_parsing_status(dataset_id: str, doc_id: str) -> tuple[str, int, bool]:
+
+async def _check_document_parsing_status(
+    dataset_id: str, doc_id: str
+) -> tuple[str, int, bool]:
     """
     Check document parsing status
 
@@ -669,21 +737,23 @@ async def _check_document_parsing_status(dataset_id: str, doc_id: str) -> tuple[
     """
     response = await list_documents_in_dataset(dataset_id, doc_id, page=1, page_size=30)
 
-    if response.get('code') != 0:
-        return 'UNKNOWN', 0, False
+    if response.get("code") != 0:
+        return "UNKNOWN", 0, False
 
-    docs = response.get('data', {}).get('docs', [])
+    docs = response.get("data", {}).get("docs", [])
     for doc in docs:
-        if doc.get('id') == doc_id:
-            run_status = doc.get('run', 'UNSTART')
-            token_count = doc.get('token_count', 0)
+        if doc.get("id") == doc_id:
+            run_status = doc.get("run", "UNSTART")
+            token_count = doc.get("token_count", 0)
             return run_status, token_count, True
 
     logger.warning(f"Document {doc_id} not found in list")
-    return 'NOT_FOUND', 0, False
+    return "NOT_FOUND", 0, False
 
 
-def _handle_parsing_status_result(doc_id: str, run_status: str, token_count: int) -> Optional[str]:
+def _handle_parsing_status_result(
+    doc_id: str, run_status: str, token_count: int
+) -> Optional[str]:
     """
     Handle parsing status and determine if parsing is complete
 
@@ -698,18 +768,20 @@ def _handle_parsing_status_result(doc_id: str, run_status: str, token_count: int
     Raises:
         Exception: If parsing failed
     """
-    if run_status == 'DONE':
+    if run_status == "DONE":
         logger.info(f"Document {doc_id} parsing completed with {token_count} tokens")
         return run_status
-    elif run_status == 'FAIL':
+    elif run_status == "FAIL":
         raise Exception(f"Document {doc_id} parsing failed")
-    elif run_status == 'RUNNING':
+    elif run_status == "RUNNING":
         logger.info(f"Document {doc_id} is being parsed...")
 
     return None
 
 
-async def wait_for_parsing(dataset_id: str, doc_id: str, max_wait_time: int = 300) -> str:
+async def wait_for_parsing(
+    dataset_id: str, doc_id: str, max_wait_time: int = 300
+) -> str:
     """
     Wait for document parsing completion
 
@@ -729,10 +801,14 @@ async def wait_for_parsing(dataset_id: str, doc_id: str, max_wait_time: int = 30
 
     while time.time() - start_time < max_wait_time:
         try:
-            run_status, token_count, found = await _check_document_parsing_status(dataset_id, doc_id)
+            run_status, token_count, found = await _check_document_parsing_status(
+                dataset_id, doc_id
+            )
 
             if run_status != last_status:
-                logger.info(f"Document {doc_id} status: {run_status}, tokens: {token_count}")
+                logger.info(
+                    f"Document {doc_id} status: {run_status}, tokens: {token_count}"
+                )
                 last_status = run_status
 
             if found:
@@ -746,5 +822,7 @@ async def wait_for_parsing(dataset_id: str, doc_id: str, max_wait_time: int = 30
             logger.warning(f"Error checking parsing status: {e}")
             await asyncio.sleep(3)
 
-    logger.warning(f"Document parsing timeout after {max_wait_time} seconds, last status: {last_status}")
-    return last_status or 'TIMEOUT'
+    logger.warning(
+        f"Document parsing timeout after {max_wait_time} seconds, last status: {last_status}"
+    )
+    return last_status or "TIMEOUT"

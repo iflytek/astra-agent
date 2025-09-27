@@ -1,13 +1,13 @@
 """
-工作流代理节点性能测试
+工作流代理节点性能test
 
-这个测试脚本用于测试工作流代理节点的并发性能，通过多线程并发发送请求
+这个test脚本用于test工作流代理节点的并发性能，通过多线程并发发送请求
 来评估系统在高负载下的表现和响应时间。
 
 主要功能：
-- 并发测试OpenAI API调用
+- 并发testOpenAI API调用
 - 测量首帧响应时间
-- 支持20个并发请求的压力测试
+- 支持20个并发请求的压力test
 """
 
 import asyncio
@@ -20,14 +20,14 @@ from openai.types.chat import ChatCompletionUserMessageParam
 
 first_frame_times: List[str] = []
 
-# 注意: 以下是一个备用的HTTP请求实现（已注释）
-# 如需使用aiohttp版本，请取消注释并添加aiohttp依赖
+# note: the following is a backup HTTP request implementation (commented)
+# if you need to use aiohttp version, uncomment and add aiohttp dependency
 
 
 async def do_request(url: str, request_data: Dict[str, Any], i: int) -> None:
-    # 忽略未使用的参数，这是测试函数的占位符
+    # ignore unused parameters, this is a placeholder for test function
     del url, request_data, i
-    # TODO: 将API密钥移至环境变量或配置文件中
+    # TODO: move API key to environment variables or configuration file
     client = AsyncOpenAI(
         api_key="sk-test-key-replace-with-env-var",
         base_url="https://maas-api.cn-huabei-1.xf-yun.com/v1",
@@ -64,7 +64,7 @@ def task(url: str, request_data: Dict[str, Any], i: int) -> None:
 
 
 if __name__ == "__main__":
-    # 创建一个线程池，最大工作线程数为 20
+    # create a thread pool with maximum 20 worker threads
     # URL = "https://maas-api.cn-huabei-1.xf-yun.com/v1/chat/completions"
     URL = "http://127.0.0.1:17870/agent/v1/custom/chat/completions"
     data = {
@@ -99,9 +99,9 @@ if __name__ == "__main__":
     }
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-        # 提交 20 个任务到线程池
+        # submit 20 tasks to thread pool
         future_to_task = {executor.submit(task, URL, data, i + 1): i for i in range(20)}
-        # 等待所有任务完成
+        # wait for all tasks to complete
         for future in concurrent.futures.as_completed(future_to_task):
             task_id = future_to_task[future]
             try:

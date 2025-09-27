@@ -238,7 +238,7 @@ class TestWorkflowPluginRunner:
 
         with patch("service.plugin.workflow.AsyncOpenAI", return_value=mock_client):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.workflow_sse_base_url = "http://workflow-api"
+                mock_config.WORKFLOW_SSE_BASE_URL = "http://workflow-api"
 
                 # Act
                 responses = []
@@ -286,7 +286,7 @@ class TestWorkflowPluginRunner:
 
         with patch("service.plugin.workflow.AsyncOpenAI", return_value=mock_client):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.workflow_sse_base_url = "http://workflow-api"
+                mock_config.WORKFLOW_SSE_BASE_URL = "http://workflow-api"
 
                 # Act
                 responses = []
@@ -321,7 +321,7 @@ class TestWorkflowPluginRunner:
 
         with patch("service.plugin.workflow.AsyncOpenAI", return_value=mock_client):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.workflow_sse_base_url = "http://workflow-api"
+                mock_config.WORKFLOW_SSE_BASE_URL = "http://workflow-api"
 
                 # Act & Assert
                 with pytest.raises(type(RunWorkflowExc)) as exc_info:
@@ -365,7 +365,7 @@ class TestWorkflowPluginRunner:
 
         with patch("service.plugin.workflow.AsyncOpenAI", return_value=mock_client):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.workflow_sse_base_url = "http://workflow-api"
+                mock_config.WORKFLOW_SSE_BASE_URL = "http://workflow-api"
 
                 # Act
                 async for _ in workflow_runner.run(action_input, mock_span):
@@ -461,7 +461,7 @@ class TestWorkflowPluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.get_workflows_url = "http://workflow-api/get"
+                mock_config.GET_WORKFLOWS_URL = "http://workflow-api/get"
 
                 # Act
                 result = await WorkflowPluginFactory.do_query_workflow_schema(
@@ -762,7 +762,7 @@ class TestWorkflowPluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.workflow.agent_config") as mock_config:
-                mock_config.get_workflows_url = "http://workflow-api/get"
+                mock_config.GET_WORKFLOWS_URL = "http://workflow-api/get"
 
                 # Act & Assert
                 with pytest.raises(aiohttp.ClientError):

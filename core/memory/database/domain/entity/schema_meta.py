@@ -1,13 +1,16 @@
 """Module providing schema metadata operations for database schemas."""
 
-from sqlalchemy import text
-from sqlmodel.ext.asyncio.session import AsyncSession
+from typing import Any, Sequence
 
 from memory.database.utils.retry import retry_on_invalid_cached_statement
+from sqlalchemy import Row, text
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 @retry_on_invalid_cached_statement(max_retries=3)
-async def get_schema_name_by_did(session: AsyncSession, database_id: int):
+async def get_schema_name_by_did(
+    session: AsyncSession, database_id: int
+) -> Sequence[Row[Any]]:
     """Retrieve schema names associated with a database ID.
 
     Args:
@@ -30,7 +33,7 @@ async def get_schema_name_by_did(session: AsyncSession, database_id: int):
 
 
 @retry_on_invalid_cached_statement(max_retries=3)
-async def del_schema_meta_by_did(session: AsyncSession, database_id: int):
+async def del_schema_meta_by_did(session: AsyncSession, database_id: int) -> None:
     """Delete all schema metadata entries for a given database ID.
 
     Args:

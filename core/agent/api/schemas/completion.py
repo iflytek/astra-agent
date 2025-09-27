@@ -36,7 +36,7 @@ class ReasonChoice(Choice):
     message: ReasonChoiceMessage  # pyright: ignore[reportIncompatibleVariableOverride]
     finish_reason: Optional[
         Literal["stop", "length", "tool_calls", "content_filter", "function_call"]
-    ] = None
+    ] = None  # type: ignore[assignment]
 
 
 class ReasonChatCompletion(ChatCompletion):

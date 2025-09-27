@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Literal
+from typing import Any, List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -24,13 +24,9 @@ class ResourceList(BaseModel):
     跟问答关联的资源信息，作用于降低上下文结合风险。
     """
 
-    # 资源唯一标识。
     data_id: str
-    # 送审资源类型，可选值：image、text、audio、video。
     content_type: ContentType
-    # 资源描述信息。
     res_desc: str
-    # 图片中的OCR文字。
     ocr_text: str
 
 
@@ -39,11 +35,8 @@ class ContextList(BaseModel):
     多轮对话场景下历史对话信息，作用于降低上下文结合风险，按照交互对话顺序传递。
     """
 
-    # 角色，用于区分历史对话。可选值：user(用户提问)、assistant（大模型回答） 、system（设定的大模型角色）
     role: str
-    # 历史送审文本信息。
     content: str
-    # 跟问答关联的资源信息，作用于降低上下文结合风险。
     resource_list: List[ResourceList] = Field(default_factory=list)
 
 
@@ -61,8 +54,8 @@ class AuditAPI(ABC):
         uid: str = "",
         template_id: str = "",
         context_list: List[ContextList] = [],
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         大模型内容安全场景中，该接口用于检测用户输入prompt内容的安全性，并针对高风险和中低风险内容提供对应的处置建议。
 
@@ -91,8 +84,8 @@ class AuditAPI(ABC):
         chat_sid: str,
         chat_app_id: str = "",
         uid: str = "",
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         大模型内容安全场景中，该接口用于检测大模型输出内容的安全性，并针对高风险和中低风险内容提供对应的处置建议。
 
@@ -113,7 +106,7 @@ class AuditAPI(ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     @abstractmethod
-    async def input_media(self, text: str, **kwargs):
+    async def input_media(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对用户输入的文本、图片、视频、文档等进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:
@@ -123,7 +116,7 @@ class AuditAPI(ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     @abstractmethod
-    async def output_media(self, text: str, **kwargs):
+    async def output_media(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对大模型输出的图片、视频、音频等进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:
@@ -133,7 +126,7 @@ class AuditAPI(ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     @abstractmethod
-    async def know_ref(self, text: str, **kwargs):
+    async def know_ref(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对大模型答复过程中引用的网站、知识库等数据进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:

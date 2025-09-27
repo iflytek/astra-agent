@@ -1,19 +1,64 @@
-import time
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Literal, Optional
 
+from pydantic import BaseModel, Field
 from workflow.engine.entities.variable_pool import VariablePool
 from workflow.engine.nodes.base_node import BaseNode
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
-from workflow.engine.nodes.if_else.entities import IfElseNodeData
+from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
 
 # Default branch level for fallback cases
 DEFAULT_BRANCH_LEVEL = 999
+
+
+class Condition(BaseModel):
+    """
+    Condition.
+    :param left_var_index: Index of the left variable
+    :param right_var_index: Index of the right variable
+    :param compare_operator: Comparison operator
+    """
+
+    leftVarIndex: str | None = None
+    rightVarIndex: str | None = None
+    compareOperator: Literal[
+        "contains",
+        "not_contains",
+        "empty",
+        "not_empty",
+        "is",
+        "is_not",
+        "start_with",
+        "end_with",
+        "eq",
+        "ne",
+        "gt",
+        "ge",
+        "lt",
+        "le",
+        "null",
+        "not_null",
+    ]
+
+
+class IfElseNodeData(BaseModel):
+    """
+    If-Else node data.
+    :param id: ID of the if-else node
+    :param level: Level of the if-else node
+    :param logical_operator: Logical operator of the if-else node
+    :param conditions: Conditions of the if-else node
+    """
+
+    id: str = Field(pattern=r"^branch_one_of::[0-9a-zA-Z-]+")
+    level: int = Field(ge=1)
+    logicalOperator: Literal["and", "or"]
+    conditions: List[Condition]
 
 
 class IFElseNode(BaseNode):
@@ -25,64 +70,7 @@ class IFElseNode(BaseNode):
     operators for strings, numbers, and collections.
     """
 
-    branch_list: List[IfElseNodeData]
-
-    def __init__(self, **kwargs: Any) -> None:
-        """
-        Initialize the If-Else node with branch configurations.
-
-        :param kwargs: Configuration parameters including 'cases' for branch definitions
-        """
-        branches_ = kwargs.get("cases", [])
-        branch_dict = {}
-        for branch in branches_:
-            branch_id = branch.get("id")
-            branch_level = branch.get("level")
-            logical_operator = branch.get("logicalOperator")
-            condition_list = branch.get("conditions")
-            conditions = [IfElseNodeData.Condition(**c) for c in condition_list]
-            branch_dict[branch_level] = IfElseNodeData(
-                conditions=conditions,
-                branch_id=branch_id,
-                logical_operator=logical_operator,
-                branch_level=branch_level,
-            )
-
-        # Sort branches by priority level for sequential execution
-        branch_dict = dict(sorted(branch_dict.items()))
-        branch_list_ = []
-        for _, v in branch_dict.items():
-            branch_list_.append(v)
-        super().__init__(**kwargs, branch_list=branch_list_)  # type: ignore
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the node configuration as a dictionary.
-
-        :return: Dictionary containing branch list configuration
-        """
-        branches = []
-        for branch in self.branch_list:
-            branches.append(branch.dict())
-        return {"branch_list": branches}
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented for this node).
-
-        :param variable_pool: Variable pool containing runtime variables
-        :param span: Tracing span for monitoring
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional parameters including callback methods
-        :return: Node execution result
-        """
-        raise NotImplementedError
+    cases: List[IfElseNodeData] = Field(min_length=2)
 
     async def do_one_branch(
         self,
@@ -114,7 +102,7 @@ class IFElseNode(BaseNode):
         ) as span_context:
             try:
                 # Get the logical operator for combining conditions
-                logical_operator = node_data.logical_operator
+                logical_operator = node_data.logicalOperator
                 input_conditions = []
                 for condition in node_data.conditions:
                     if not condition:
@@ -225,14 +213,16 @@ class IFElseNode(BaseNode):
 
             except Exception as err:
                 span_context.add_error_event(
-                    f"err: {err}, err_code: {CodeEnum.IfElseNodeExecutionError.code}"
+                    f"err: {err}, err_code: {CodeEnum.IF_ELSE_NODE_EXECUTION_ERROR.code}"
                 )
                 return NodeRunResult(
                     status=WorkflowNodeExecutionStatus.FAILED,
                     inputs=node_inputs,
                     process_data=process_datas,
-                    error=f"{err}",
-                    error_code=CodeEnum.IfElseNodeExecutionError.code,
+                    error=CustomException(
+                        CodeEnum.IF_ELSE_NODE_EXECUTION_ERROR,
+                        cause_error=err,
+                    ),
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
@@ -259,7 +249,7 @@ class IFElseNode(BaseNode):
                 inputs=node_inputs,
                 process_data=process_datas,
                 outputs=compare_result_dict,
-                edge_source_handle=node_data.branch_id,
+                edge_source_handle=node_data.id,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -285,31 +275,28 @@ class IFElseNode(BaseNode):
         :param kwargs: Additional parameters including callback methods
         :return: Node execution result from the first matching branch
         """
-        start_time = time.time()
         res: NodeRunResult
         inputs: dict[str, Any] = {}
         errors: dict[str, Any] = {}
         try:
             # Execute each branch block in priority order, following short-circuit principle
-            for index, cur_branch in enumerate(self.branch_list):
+            for index, cur_branch in enumerate(self.cases):
                 # If we reach the default branch, return its result directly
-                if cur_branch.branch_level == DEFAULT_BRANCH_LEVEL:
+                if cur_branch.level == DEFAULT_BRANCH_LEVEL:
                     return NodeRunResult(
                         status=WorkflowNodeExecutionStatus.SUCCEEDED,
                         inputs=inputs,
                         process_data={},
                         outputs=errors,
-                        edge_source_handle=cur_branch.branch_id,
+                        edge_source_handle=cur_branch.id,
                         node_id=self.node_id,
                         alias_name=self.alias_name,
                         node_type=self.node_type,
-                        time_cost=str(round(time.time() - start_time, 2)),
                     )
 
                 res = await self.do_one_branch(
                     variable_pool=variable_pool, span=span, branch_data=cur_branch
                 )
-                res.time_cost = str(round(time.time() - start_time, 3))
                 # If a branch condition fails, collect error info and try next branch
                 if res.status == WorkflowNodeExecutionStatus.FAILED:
                     inputs.update({f"Branch {index + 1} inputs: ": res.inputs})
@@ -345,11 +332,10 @@ class IFElseNode(BaseNode):
                         if len(errors) == 0
                         else errors
                     ),
-                    edge_source_handle=self.branch_list[-1].branch_id,
+                    edge_source_handle=self.cases[-1].id,
                     node_id=self.node_id,
                     alias_name=self.alias_name,
                     node_type=self.node_type,
-                    time_cost=str(round(time.time() - start_time, 2)),
                 )
 
         if res is None:
@@ -365,11 +351,10 @@ class IFElseNode(BaseNode):
                     if len(errors) == 0
                     else errors
                 ),
-                edge_source_handle=self.branch_list[-1].branch_id,
+                edge_source_handle=self.cases[-1].id,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 2)),
             )
         return res
 
@@ -389,7 +374,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, str | list):
-            # raise ValueError('Invalid actual value type: string or array')
             return False
 
         if expected_value not in actual_value:
@@ -412,7 +396,6 @@ class IFElseNode(BaseNode):
             return True
 
         if not isinstance(actual_value, str | list):
-            # raise ValueError('Invalid actual value type: string or array')
             return False
 
         if expected_value in actual_value:
@@ -433,7 +416,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, str):
-            # raise ValueError('Invalid actual value type: string')
             return False
 
         if not actual_value.startswith(expected_value):
@@ -454,7 +436,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, str):
-            # raise ValueError('Invalid actual value type: string')
             return False
 
         if not actual_value.endswith(expected_value):
@@ -473,7 +454,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, str):
-            # raise ValueError('Invalid actual value type: string')
             if isinstance(actual_value, int | float):
                 return self._assert_equal(actual_value, expected_value)
             else:
@@ -495,7 +475,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, str):
-            # raise ValueError('Invalid actual value type: string')
             if isinstance(actual_value, int | float):
                 return self._assert_not_equal(actual_value, expected_value)
             else:
@@ -555,7 +534,6 @@ class IFElseNode(BaseNode):
 
         if not isinstance(actual_value, int | float):
             if isinstance(actual_value, str):
-                # raise ValueError('Invalid actual value type: number')
                 return self._assert_is(actual_value, expected_value)
             else:
                 return False
@@ -583,7 +561,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, int | float):
-            # raise ValueError('Invalid actual value type: number')
             if isinstance(actual_value, str):
                 return self._assert_is_not(actual_value, expected_value)
             else:
@@ -612,7 +589,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, int | float):
-            # raise ValueError('Invalid actual value type: number')
             return False
 
         if isinstance(actual_value, int):
@@ -638,7 +614,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, int | float):
-            # raise ValueError('Invalid actual value type: number')
             return False
 
         if isinstance(actual_value, int):
@@ -664,7 +639,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, int | float):
-            # raise ValueError('Invalid actual value type: number')
             return False
 
         if isinstance(actual_value, int):
@@ -690,7 +664,6 @@ class IFElseNode(BaseNode):
             return False
 
         if not isinstance(actual_value, int | float):
-            # raise ValueError('Invalid actual value type: number')
             return False
 
         if isinstance(actual_value, int):

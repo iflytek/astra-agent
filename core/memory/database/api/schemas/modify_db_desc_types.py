@@ -7,9 +7,8 @@ constraints for updating database descriptions.
 
 from typing import Optional
 
-from pydantic import Field
-
 from memory.database.api.schemas.common_types import DidUidCommon
+from pydantic import Field
 
 
 class ModifyDBDescInput(DidUidCommon):  # pylint: disable=too-few-public-methods
@@ -21,6 +20,7 @@ class ModifyDBDescInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         description (Optional[str]): New description (optional, max 200 chars)
         space_id (Optional[str]): Team space ID (optional)
     """
+
     # description: Optional, max 200 characters
     description: Optional[str] = Field(
         default=None, max_length=200, description="Optional, max 200 characters"

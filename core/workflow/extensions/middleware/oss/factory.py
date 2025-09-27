@@ -8,7 +8,6 @@ based on configuration environment variables.
 import os
 
 from loguru import logger
-
 from workflow.extensions.middleware.factory import ServiceFactory
 from workflow.extensions.middleware.oss.base import BaseOSSService
 from workflow.extensions.middleware.oss.manager import (

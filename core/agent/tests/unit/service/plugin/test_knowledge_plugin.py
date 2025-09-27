@@ -161,7 +161,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act
                 result = await knowledge_factory.retrieve(mock_span)
@@ -219,7 +219,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act
                 result = await factory.retrieve(mock_span)
@@ -285,7 +285,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(KnowledgeQueryExc)) as exc_info:
@@ -324,7 +324,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(aiohttp.ClientError):
@@ -354,7 +354,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(KnowledgeQueryExc)) as exc_info:
@@ -368,7 +368,7 @@ class TestKnowledgePluginFactory:
         """Test retrieve with unicode query."""
         # Arrange
         factory = KnowledgePluginFactory(
-            query="测试中文查询",
+            query="test中文查询",
             top_k=5,
             repo_ids=["中文repo"],
             doc_ids=["中文doc"],
@@ -406,7 +406,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act
                 result = await factory.retrieve(mock_span)
@@ -417,7 +417,7 @@ class TestKnowledgePluginFactory:
                 # Verify unicode content is handled correctly
                 call_args = mock_session.post.call_args
                 request_data = call_args[1]["json"]
-                assert request_data["query"] == "测试中文查询"
+                assert request_data["query"] == "test中文查询"
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -453,7 +453,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act
                 await knowledge_factory.retrieve(mock_span)
@@ -534,7 +534,7 @@ class TestKnowledgePluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.knowledge.agent_config") as mock_config:
-                mock_config.chunk_query_url = "http://test-url"
+                mock_config.CHUNK_QUERY_URL = "http://test-url"
 
                 # Act
                 await knowledge_factory.retrieve(mock_span)

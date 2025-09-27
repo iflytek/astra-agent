@@ -9,7 +9,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import ConfigFilter, DevelopmentEnv, Polaris, ProductionEnv
 from infra.config.fast_uvi import UvicornConfig
 from infra.config.middleware import MiddlewareConfig
@@ -48,8 +48,8 @@ class PolarisSettingsSourceFactory(PydanticBaseSettingsSource):
         Load remote configuration and override environment variables
         """
 
-        use_polaris = os.getenv("use_polaris") or self.dotenv_settings.get(
-            "use_polaris"
+        use_polaris = os.getenv("USE_POLARIS") or self.dotenv_settings.get(
+            "USE_POLARIS"
         )
 
         if use_polaris == "false":
@@ -70,8 +70,8 @@ class PolarisSettingsSourceFactory(PydanticBaseSettingsSource):
             or "hy-spark-agent-builder"
         )
         service_name = (
-            os.getenv("service_name")
-            or self.dotenv_settings.get("service_name")
+            os.getenv("SERVICE_NAME")
+            or self.dotenv_settings.get("SERVICE_NAME")
             or "spark-agent"
         )
         version = os.getenv("version") or self.dotenv_settings.get("version") or "1.0.0"
@@ -111,10 +111,10 @@ class PolarisSettingsSourceFactory(PydanticBaseSettingsSource):
 
 
 class EnvConfig(BaseSettings):
-    run_environ: str = Field(default=DevelopmentEnv)
+    RUN_ENVIRON: str = Field(default=DevelopmentEnv)
 
     def is_dev(self) -> bool:
-        return bool(self.run_environ != ProductionEnv)
+        return bool(self.RUN_ENVIRON != ProductionEnv)
 
 
 class AgentConfig(  # pylint: disable=too-many-ancestors
@@ -125,7 +125,7 @@ class AgentConfig(  # pylint: disable=too-many-ancestors
 ):
     """Agent configuration combining all necessary settings."""
 
-    service_name: str = Field(description="Service name", default="Agent")
+    SERVICE_NAME: str = Field(description="Service name", default="Agent")
 
     model_config = SettingsConfigDict(
         env_file="env/.env", env_file_encoding="utf-8", extra="ignore"
@@ -156,7 +156,7 @@ agent_config = AgentConfig()
 
 if __name__ == "__main__":
     agent_config = AgentConfig()
-    print(agent_config.service_name)
-    print(agent_config.run_environ)
-    print(agent_config.metric_endpoint)
-    print(type(agent_config.metric_timeout))
+    print(agent_config.SERVICE_NAME)
+    print(agent_config.RUN_ENVIRON)
+    print(agent_config.OTLP_ENDPOINT)
+    print(type(agent_config.OTLP_METRIC_TIMEOUT))

@@ -4,7 +4,7 @@ from common.service.base import Service, ServiceType
 
 class OtlpSidService(Service):
 
-    name: str = ServiceType.OTLP_SID_SERVICE
+    name: str = ServiceType.OTLP_SID_SERVICE  # type: ignore[assignment]
 
     def sid(self) -> str:
         if isinstance(sid_module.sid_generator2, sid_module.SidGenerator2):

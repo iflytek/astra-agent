@@ -8,6 +8,7 @@ against schemas and automatically fix common data type issues.
 from typing import Any
 
 import jsonschema  # type: ignore[import-untyped]
+from loguru import logger
 
 
 class JsonSchemaValidator:
@@ -37,7 +38,7 @@ class JsonSchemaValidator:
             jsonschema.validate(instance=data, schema=self.schema)
             return True
         except jsonschema.ValidationError as e:
-            print(f"Validation error: {e.message}")
+            logger.error(f"Validation error: {e.message}")
             return False
 
     def preprocess_data(self, data: dict) -> dict:
@@ -103,12 +104,6 @@ class JsonSchemaValidator:
                 # Fix to boolean value
                 if isinstance(value, bool):
                     return value
-                # if isinstance(value, (int, float)):
-                #     return value != 0  # Non-zero numbers are True
-                # if isinstance(value, str):
-                #     return value.strip() != ""  # Non-empty strings are True
-                # if isinstance(value, list):
-                #     return len(value) > 0  # Non-empty arrays are True
                 return False  # Return False for other cases
 
             case "object":
@@ -147,48 +142,3 @@ class JsonSchemaValidator:
         fixed_data = self.preprocess_data(data)
         is_valid = self.validate(fixed_data)
         return is_valid, fixed_data
-
-
-# Example usage
-if __name__ == "__main__":
-    schema = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "properties": {
-            "age": {"description": "年龄", "type": "integer"},
-            "i1": {"description": "情绪打分，区间[1,10]", "type": "number"},
-            "i2": {
-                "description": "家里人口",
-                "items": {"type": "string"},
-                "type": "array",
-            },
-            "i3": {
-                "description": "是否单亲，是的话，输出true，否的话，输出false",
-                "items": {"type": "boolean"},
-                "type": "array",
-            },
-            "ill": {
-                "description": "鞋子尺码信息",
-                "items": {"type": "number"},
-                "type": "array",
-            },
-            "loc": {
-                "description": "是否是南方人，是南方人输出true，是北方人输出false",
-                "type": "boolean",
-            },
-            "name": {
-                "description": "姓名",
-                "items": {"type": "integer"},
-                "type": "array",
-            },
-        },
-        "required": ["name", "age", "loc", "ill", "i1", "i2", "i3"],
-        "type": "object",
-    }
-
-    data = {"age": "90", "name": "小明"}  # Missing required fields
-    validator = JsonSchemaValidator(schema)
-
-    # Validate and fix data
-    is_valid, fixed_data = validator.validate_and_fix(data)
-    print(f"是否有效: {is_valid}")
-    print(f"修正后的数据: {fixed_data}")

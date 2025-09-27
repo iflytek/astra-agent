@@ -5,10 +5,10 @@ from common.service.ma.metrology_auth_service import MASDKService
 
 
 class MASDKServiceFactory(ServiceFactory):
-    def __init__(self):
-        super().__init__(MASDKService)
+    def __init__(self) -> None:
+        super().__init__(MASDKService)  # type: ignore[arg-type]
 
-    def create(self):
+    def create(self):  # type: ignore[override, no-untyped-def]
         polaris_url = os.getenv("MASDK_POLARIS_URL")
         if not polaris_url:
             raise ValueError("MASDK_POLARIS_URL 环境变量未配置")
@@ -37,13 +37,13 @@ class MASDKServiceFactory(ServiceFactory):
         strategy_type = ["cnt", "conc"]
 
         return MASDKService(
-            channel_list,
-            strategy_type,
-            polaris_url,
-            polaris_project,
-            polaris_group,
-            polaris_service,
-            polaris_version,
-            None,
-            metrics_service_name,
+            channel_list,  # type: ignore[arg-type]
+            strategy_type,  # type: ignore[arg-type]
+            polaris_url,  # type: ignore[arg-type]
+            polaris_project,  # type: ignore[arg-type]
+            polaris_group,  # type: ignore[arg-type]
+            polaris_service,  # type: ignore[arg-type]
+            polaris_version,  # type: ignore[arg-type]
+            None,  # type: ignore[arg-type]
+            metrics_service_name,  # type: ignore[arg-type]
         )

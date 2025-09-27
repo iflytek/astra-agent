@@ -1,1 +1,1 @@
-"""Errors测试模块。"""
+"""Errors test module."""

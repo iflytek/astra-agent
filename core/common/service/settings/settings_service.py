@@ -31,7 +31,7 @@ class EmptyReomoteSettings(BaseRemoteSettings):
     ) -> tuple[Any, str, bool]:
         raise NotImplementedError
 
-    def __call__(self):
+    def __call__(self) -> dict[str, Any]:
         return {}
 
 
@@ -77,10 +77,10 @@ class PolarisRemoteSettings(BaseRemoteSettings):
 
         return d
 
-    def load_config(self):
+    def load_config(self) -> dict[str, Any]:
         return self.load_polaris()
 
-    def load_polaris(self):
+    def load_polaris(self) -> dict[str, Any]:
 
         connect_args = []
 
@@ -115,7 +115,7 @@ class PolarisRemoteSettings(BaseRemoteSettings):
 class SettingsService(BaseSettingsService):
 
     @property
-    def setting_base(self):
+    def setting_base(self) -> Type[ProjectSettings]:  # type: ignore[override]
         if os.getenv("POLARIS_ENABLED", "false").lower() == "true":
             ProjectSettings.remote_settings_source = PolarisRemoteSettings
         else:
@@ -123,10 +123,10 @@ class SettingsService(BaseSettingsService):
 
         return ProjectSettings
 
-    def sync_env_file_to_environ(self):
+    def sync_env_file_to_environ(self) -> None:
         # print("config path is:", os.getenv("CONFIG_ENV_PATH"))
 
-        class MySettings(self.setting_base):
+        class MySettings(self.setting_base):  # type: ignore[name-defined]
             model_config = SettingsConfigDict(
                 env_file=os.getenv("CONFIG_ENV_PATH"),
                 env_file_encoding="utf-8",

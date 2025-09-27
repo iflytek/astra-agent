@@ -1,4 +1,4 @@
-"""Redis客户端单元测试模块."""
+"""Redis客户端单元test模块."""
 
 import asyncio
 import json
@@ -10,7 +10,7 @@ from cache.redis_client import RedisClientCache, RedisClusterClient
 
 
 class TestRedisClientCache:
-    """RedisClientCache测试类."""
+    """RedisClientCachetest类."""
 
     def setup_method(self) -> None:
         """Test setup method."""
@@ -19,30 +19,30 @@ class TestRedisClientCache:
         )  # pylint: disable=attribute-defined-outside-init
 
     def test_init_empty_client(self) -> None:
-        """测试空客户端初始化."""
+        """test空客户端初始化."""
         assert self.cache.client is None
 
     def test_init_with_client(self) -> None:
-        """测试带客户端初始化."""
+        """test带客户端初始化."""
         mock_client = Mock()
         cache = RedisClientCache(client=mock_client)
         assert cache.client == mock_client
 
     def test_config_arbitrary_types_allowed(self) -> None:
-        """测试配置允许任意类型."""
-        # Pydantic V2中通过model_config访问配置
+        """test配置允许任意类型."""
+        # Access config through model_config in Pydantic V2
         assert hasattr(self.cache, "__config__") or hasattr(
             self.cache.__class__, "model_config"
         )
 
     def test_cache_serialization(self) -> None:
-        """测试缓存序列化."""
+        """test缓存序列化."""
         cache_dict = self.cache.model_dump()
         assert isinstance(cache_dict, dict)
         assert "client" in cache_dict
 
     def test_cache_with_mock_client_attrs(self) -> None:
-        """测试缓存与mock客户端属性."""
+        """test缓存与mock客户端属性."""
         mock_client = Mock()
         mock_client.connection_pool = Mock()
         mock_client.nodes = [{"host": "localhost", "port": 7000}]
@@ -54,10 +54,10 @@ class TestRedisClientCache:
 
 
 class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
-    """RedisClusterClient测试类."""
+    """RedisClusterClienttest类."""
 
     def setup_method(self) -> None:
-        """测试方法初始化."""
+        """test方法初始化."""
         self.nodes = [  # pylint: disable=attribute-defined-outside-init
             {"host": "localhost", "port": 7000},
             {"host": "localhost", "port": 7001},
@@ -76,7 +76,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         mock_redis_cluster: Mock,
         mock_pool: Mock,
     ) -> None:
-        """测试成功创建客户端."""
+        """test成功创建客户端."""
         # Arrange
         mock_redis = Mock()
         mock_redis.ping.return_value = True
@@ -92,8 +92,8 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_create_client_reuse_existing(self) -> None:
-        """测试复用现有客户端."""
-        # 设置现有客户端
+        """test复用现有客户端."""
+        # Set existing client
         mock_existing_client = Mock()
         self.client._client = mock_existing_client  # pylint: disable=protected-access
 
@@ -104,7 +104,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
             result = await self.client.create_client()
 
-            # 验证复用现有客户端
+            # Verify reusing existing client
             assert result == mock_existing_client
 
     @pytest.mark.asyncio
@@ -113,7 +113,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
     async def test_create_client_node_parsing(
         self, mock_redis_cluster: Mock, mock_pool: Mock
     ) -> None:
-        """测试节点解析逻辑."""
+        """test节点解析逻辑."""
         # Arrange
         mock_redis = Mock()
         mock_redis.ping.return_value = True
@@ -135,11 +135,11 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_get_success(self) -> None:
-        """测试成功获取值."""
+        """test成功获取值."""
         test_key = "test_key"
         test_value = b"test_value"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
         mock_client.get.return_value = test_value
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -156,12 +156,12 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_get_non_bytes_result(self) -> None:
-        """测试获取非bytes结果."""
+        """test获取非bytes结果."""
         test_key = "test_key"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
-        mock_client.get.return_value = "string_value"  # 非bytes类型
+        mock_client.get.return_value = "string_value"  # Non-bytes type
         self.client._client = mock_client  # pylint: disable=protected-access
 
         with patch(
@@ -175,7 +175,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_get_none_result(self) -> None:
-        """测试获取None结果."""
+        """test获取None结果."""
         test_key = "nonexistent_key"
 
         mock_client = Mock()
@@ -193,11 +193,11 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_set_success(self) -> None:
-        """测试成功设置值."""
+        """test成功设置值."""
         test_key = "test_key"
         test_value = "test_value"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
         mock_client.set.return_value = True
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -216,11 +216,11 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_set_with_options(self) -> None:
-        """测试带选项设置值."""
+        """test带选项设置值."""
         test_key = "test_key"
         test_value = "test_value"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
         mock_client.set.return_value = True
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -241,7 +241,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_set_failure(self) -> None:
-        """测试设置失败."""
+        """test设置失败."""
         test_key = "test_key"
         test_value = "test_value"
 
@@ -260,10 +260,10 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_delete_success(self) -> None:
-        """测试成功删除键."""
+        """test成功删除键."""
         test_key = "test_key"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
         mock_client.delete.return_value = 1
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -280,7 +280,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_delete_nonexistent_key(self) -> None:
-        """测试删除不存在的键."""
+        """test删除不存在的键."""
         test_key = "nonexistent_key"
 
         mock_client = Mock()
@@ -298,11 +298,11 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_get_ttl_with_valid_result(self) -> None:
-        """测试获取有效TTL."""
+        """test获取有效TTL."""
         test_key = "test_key"
         expected_ttl = 3600
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
         mock_client.ttl.return_value = expected_ttl
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -319,12 +319,12 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_get_ttl_with_non_int_result(self) -> None:
-        """测试获取非整数TTL结果."""
+        """test获取非整数TTL结果."""
         test_key = "test_key"
 
-        # 直接设置mock客户端
+        # Directly set mock client
         mock_client = Mock()
-        mock_client.ttl.return_value = "string_ttl"  # 非整数类型
+        mock_client.ttl.return_value = "string_ttl"  # Non-integer type
         self.client._client = mock_client  # pylint: disable=protected-access
 
         with patch(
@@ -338,7 +338,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_is_connected_success(self) -> None:
-        """测试连接检查成功."""
+        """test连接检查成功."""
         mock_client = Mock()
         mock_client.ping.return_value = True
 
@@ -349,11 +349,11 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_is_connected_failure(self) -> None:
-        """测试连接检查失败."""
+        """test连接检查失败."""
         mock_client = Mock()
         mock_client.ping.side_effect = Exception("Connection failed")
 
-        # 导入异常类用于测试
+        # Import exception class for testing
         from exceptions.middleware_exc import (  # pylint: disable=import-outside-toplevel
             MiddlewareExc,
         )
@@ -363,7 +363,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_is_connected_false_ping(self) -> None:
-        """测试ping返回False的情况."""
+        """testping返回False的情况."""
         mock_client = Mock()
         mock_client.ping.return_value = False
 
@@ -371,21 +371,21 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
             PingRedisExc,
         )
 
-        # Redis ping正常情况下不会返回False，但测试边缘情况
+        # Redis ping normally doesn't return False, but test edge case
         result = await RedisClusterClient.is_connected(mock_client)
-        assert result is True  # 源代码只检查ping()不抛异常
+        assert result is True  # Source code only checks ping() doesn't throw exception
 
     def test_nodes_parsing(self) -> None:
-        """测试节点解析."""
+        """test节点解析."""
         nodes = "192.168.1.1:6379,192.168.1.2:6380,192.168.1.3:6381"
         client = RedisClusterClient(nodes=nodes, password="test")
 
-        # 验证节点字符串正确保存
+        # Verify node string is saved correctly
         assert client.nodes == nodes
         assert client.password == "test"
 
     def test_client_initialization_attributes(self) -> None:
-        """测试客户端初始化属性."""
+        """test客户端初始化属性."""
         client = RedisClusterClient(nodes="localhost:6379", password="secret")
 
         assert client.nodes == "localhost:6379"
@@ -394,8 +394,8 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_concurrent_operations(self) -> None:
-        """测试并发操作."""
-        # 设置mock客户端
+        """test并发操作."""
+        # setup mock client
         mock_client = Mock()
         mock_client.get.return_value = b"test_value"
         mock_client.set.return_value = True
@@ -407,18 +407,18 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         ) as mock_is_connected:
             mock_is_connected.return_value = True
 
-            # 创建并发任务 - 分别处理 get 和 set 操作
+            # Create concurrent tasks - handle get and set operations separately
             get_tasks = []
             set_tasks = []
             for i in range(5):
                 get_tasks.append(self.client.get(f"key_{i}"))
                 set_tasks.append(self.client.set(f"key_{i}", f"value_{i}", ex=3600))
 
-            # 执行并发操作
+            # Execute concurrent operations
             get_results = await asyncio.gather(*get_tasks)
             set_results = await asyncio.gather(*set_tasks)
 
-            # 验证结果
+            # Verify results
             assert len(get_results) == 5
             assert len(set_results) == 5
             for get_result in get_results:
@@ -428,9 +428,9 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_unicode_handling(self) -> None:
-        """测试Unicode内容处理."""
-        unicode_key = "测试键名🔑"
-        unicode_value = "测试值内容🚀"
+        """testUnicode内容处理."""
+        unicode_key = "test键名🔑"
+        unicode_value = "test值内容🚀"
 
         mock_client = Mock()
         mock_client.set.return_value = True
@@ -442,17 +442,17 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         ) as mock_is_connected:
             mock_is_connected.return_value = True
 
-            # 设置Unicode值
+            # Set Unicode value
             set_result = await self.client.set(unicode_key, unicode_value)
             assert set_result is True
 
-            # 获取Unicode值
+            # Get Unicode value
             get_result = await self.client.get(unicode_key)
             assert get_result == unicode_value.encode("utf-8")
 
     def test_config_validation(self) -> None:
-        """测试配置验证."""
-        # 测试正常配置
+        """test配置验证."""
+        # Test normal configuration
         client = RedisClusterClient(nodes="127.0.0.1:6379", password="password")
         assert client.nodes == "127.0.0.1:6379"
         assert client.password == "password"
@@ -460,7 +460,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_error_handling_in_operations(self) -> None:
-        """测试操作中的错误处理."""
+        """test操作中的错误处理."""
         mock_client = Mock()
         mock_client.get.side_effect = Exception("Redis error")
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -470,13 +470,13 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         ) as mock_is_connected:
             mock_is_connected.return_value = True
 
-            # 验证异常传播
+            # Verify exception propagation
             with pytest.raises(Exception, match="Redis error"):
                 await self.client.get("test_key")
 
     @pytest.mark.asyncio
     async def test_connection_error_propagation(self) -> None:
-        """测试连接错误传播."""
+        """test连接错误传播."""
         mock_client = Mock()
         mock_client.ping.side_effect = ConnectionError("Network timeout")
         self.client._client = mock_client  # pylint: disable=protected-access
@@ -490,12 +490,12 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_ttl_edge_cases(self) -> None:
-        """测试TTL边缘情况."""
+        """testTTL边缘情况."""
         test_cases = [
-            (-2, -2),  # key不存在
-            (-1, -1),  # key存在但无过期时间
-            (0, 0),  # key即将过期
-            (3600, 3600),  # 正常TTL
+            (-2, -2),  # key does not exist
+            (-1, -1),  # key exists but no expiration time
+            (0, 0),  # key is about to expire
+            (3600, 3600),  # Normal TTL
         ]
 
         mock_client = Mock()
@@ -513,8 +513,8 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_json_data_handling(self) -> None:
-        """测试JSON数据处理."""
-        test_data = {"name": "测试", "value": 123, "list": [1, 2, 3]}
+        """testJSON数据处理."""
+        test_data = {"name": "test", "value": 123, "list": [1, 2, 3]}
         json_str = json.dumps(test_data, ensure_ascii=False)
 
         mock_client = Mock()
@@ -527,10 +527,10 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         ) as mock_is_connected:
             mock_is_connected.return_value = True
 
-            # 设置JSON数据
+            # Set JSON data
             await self.client.set("json_key", json_str)
 
-            # 获取并验证JSON数据
+            # Get and verify JSON data
             result = await self.client.get("json_key")
             assert result is not None
             parsed_data = json.loads(result.decode("utf-8"))
@@ -538,7 +538,7 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_redis_cluster_configuration(self) -> None:
-        """测试Redis集群配置."""
+        """testRedis集群配置."""
         complex_nodes = "node1:7000,node2:7001,node3:7002,node4:7003"
         client = RedisClusterClient(nodes=complex_nodes, password="cluster_pass")
 
@@ -553,13 +553,13 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
             await client.create_client()
 
-            # 验证连接池配置
+            # Verify connection pool configuration
             call_kwargs = mock_pool.call_args[1]
             startup_nodes = call_kwargs["startup_nodes"]
             assert len(startup_nodes) == 4
             assert call_kwargs["password"] == "cluster_pass"
 
-            # 验证节点解析
+            # Verify node parsing
             expected_nodes = [
                 {"host": "node1", "port": 7000},
                 {"host": "node2", "port": 7001},
@@ -570,48 +570,48 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
 
     @pytest.mark.asyncio
     async def test_client_reuse_optimization(self) -> None:
-        """测试客户端复用优化."""
+        """test客户端复用优化."""
         mock_client = Mock()
         mock_client.ping.return_value = True
 
-        # 第一次创建
+        # First creation
         with (
             patch("cache.redis_client.ClusterConnectionPool"),
             patch("cache.redis_client.RedisCluster", return_value=mock_client),
         ):
 
             client1 = await self.client.create_client()
-            # 第二次应该复用
+            # Second should reuse
             client2 = await self.client.create_client()
 
             assert client1 is client2
-            # ping只在is_connected中调用，每次create_client都会调用一次
+            # ping only called in is_connected, called once per create_client
             assert mock_client.ping.call_count >= 2
 
     @pytest.mark.asyncio
     async def test_network_resilience(self) -> None:
-        """测试网络弹性."""
+        """test网络弹性."""
         mock_client = Mock()
-        # 模拟网络间歇性故障
+        # Simulate intermittent network failure
         mock_client.ping.side_effect = [
             Exception("Network timeout"),
-            True,  # 重试成功
+            True,  # Retry successful
         ]
 
         from exceptions.middleware_exc import (  # pylint: disable=import-outside-toplevel
             MiddlewareExc,
         )
 
-        # 第一次连接失败
+        # First connection failed
         with pytest.raises(MiddlewareExc):
             await RedisClusterClient.is_connected(mock_client)
 
-        # 第二次连接成功
+        # Second connection successful
         result = await RedisClusterClient.is_connected(mock_client)
         assert result is True
 
     def test_model_serialization(self) -> None:
-        """测试模型序列化."""
+        """test模型序列化."""
         client_dict = self.client.model_dump()
 
         assert isinstance(client_dict, dict)
@@ -621,13 +621,13 @@ class TestRedisClusterClient:  # pylint: disable=too-many-public-methods
         assert client_dict["password"] == "test_password"
 
     def test_password_security(self) -> None:
-        """测试密码安全性."""
+        """test密码安全性."""
         sensitive_password = "super_secret_password_123!@#"
         client = RedisClusterClient(nodes="localhost:6379", password=sensitive_password)
 
-        # 密码应该被正确存储（实际使用中需要考虑安全性）
+        # Password should be stored correctly (security considerations needed in actual use)
         assert client.password == sensitive_password
 
-        # 序列化时也会包含密码（生产环境中可能需要特殊处理）
+        # Password also included during serialization (may need special handling in production)
         client_dict = client.model_dump()
         assert client_dict["password"] == sensitive_password

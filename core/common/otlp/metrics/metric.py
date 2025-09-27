@@ -14,15 +14,6 @@ from common.otlp.metrics.consts import (
     SERVER_REQUEST_TOTAL,
 )
 
-# sdk上报metric时间间隔 建议小于30000ms  默认1000ms
-# export_interval_millis = 3000
-# 默认配置 metrics上报服务端超时时间 单位ms 默认5000ms
-# export_timeout_millis = 5000
-# 默认配置 与服务端建连时间 单位ms 默认5000ms
-# timeout = 1000
-# open telemetry地址
-# endpoint = "172.30.209.27:4317"
-
 counter = None
 histogram = None
 meter = None
@@ -34,7 +25,7 @@ def init_metric(
     timeout: int = 5000,
     export_interval_millis: int = 1000,
     export_timeout_millis: int = 5000,
-):
+) -> None:
     """
     初始化metric
     :param endpoint:                open telemetry地址
@@ -78,10 +69,8 @@ def init_metric(
     resource = Resource(attributes={SERVICE_NAME: service_name})
     provider = MeterProvider(metric_readers=metric_readers, resource=resource)
 
-    # 设置全局默认的 MeterProvider
     set_meter_provider(provider)
 
-    # 从全局 MeterProvider 创建一个 Meter
     meter = get_meter_provider().get_meter(f"{service_name}_meter")
 
     counter = meter.create_counter(

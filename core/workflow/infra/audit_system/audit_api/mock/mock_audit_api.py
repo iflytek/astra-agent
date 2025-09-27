@@ -119,7 +119,7 @@ class MockAuditAPI(AuditAPI):
                 "content": payload.get("content", ""),
                 "stage": Stage.ANSWER.value,
             },
-            "code": CodeEnum.Successes.code,
+            "code": CodeEnum.Success.code,
             "message": "Mock response message",
         }
 
@@ -179,7 +179,7 @@ class MockAuditAPI(AuditAPI):
         resp = await self._post("/audit/v3/aichat/input", payload, chat_app_id, uid)
         if resp.get("data", {}).get("action") != ActionEnum.NONE:
             raise CustomException(
-                CodeEnum.AuditInputError,
+                CodeEnum.AUDIT_INPUT_ERROR,
                 cause_error=f"Audit result abnormal: {resp}",
             )
 
@@ -230,7 +230,7 @@ class MockAuditAPI(AuditAPI):
         logging.info(f"\nMockAuditAPI.output_text resp: {resp}")
         if resp.get("data", {}).get("action") != ActionEnum.NONE:
             raise CustomException(
-                CodeEnum.AuditOutputError,
+                CodeEnum.AUDIT_OUTPUT_ERROR,
                 cause_error=f"Audit result abnormal: {resp}",
             )
 

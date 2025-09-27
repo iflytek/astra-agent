@@ -1,6 +1,6 @@
 from typing import Union
 
-from exceptions.codes import (  # type: ignore[attr-defined]
+from exceptions.codes import (
     c_10000,
     c_10001,
     c_10002,

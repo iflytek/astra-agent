@@ -82,7 +82,7 @@ check-java: ## 🔍 Check Java code quality
 		for dir in $(JAVA_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
-				cd $$dir && \
+				(cd $$dir && \
 				echo "$(YELLOW)    Compiling project...$(RESET)" && \
 				$(MVN) clean compile $(MAVEN_DEFAULT_OPTS) && \
 				echo "$(YELLOW)    Running Spotless format check...$(RESET)" && \
@@ -92,10 +92,10 @@ check-java: ## 🔍 Check Java code quality
 				echo "$(YELLOW)    Running SpotBugs...$(RESET)" && \
 				$(MVN) clean compile spotbugs:check $(MAVEN_DEFAULT_OPTS) && \
 				echo "$(YELLOW)    Running PMD...$(RESET)" && \
-				$(MVN) clean compile pmd:check $(MAVEN_DEFAULT_OPTS); \
-				cd - > /dev/null; \
+				$(MVN) clean compile pmd:check $(MAVEN_DEFAULT_OPTS)) || exit 1; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+				exit 1; \
 			fi; \
 		done; \
 		echo "$(GREEN)Java code quality checks completed$(RESET)"; \

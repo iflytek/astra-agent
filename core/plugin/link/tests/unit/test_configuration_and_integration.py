@@ -6,14 +6,13 @@ variable handling, constants validation, and various integration scenarios
 that test how different components work together.
 """
 
-import pytest
-import os
 import json
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+import os
+from unittest.mock import patch
 
-from consts import const
-from utils.errors.code import ErrCode
+import pytest
+from plugin.link.consts import const
+from plugin.link.utils.errors.code import ErrCode
 
 
 class TestConstantsValidation:
@@ -22,13 +21,16 @@ class TestConstantsValidation:
     def test_error_codes_structure(self):
         """Test that all error codes have required structure."""
         # Get all ErrCode attributes that look like error codes
-        error_codes = [getattr(ErrCode, attr) for attr in dir(ErrCode)
-                      if not attr.startswith('_') and hasattr(getattr(ErrCode, attr), 'code')]
+        error_codes = [
+            getattr(ErrCode, attr)
+            for attr in dir(ErrCode)
+            if not attr.startswith("_") and hasattr(getattr(ErrCode, attr), "code")
+        ]
 
         for error_code in error_codes:
             # Each error code should have code and msg attributes
-            assert hasattr(error_code, 'code')
-            assert hasattr(error_code, 'msg')
+            assert hasattr(error_code, "code")
+            assert hasattr(error_code, "msg")
 
             # Code should be integer
             assert isinstance(error_code.code, int)
@@ -39,8 +41,11 @@ class TestConstantsValidation:
 
     def test_error_code_uniqueness(self):
         """Test that error codes are unique."""
-        error_codes = [getattr(ErrCode, attr) for attr in dir(ErrCode)
-                      if not attr.startswith('_') and hasattr(getattr(ErrCode, attr), 'code')]
+        error_codes = [
+            getattr(ErrCode, attr)
+            for attr in dir(ErrCode)
+            if not attr.startswith("_") and hasattr(getattr(ErrCode, attr), "code")
+        ]
 
         codes = [ec.code for ec in error_codes]
 
@@ -54,8 +59,11 @@ class TestConstantsValidation:
 
     def test_error_codes_are_positive(self):
         """Test that error codes (except success) are positive."""
-        error_codes = [getattr(ErrCode, attr) for attr in dir(ErrCode)
-                      if not attr.startswith('_') and hasattr(getattr(ErrCode, attr), 'code')]
+        error_codes = [
+            getattr(ErrCode, attr)
+            for attr in dir(ErrCode)
+            if not attr.startswith("_") and hasattr(getattr(ErrCode, attr), "code")
+        ]
 
         for error_code in error_codes:
             if error_code != ErrCode.SUCCESSES:
@@ -65,9 +73,9 @@ class TestConstantsValidation:
         """Test that const module has expected attributes."""
         # Test that const module has key attributes we expect
         expected_attrs = {
-            'DEF_VER': str,    # Should be string version like "V1.0"
-            'DEF_DEL': int,    # Should be integer deletion flag like 0
-            'APP_ID_KEY': str  # Should be string key name
+            "DEF_VER": str,  # Should be string version like "V1.0"
+            "DEF_DEL": int,  # Should be integer deletion flag like 0
+            "DEFAULT_APPID_KEY": str,  # Should be string key name
         }
 
         for attr, expected_type in expected_attrs.items():
@@ -79,18 +87,25 @@ class TestConstantsValidation:
     def test_environment_variable_keys_format(self):
         """Test that environment variable key constants follow naming convention."""
         # Get all attributes that look like environment variable keys
-        env_keys = [getattr(const, attr) for attr in dir(const)
-                   if attr.endswith('_KEY') and not attr.startswith('_')]
+        env_keys = [
+            getattr(const, attr)
+            for attr in dir(const)
+            if attr.endswith("_KEY") and not attr.startswith("_")
+        ]
 
         for key in env_keys:
             assert isinstance(key, str)
             assert len(key) > 0
             # Environment variable keys should be valid identifier format
-            # Can be either CamelCase (like PolarisPassword) or lowercase_with_underscores (like app_auth_host)
+            # Can be either CamelCase (like PolarisPassword) or
+            # lowercase_with_underscores (like app_auth_host)
             import re
-            is_camel_case = re.match(r'^[A-Z][a-zA-Z0-9]*$', key)
-            is_snake_case = re.match(r'^[a-z0-9_-]+$', key)
-            assert is_camel_case or is_snake_case, f"Key '{key}' doesn't match CamelCase or snake_case format"
+
+            is_camel_case = re.match(r"^[A-Z][a-zA-Z0-9]*$", key)
+            is_snake_case = re.match(r"^[a-z0-9_-]+$", key)
+            assert (
+                is_camel_case or is_snake_case
+            ), f"Key '{key}' doesn't match CamelCase or snake_case format"
 
 
 class TestEnvironmentVariableHandling:
@@ -102,67 +117,70 @@ class TestEnvironmentVariableHandling:
         # Test common patterns for missing env vars
 
         # Pattern 1: Using os.getenv with default
-        value = os.getenv('NONEXISTENT_VAR', 'default_value')
-        assert value == 'default_value'
+        value = os.getenv("NONEXISTENT_VAR", "default_value")
+        assert value == "default_value"
 
         # Pattern 2: Using os.getenv without default (returns None)
-        value = os.getenv('NONEXISTENT_VAR')
+        value = os.getenv("NONEXISTENT_VAR")
         assert value is None
 
-    @patch.dict(os.environ, {'TEST_VAR': 'test_value'})
+    @patch.dict(os.environ, {"TEST_VAR": "test_value"})
     def test_existing_environment_variables(self):
         """Test handling of existing environment variables."""
-        value = os.getenv('TEST_VAR')
-        assert value == 'test_value'
+        value = os.getenv("TEST_VAR")
+        assert value == "test_value"
 
         # With default (should return actual value, not default)
-        value = os.getenv('TEST_VAR', 'default')
-        assert value == 'test_value'
+        value = os.getenv("TEST_VAR", "default")
+        assert value == "test_value"
 
-    @patch.dict(os.environ, {'EMPTY_VAR': ''})
+    @patch.dict(os.environ, {"EMPTY_VAR": ""})
     def test_empty_environment_variables(self):
         """Test handling of empty environment variables."""
-        value = os.getenv('EMPTY_VAR')
-        assert value == ''
+        value = os.getenv("EMPTY_VAR")
+        assert value == ""
 
         # Test truthy/falsy behavior
         assert not value  # Empty string is falsy
 
-    @patch.dict(os.environ, {
-        'NUMERIC_VAR': '123',
-        'FLOAT_VAR': '45.67',
-        'BOOL_VAR': 'true',
-        'LIST_VAR': 'item1,item2,item3'
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "NUMERIC_VAR": "123",
+            "FLOAT_VAR": "45.67",
+            "BOOL_VAR": "true",
+            "LIST_VAR": "item1,item2,item3",
+        },
+    )
     def test_environment_variable_type_conversion(self):
         """Test type conversion patterns for environment variables."""
         # Integer conversion
-        numeric_value = int(os.getenv('NUMERIC_VAR'))
+        numeric_value = int(os.getenv("NUMERIC_VAR"))
         assert numeric_value == 123
         assert isinstance(numeric_value, int)
 
         # Float conversion
-        float_value = float(os.getenv('FLOAT_VAR'))
+        float_value = float(os.getenv("FLOAT_VAR"))
         assert float_value == 45.67
         assert isinstance(float_value, float)
 
         # Boolean conversion (common pattern)
-        bool_value = os.getenv('BOOL_VAR').lower() == 'true'
+        bool_value = os.getenv("BOOL_VAR").lower() == "true"
         assert bool_value is True
 
         # List conversion (comma-separated)
-        list_value = os.getenv('LIST_VAR').split(',')
-        assert list_value == ['item1', 'item2', 'item3']
+        list_value = os.getenv("LIST_VAR").split(",")
+        assert list_value == ["item1", "item2", "item3"]
 
     def test_environment_variable_error_handling(self):
         """Test error handling for environment variable conversion."""
-        with patch.dict(os.environ, {'INVALID_INT': 'not_a_number'}):
+        with patch.dict(os.environ, {"INVALID_INT": "not_a_number"}):
             with pytest.raises(ValueError):
-                int(os.getenv('INVALID_INT'))
+                int(os.getenv("INVALID_INT"))
 
-        with patch.dict(os.environ, {'INVALID_FLOAT': 'not_a_float'}):
+        with patch.dict(os.environ, {"INVALID_FLOAT": "not_a_float"}):
             with pytest.raises(ValueError):
-                float(os.getenv('INVALID_FLOAT'))
+                float(os.getenv("INVALID_FLOAT"))
 
 
 class TestConfigurationPatterns:
@@ -176,38 +194,34 @@ class TestConfigurationPatterns:
         assert len(default_version) > 0
 
         # Should look like a version (semantic versioning pattern)
-        version_parts = default_version.split('.')
+        version_parts = default_version.split(".")
         assert len(version_parts) >= 2  # At least major.minor
 
         # Test DEF_DEL (default deletion flag)
         default_deleted = const.DEF_DEL
         assert isinstance(default_deleted, (str, int))
 
-    def test_app_id_validation_pattern(self):
-        """Test application ID validation patterns."""
-        # Test APP_ID_KEY exists and is string
-        app_id_key = const.APP_ID_KEY
-        assert isinstance(app_id_key, str)
-        assert len(app_id_key) > 0
-
-    @patch.dict(os.environ, {
-        'DATACENTER_ID': '1',
-        'WORKER_ID': '2',
-        'HTTP_AUTH_APP_ID': 'test_app',
-        'HTTP_AUTH_APP_KEY': 'test_key'
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "DATACENTER_ID": "1",
+            "WORKER_ID": "2",
+            "HTTP_AUTH_APP_ID": "test_app",
+            "HTTP_AUTH_APP_KEY": "test_key",
+        },
+    )
     def test_configuration_loading_integration(self):
         """Test integration of configuration loading."""
         # This tests the pattern used in various modules
 
         # Test numeric configuration
-        if hasattr(const, 'DATACENTER_ID_KEY'):
-            datacenter_id = int(os.getenv(const.DATACENTER_ID_KEY, '0'))
+        if hasattr(const, "DATACENTER_ID_KEY"):
+            datacenter_id = int(os.getenv(const.DATACENTER_ID_KEY, "0"))
             assert isinstance(datacenter_id, int)
 
         # Test string configuration
-        if hasattr(const, 'HTTP_AUTH_QU_APP_ID_KEY'):
-            app_id = os.getenv(const.HTTP_AUTH_QU_APP_ID_KEY, '')
+        if hasattr(const, "HTTP_AUTH_QU_APP_ID_KEY"):
+            app_id = os.getenv(const.HTTP_AUTH_QU_APP_ID_KEY, "")
             assert isinstance(app_id, str)
 
 
@@ -216,13 +230,13 @@ class TestModuleIntegration:
 
     def test_exception_and_error_code_integration(self):
         """Test integration between exceptions and error codes."""
-        from exceptions.sparklink_exceptions import SparkLinkBaseException
+        from plugin.link.exceptions.sparklink_exceptions import SparkLinkBaseException
 
         # Test that exceptions can use error codes
         exception = SparkLinkBaseException(
             code=ErrCode.TOOL_NOT_EXIST_ERR.code,
             err_pre=ErrCode.TOOL_NOT_EXIST_ERR.msg,
-            err="Test tool not found"
+            err="Test tool not found",
         )
 
         assert exception.code == ErrCode.TOOL_NOT_EXIST_ERR.code
@@ -230,7 +244,7 @@ class TestModuleIntegration:
 
     def test_uid_and_tool_id_integration(self):
         """Test integration between UID generation and tool ID patterns."""
-        from utils.uid.generate_uid import new_uid
+        from plugin.link.utils.uid.generate_uid import new_uid
 
         # Generate UID and create tool ID
         uid = new_uid()
@@ -238,12 +252,13 @@ class TestModuleIntegration:
 
         # Should match expected pattern
         import re
+
         pattern = re.compile(r"^tool@[0-9a-fA-F]{8}$")
         assert pattern.match(tool_id)
 
     def test_snowflake_and_tool_id_integration(self):
         """Test integration between Snowflake ID and tool ID patterns."""
-        from utils.snowflake.gen_snowflake import Snowflake
+        from plugin.link.utils.snowflake.gen_snowflake import Snowflake
 
         snowflake = Snowflake(1, 1)
         snowflake_id = snowflake.get_id()
@@ -254,6 +269,7 @@ class TestModuleIntegration:
 
         # Should match pattern
         import re
+
         pattern = re.compile(r"^tool@[0-9a-fA-F]+$")
         assert pattern.match(tool_id)
 
@@ -261,11 +277,11 @@ class TestModuleIntegration:
         """Test integration between authentication modules and configuration."""
         # Test that auth modules can access required configuration
         auth_keys = [
-            'HTTP_AUTH_QU_APP_ID_KEY',
-            'HTTP_AUTH_QU_APP_KEY_KEY',
-            'HTTP_AUTH_AWAU_APP_ID_KEY',
-            'HTTP_AUTH_AWAU_API_KEY_KEY',
-            'HTTP_AUTH_AWAU_API_SECRET_KEY'
+            "HTTP_AUTH_QU_APP_ID_KEY",
+            "HTTP_AUTH_QU_APP_KEY_KEY",
+            "HTTP_AUTH_AWAU_APP_ID_KEY",
+            "HTTP_AUTH_AWAU_API_KEY_KEY",
+            "HTTP_AUTH_AWAU_API_SECRET_KEY",
         ]
 
         for key in auth_keys:
@@ -290,7 +306,7 @@ class TestDataValidationPatterns:
             "tool@abcdef",
             "tool@123abc",
             "tool@ABC123",
-            "tool@1a2b3c4d5e6f"
+            "tool@1a2b3c4d5e6f",
         ]
 
         for tool_id in valid_tool_ids:
@@ -315,12 +331,7 @@ class TestDataValidationPatterns:
         # Semantic version pattern
         version_pattern = re.compile(r"^\d+\.\d+(\.\d+)?$")
 
-        valid_versions = [
-            "1.0",
-            "1.0.0",
-            "2.1.3",
-            "10.15.20"
-        ]
+        valid_versions = ["1.0", "1.0.0", "2.1.3", "10.15.20"]
 
         for version in valid_versions:
             assert version_pattern.match(version), f"Version {version} should be valid"
@@ -330,11 +341,13 @@ class TestDataValidationPatterns:
             "1.0.0.0",  # Too many parts
             "v1.0.0",  # Has prefix
             "1.0.0-alpha",  # Has suffix
-            "1.0.a"  # Non-numeric
+            "1.0.a",  # Non-numeric
         ]
 
         for version in invalid_versions:
-            assert not version_pattern.match(version), f"Version {version} should be invalid"
+            assert not version_pattern.match(
+                version
+            ), f"Version {version} should be invalid"
 
     def test_openapi_version_validation(self):
         """Test OpenAPI version validation patterns."""
@@ -349,8 +362,8 @@ class TestDataValidationPatterns:
             match = version_pattern.match(version)
             assert match is not None
 
-            major = match.group('major')
-            assert major == '3'  # Should be version 3
+            major = match.group("major")
+            assert major == "3"  # Should be version 3
 
     def test_base64_validation_patterns(self):
         """Test Base64 validation patterns."""
@@ -396,7 +409,7 @@ class TestErrorHandlingIntegration:
             "code": ErrCode.TOOL_NOT_EXIST_ERR.code,
             "message": ErrCode.TOOL_NOT_EXIST_ERR.msg,
             "sid": "test_session_id",
-            "data": {}
+            "data": {},
         }
 
         assert "code" in error_response
@@ -405,13 +418,13 @@ class TestErrorHandlingIntegration:
         assert isinstance(error_response["message"], str)
 
     def test_exception_to_response_conversion(self):
-        """Test conversion from exceptions to response format."""
-        from exceptions.sparklink_exceptions import ToolNotExistsException
+        """Test conversion from plugin.link.exceptions to response format."""
+        from plugin.link.exceptions.sparklink_exceptions import ToolNotExistsException
 
         exception = ToolNotExistsException(
             code=ErrCode.TOOL_NOT_EXIST_ERR.code,
             err_pre=ErrCode.TOOL_NOT_EXIST_ERR.msg,
-            err="Tool 'test@123' not found"
+            err="Tool 'test@123' not found",
         )
 
         # Convert to response format
@@ -419,7 +432,7 @@ class TestErrorHandlingIntegration:
             "code": exception.code,
             "message": exception.message,
             "sid": "test_sid",
-            "data": {}
+            "data": {},
         }
 
         assert response["code"] == ErrCode.TOOL_NOT_EXIST_ERR.code
@@ -434,7 +447,7 @@ class TestErrorHandlingIntegration:
         validation_errors = [
             {"error_path": "$.info.title", "error_message": "Title is required"},
             {"error_path": "$.paths", "error_message": "Paths cannot be empty"},
-            {"error_path": "$.openapi", "error_message": "Version must be 3.x"}
+            {"error_path": "$.openapi", "error_message": "Version must be 3.x"},
         ]
 
         errors.extend(validation_errors)
@@ -448,8 +461,9 @@ class TestPerformanceAndScalability:
 
     def test_uid_generation_performance(self):
         """Test UID generation performance characteristics."""
-        from utils.uid.generate_uid import new_uid
         import time
+
+        from plugin.link.utils.uid.generate_uid import new_uid
 
         # Generate many UIDs and measure time
         start_time = time.time()
@@ -464,8 +478,9 @@ class TestPerformanceAndScalability:
 
     def test_snowflake_id_generation_performance(self):
         """Test Snowflake ID generation performance."""
-        from utils.snowflake.gen_snowflake import Snowflake
         import time
+
+        from plugin.link.utils.snowflake.gen_snowflake import Snowflake
 
         snowflake = Snowflake(1, 1)
 
@@ -491,14 +506,14 @@ class TestPerformanceAndScalability:
             return _config_cache[key]
 
         # Test caching behavior
-        with patch.dict(os.environ, {'CACHE_TEST': 'cached_value'}):
+        with patch.dict(os.environ, {"CACHE_TEST": "cached_value"}):
             # First call should hit environment
-            value1 = get_cached_config('CACHE_TEST')
+            value1 = get_cached_config("CACHE_TEST")
 
             # Second call should use cache
-            value2 = get_cached_config('CACHE_TEST')
+            value2 = get_cached_config("CACHE_TEST")
 
-            assert value1 == value2 == 'cached_value'
+            assert value1 == value2 == "cached_value"
 
 
 class TestEdgeCasesAndBoundaryConditions:
@@ -506,8 +521,9 @@ class TestEdgeCasesAndBoundaryConditions:
 
     def test_concurrent_uid_generation(self):
         """Test concurrent UID generation doesn't produce duplicates."""
-        from utils.uid.generate_uid import new_uid
         import threading
+
+        from plugin.link.utils.uid.generate_uid import new_uid
 
         uids = []
         lock = threading.Lock()
@@ -536,8 +552,8 @@ class TestEdgeCasesAndBoundaryConditions:
         """Test handling of large configuration values."""
         large_value = "x" * 10000  # 10KB value
 
-        with patch.dict(os.environ, {'LARGE_CONFIG': large_value}):
-            retrieved_value = os.getenv('LARGE_CONFIG')
+        with patch.dict(os.environ, {"LARGE_CONFIG": large_value}):
+            retrieved_value = os.getenv("LARGE_CONFIG")
             assert len(retrieved_value) == 10000
             assert retrieved_value == large_value
 
@@ -545,8 +561,8 @@ class TestEdgeCasesAndBoundaryConditions:
         """Test Unicode handling in configuration values."""
         unicode_value = "配置值 🔧 Configuration"
 
-        with patch.dict(os.environ, {'UNICODE_CONFIG': unicode_value}):
-            retrieved_value = os.getenv('UNICODE_CONFIG')
+        with patch.dict(os.environ, {"UNICODE_CONFIG": unicode_value}):
+            retrieved_value = os.getenv("UNICODE_CONFIG")
             assert retrieved_value == unicode_value
             assert "配置值" in retrieved_value
             assert "🔧" in retrieved_value
@@ -554,17 +570,17 @@ class TestEdgeCasesAndBoundaryConditions:
     def test_configuration_type_coercion_edge_cases(self):
         """Test edge cases in configuration type coercion."""
         test_cases = [
-            ('0', int, 0),
-            ('000123', int, 123),
-            ('3.14159', float, 3.14159),
-            ('true', lambda x: x.lower() == 'true', True),
-            ('TRUE', lambda x: x.lower() == 'true', True),
-            ('false', lambda x: x.lower() == 'true', False),
-            ('', bool, False),  # Empty string is falsy
-            ('0', bool, True),  # Non-empty string is truthy
+            ("0", int, 0),
+            ("000123", int, 123),
+            ("3.14159", float, 3.14159),
+            ("true", lambda x: x.lower() == "true", True),
+            ("TRUE", lambda x: x.lower() == "true", True),
+            ("false", lambda x: x.lower() == "true", False),
+            ("", bool, False),  # Empty string is falsy
+            ("0", bool, True),  # Non-empty string is truthy
         ]
 
         for env_value, converter, expected in test_cases:
-            with patch.dict(os.environ, {'TEST_COERCION': env_value}):
-                result = converter(os.getenv('TEST_COERCION'))
+            with patch.dict(os.environ, {"TEST_COERCION": env_value}):
+                result = converter(os.getenv("TEST_COERCION"))
                 assert result == expected

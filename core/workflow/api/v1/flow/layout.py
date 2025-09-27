@@ -17,7 +17,6 @@ except ImportError:
     from sqlalchemy.orm import Session  # type: ignore[assignment]
 
 from starlette.responses import JSONResponse, StreamingResponse
-
 from workflow.cache.flow import del_flow_by_id
 from workflow.consts.comparisons import Tag
 from workflow.consts.flow import FlowStatus
@@ -62,9 +61,8 @@ def add(
             current_span.add_info_event(f"add flow vo: {flow.json()}")
             if flow.status not in [FlowStatus.DRAFT.value, FlowStatus.PUBLISHED.value]:
                 raise CustomException(
-                    err_code=CodeEnum.ProtocolCreateError,
-                    err_msg=f"{CodeEnum.ProtocolCreateError.msg}。"
-                    f"status值只能为0或1，当前值为{flow.status}",
+                    err_code=CodeEnum.PROTOCOL_CREATE_ERROR,
+                    err_msg=f"status value can only be 0 or 1, current value is {flow.status}",
                 )
 
             app_info = app_service.get_info(flow.app_id, session, current_span)
@@ -94,10 +92,10 @@ def add(
             return response_error(err.code, err.message, span.sid)
         except Exception as e:
             current_span.record_exception(e)
-            m.in_error_count(CodeEnum.ProtocolCreateError.code, span=current_span)
+            m.in_error_count(CodeEnum.PROTOCOL_CREATE_ERROR.code, span=current_span)
             return response_error(
-                CodeEnum.ProtocolCreateError.code,
-                CodeEnum.ProtocolCreateError.msg,
+                CodeEnum.PROTOCOL_CREATE_ERROR.code,
+                CodeEnum.PROTOCOL_CREATE_ERROR.msg,
                 span.sid,
             )
 
@@ -122,11 +120,11 @@ def get(flow_read: FlowRead, session: Session = Depends(get_session)) -> JSONRes
             current_span.record_exception(err)
             return response_error(err.code, err.message, span.sid)
         except Exception as e:
-            m.in_error_count(CodeEnum.FlowGetError.code, span=current_span)
+            m.in_error_count(CodeEnum.FLOW_GET_ERROR.code, span=current_span)
             current_span.record_exception(e)
             return response_error(
-                CodeEnum.FlowGetError.code,
-                CodeEnum.FlowGetError.msg,
+                CodeEnum.FLOW_GET_ERROR.code,
+                CodeEnum.FLOW_GET_ERROR.msg,
                 span.sid,
             )
         m.in_success_count()
@@ -165,12 +163,12 @@ def update(
                 )
             db_flow = session.query(Flow).filter_by(id=int(flow_id)).first()
             if not db_flow:
-                raise CustomException(CodeEnum.FlowIDNotFound)
+                raise CustomException(CodeEnum.FLOW_NOT_FOUND_ERROR)
 
             # Register app_id to App table for published workflows and bind in license table
             if db_flow.status > 0 or (flow.status is not None and flow.status > 0):
                 if not db_flow.app_id:
-                    raise CustomException(CodeEnum.FlowNoAppID)
+                    raise CustomException(CodeEnum.FLOW_NO_APP_ID_ERROR)
                 db_app = app_service.get_info(db_flow.app_id, session, current_span)
                 license_service.bind(session, db_app, db_flow.group_id)
             flow_service.update(session, db_flow, flow, flow_id, current_span)
@@ -182,10 +180,10 @@ def update(
             return response_error(err.code, err.message, span.sid)
         except Exception as e:
             current_span.record_exception(e)
-            m.in_error_count(CodeEnum.ProtocolUpdateError.code, span=current_span)
+            m.in_error_count(CodeEnum.PROTOCOL_UPDATE_ERROR.code, span=current_span)
             return response_error(
-                CodeEnum.ProtocolUpdateError.code,
-                CodeEnum.ProtocolUpdateError.msg,
+                CodeEnum.PROTOCOL_UPDATE_ERROR.code,
+                CodeEnum.PROTOCOL_UPDATE_ERROR.msg,
                 span.sid,
             )
 
@@ -213,17 +211,17 @@ def delete(
                 .first()
             )
             if not db_flow:
-                raise CustomException(CodeEnum.FlowIDNotFound)
+                raise CustomException(CodeEnum.FLOW_NOT_FOUND_ERROR)
             session.delete(db_flow)
             session.commit()
             m.in_success_count()
             return response_success(None, span.sid)
         except Exception as e:
             current_span.record_exception(e)
-            m.in_error_count(CodeEnum.ProtocolDeleteError.code, span=current_span)
+            m.in_error_count(CodeEnum.PROTOCOL_DELETE_ERROR.code, span=current_span)
             return response_error(
-                CodeEnum.ProtocolDeleteError.code,
-                CodeEnum.ProtocolDeleteError.msg,
+                CodeEnum.PROTOCOL_DELETE_ERROR.code,
+                CodeEnum.PROTOCOL_DELETE_ERROR.msg,
                 span.sid,
             )
 
@@ -254,13 +252,13 @@ async def sparkflow_build(
                 m.in_success_count()
             except CustomException as err:
                 span_context.record_exception(err)
-                m.in_error_count(CodeEnum.FlowHChatFailed.code, span=span_context)
+                m.in_error_count(CodeEnum.OPEN_API_ERROR.code, span=span_context)
                 yield Streaming.generate_data({"message": err.message})
             except Exception as err:
                 span_context.record_exception(err)
-                m.in_error_count(CodeEnum.ProtocolBuildError.code, span=span_context)
+                m.in_error_count(CodeEnum.PROTOCOL_BUILD_ERROR.code, span=span_context)
                 yield Streaming.generate_data(
-                    {"message": CodeEnum.ProtocolBuildError.msg}
+                    {"message": CodeEnum.PROTOCOL_BUILD_ERROR.msg}
                 )
             finally:
                 yield Streaming.generate_data(final_response)
@@ -305,11 +303,11 @@ def get_flow_info(
                 span.sid,
             )
         except Exception as e:
-            m.in_error_count(CodeEnum.FlowGetError.code, span=current_span)
+            m.in_error_count(CodeEnum.FLOW_GET_ERROR.code, span=current_span)
             current_span.record_exception(e)
             return response_error(
-                CodeEnum.FlowGetError.code,
-                CodeEnum.FlowGetError.msg,
+                CodeEnum.FLOW_GET_ERROR.code,
+                CodeEnum.FLOW_GET_ERROR.msg,
                 span.sid,
             )
         m.in_success_count()
@@ -356,10 +354,10 @@ def save_comparisons(
         except Exception as e:
             span_context.record_exception(e)
             session.rollback()
-            m.in_error_count(CodeEnum.ProtocolCreateError.code, span=span_context)
+            m.in_error_count(CodeEnum.PROTOCOL_CREATE_ERROR.code, span=span_context)
             return response_error(
-                CodeEnum.ProtocolCreateError.code,
-                CodeEnum.ProtocolCreateError.msg,
+                CodeEnum.PROTOCOL_CREATE_ERROR.code,
+                CodeEnum.PROTOCOL_CREATE_ERROR.msg,
                 span.sid,
             )
 
@@ -400,10 +398,10 @@ def delete_comparisons(
         except Exception as e:
             span_context.record_exception(e)
             session.rollback()
-            m.in_error_count(CodeEnum.ProtocolDeleteError.code, span=span_context)
+            m.in_error_count(CodeEnum.PROTOCOL_DELETE_ERROR.code, span=span_context)
             return response_error(
-                CodeEnum.ProtocolDeleteError.code,
-                CodeEnum.ProtocolDeleteError.msg,
+                CodeEnum.PROTOCOL_DELETE_ERROR.code,
+                CodeEnum.PROTOCOL_DELETE_ERROR.msg,
                 span.sid,
             )
         m.in_success_count()

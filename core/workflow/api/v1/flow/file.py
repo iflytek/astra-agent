@@ -10,7 +10,6 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, File, Header, UploadFile
 from fastapi.responses import JSONResponse
-
 from workflow.domain.entities.response import response_error, response_success
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
@@ -42,7 +41,7 @@ async def upload_file(
             file_service.check(file, contents, span_context)
             if not file.filename:
                 raise CustomException(
-                    err_code=CodeEnum.FileInvalidError,
+                    err_code=CodeEnum.FILE_INVALID_ERROR,
                     err_msg="File name cannot be empty",
                 )
             extension = file.filename.split(".")[-1].lower()
@@ -57,10 +56,10 @@ async def upload_file(
             return response_error(e.code, e.message, span_context.sid)
         except Exception as e:
             span_context.record_exception(e)
-            m.in_error_count(CodeEnum.FileStorageError.code, span=span_context)
+            m.in_error_count(CodeEnum.FILE_STORAGE_ERROR.code, span=span_context)
             return response_error(
-                CodeEnum.FileStorageError.code,
-                CodeEnum.FileStorageError.msg,
+                CodeEnum.FILE_STORAGE_ERROR.code,
+                CodeEnum.FILE_STORAGE_ERROR.msg,
                 span_context.sid,
             )
 
@@ -87,7 +86,7 @@ async def upload_files(
                 file_service.check(file, contents, span_context)
                 if not file.filename:
                     raise CustomException(
-                        err_code=CodeEnum.FileInvalidError,
+                        err_code=CodeEnum.FILE_INVALID_ERROR,
                         err_msg="File name cannot be empty",
                     )
                 extension = file.filename.split(".")[-1].lower()
@@ -103,9 +102,9 @@ async def upload_files(
             return response_error(e.code, e.message, span_context.sid)
         except Exception as e:
             span_context.record_exception(e)
-            m.in_error_count(CodeEnum.FileStorageError.code, span=span_context)
+            m.in_error_count(CodeEnum.FILE_STORAGE_ERROR.code, span=span_context)
             return response_error(
-                CodeEnum.FileStorageError.code,
-                CodeEnum.FileStorageError.msg,
+                CodeEnum.FILE_STORAGE_ERROR.code,
+                CodeEnum.FILE_STORAGE_ERROR.msg,
                 span_context.sid,
             )

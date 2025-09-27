@@ -6,7 +6,6 @@ for different API endpoints including chat, flow management, and debugging.
 """
 
 from fastapi import APIRouter
-
 from workflow.api.v1.chat import (
     node_debug_router,
     sse_debug_chat_router,

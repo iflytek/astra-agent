@@ -9,7 +9,6 @@ type-safe access to services and handle the casting to appropriate types.
 from typing import Iterator, cast
 
 from sqlmodel import Session  # type: ignore
-
 from workflow.extensions.middleware.cache.base import BaseCacheService
 from workflow.extensions.middleware.database.manager import DatabaseService
 from workflow.extensions.middleware.kafka.manager import KafkaProducerService

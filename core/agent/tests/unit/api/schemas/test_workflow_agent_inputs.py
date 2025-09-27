@@ -1,4 +1,4 @@
-"""WorkflowAgentInputs Schema单元测试模块."""
+"""WorkflowAgentInputs Schema单元test模块."""
 
 import json
 import threading
@@ -21,13 +21,13 @@ from tests.unit.api.schemas.test_utils import (
 
 
 class TestCustomCompletionPluginKnowledgeInputs:
-    """CustomCompletionPluginKnowledgeInputs测试类."""
+    """CustomCompletionPluginKnowledgeInputstest类."""
 
     def test_knowledge_inputs_creation(self) -> None:
-        """测试知识插件输入创建."""
+        """test知识插件输入创建."""
         knowledge_data: Dict[str, Any] = {
             "name": "test_knowledge",
-            "description": "测试知识库",
+            "description": "test知识库",
             "top_k": 5,
             "repo_type": 1,
         }
@@ -37,15 +37,15 @@ class TestCustomCompletionPluginKnowledgeInputs:
             if hasattr(knowledge_inputs, "name"):
                 assert knowledge_inputs.name == "test_knowledge"
             if hasattr(knowledge_inputs, "description"):
-                assert knowledge_inputs.description == "测试知识库"
+                assert knowledge_inputs.description == "test知识库"
             if hasattr(knowledge_inputs, "top_k"):
                 assert knowledge_inputs.top_k == 5
         except (ValidationError, TypeError):
-            # 可能需要其他必需字段
+            # May need other required fields
             pytest.skip("CustomCompletionPluginKnowledgeInputs需要额外字段")
 
     def test_knowledge_inputs_unicode_content(self) -> None:
-        """测试知识插件输入Unicode内容."""
+        """test知识插件输入Unicode内容."""
         unicode_data: Dict[str, Any] = {
             "name": "中文知识库_123",
             "description": "中文查询🔍特殊字符①②③",
@@ -62,44 +62,44 @@ class TestCustomCompletionPluginKnowledgeInputs:
             pytest.skip("Unicode数据验证失败，可能有格式限制")
 
     def test_knowledge_inputs_validation(self) -> None:
-        """测试知识插件输入验证."""
-        # 测试各种边界值
+        """test知识插件输入验证."""
+        # Test various boundary values
         validation_data_sets: List[Dict[str, Any]] = [
             {
                 "name": "test",
                 "description": "test",
                 "top_k": 1,
                 "repo_type": 1,
-            },  # 最小值
+            },  # Minimum value
             {
                 "name": "test",
                 "description": "test",
                 "top_k": 5,
                 "repo_type": 2,
-            },  # 最大值
+            },  # Maximum value
             {
                 "name": "test",
                 "description": "test",
                 "top_k": 0,
                 "repo_type": 1,
-            },  # 超出范围
+            },  # Out of range
             {
                 "name": "test",
                 "description": "test",
                 "top_k": 6,
                 "repo_type": 1,
-            },  # 超出范围
+            },  # Out of range
         ]
 
         for data in validation_data_sets:
             try:
                 CustomCompletionPluginKnowledgeInputs(**data)
             except (ValidationError, ValueError):
-                # 验证错误是预期的
+                # Verify error is expected
                 pass
 
     def test_knowledge_inputs_match_configuration(self) -> None:
-        """测试知识匹配配置."""
+        """test知识匹配配置."""
         match_data: Dict[str, Any] = {
             "name": "test_kb",
             "description": "test knowledge base",
@@ -117,11 +117,11 @@ class TestCustomCompletionPluginKnowledgeInputs:
                 assert hasattr(knowledge_inputs.match, "repo_ids")
                 assert hasattr(knowledge_inputs.match, "doc_ids")
         except (ValidationError, TypeError):
-            # 匹配配置可能有特定结构
+            # Match configuration may have specific structure
             pass
 
     def test_knowledge_inputs_large_query(self) -> None:
-        """测试大查询知识输入."""
+        """test大查询知识输入."""
         large_description = "这是一个非常长的描述内容 " * 50
 
         large_data: Dict[str, Any] = {
@@ -136,15 +136,15 @@ class TestCustomCompletionPluginKnowledgeInputs:
             if hasattr(knowledge_inputs, "description"):
                 assert len(knowledge_inputs.description) > 100
         except (ValidationError, TypeError):
-            # 可能有描述长度限制
+            # May have description length limit
             pass
 
 
 class TestCustomCompletionInputs:
-    """CustomCompletionInputs测试类."""
+    """CustomCompletionInputstest类."""
 
     def test_completion_inputs_creation(self) -> None:
-        """测试自定义完成输入创建."""
+        """test自定义完成输入创建."""
         completion_data: Dict[str, Any] = {
             "uid": "test-uid",
             "messages": [
@@ -164,7 +164,7 @@ class TestCustomCompletionInputs:
         try:
             completion_inputs = CustomCompletionInputs(**completion_data)
             if hasattr(completion_inputs, "messages"):
-                # 验证消息正确创建
+                # Verify message is created correctly
                 assert len(completion_inputs.messages) == 3
             if (
                 hasattr(completion_inputs, "model_config_inputs")
@@ -177,11 +177,11 @@ class TestCustomCompletionInputs:
             if hasattr(completion_inputs, "max_loop_count"):
                 assert completion_inputs.max_loop_count == 5
         except (ValidationError, TypeError):
-            # 可能需要额外的必需字段
+            # May need additional required fields
             pytest.skip("CustomCompletionInputs需要额外字段")
 
     def test_completion_inputs_unicode_messages(self) -> None:
-        """测试Unicode消息的完成输入."""
+        """testUnicode消息的完成输入."""
         unicode_messages = [
             LLMMessage(role="user", content="中文用户消息🚀"),
             LLMMessage(role="assistant", content="中文助手回复🤖特殊字符①②③"),
@@ -202,7 +202,7 @@ class TestCustomCompletionInputs:
         try:
             completion_inputs = CustomCompletionInputs(**unicode_data)
             if hasattr(completion_inputs, "messages"):
-                # 验证Unicode消息内容
+                # Verify Unicode message content
                 user_messages = [
                     msg for msg in completion_inputs.messages if msg.role == "user"
                 ]
@@ -213,7 +213,7 @@ class TestCustomCompletionInputs:
             pytest.skip("Unicode消息验证失败")
 
     def test_completion_inputs_with_plugins(self) -> None:
-        """测试包含插件的完成输入."""
+        """test包含插件的完成输入."""
         knowledge_plugin = CustomCompletionPluginKnowledgeInputs(
             name="plugin_kb",
             description="插件知识库",
@@ -242,11 +242,11 @@ class TestCustomCompletionInputs:
             if hasattr(completion_inputs, "plugin"):
                 assert completion_inputs.plugin is not None
         except (ValidationError, TypeError):
-            # 插件配置可能有特定结构
+            # Plugin configuration may have specific structure
             pass
 
     def test_completion_inputs_model_configuration(self) -> None:
-        """测试模型配置完成输入."""
+        """test模型配置完成输入."""
         model_config: Dict[str, Any] = {
             "domain": "gpt-4",
             "api": "https://api.openai.com/v1",
@@ -255,7 +255,7 @@ class TestCustomCompletionInputs:
 
         completion_data: Dict[str, Any] = {
             "uid": "model-config-test",
-            "messages": [LLMMessage(role="user", content="模型配置测试")],
+            "messages": [LLMMessage(role="user", content="模型配置test")],
             "model_config": model_config,
             "max_loop_count": 3,
         }
@@ -271,14 +271,14 @@ class TestCustomCompletionInputs:
                     == "gpt-4"
                 )
         except (ValidationError, TypeError):
-            # 模型配置可能有验证规则
+            # Model configuration may have validation rules
             pass
 
     def test_completion_inputs_instruction_configuration(self) -> None:
-        """测试指令配置完成输入."""
+        """test指令配置完成输入."""
         completion_data: Dict[str, Any] = {
             "uid": "instruction-test",
-            "messages": [LLMMessage(role="user", content="指令测试")],
+            "messages": [LLMMessage(role="user", content="指令test")],
             "model_config": {
                 "domain": "instruction-model",
                 "api": "https://api.example.com",
@@ -301,12 +301,12 @@ class TestCustomCompletionInputs:
                     completion_inputs.instruction, "answer", ""
                 )
         except (ValidationError, TypeError):
-            # 指令配置可能有特定结构
+            # Instruction configuration may have specific structure
             pass
 
     def test_completion_inputs_validation_errors(self) -> None:
-        """测试完成输入验证错误."""
-        # 测试无效数据
+        """test完成输入验证错误."""
+        # Test invalid data
         invalid_data_sets: List[Dict[str, Any]] = [
             {
                 "uid": "test",
@@ -317,7 +317,7 @@ class TestCustomCompletionInputs:
                     "api_key": "test",
                 },
                 "max_loop_count": 1,
-            },  # 空消息列表
+            },  # Empty message list
             {
                 "uid": "test",
                 "messages": [LLMMessage(role="user", content="")],
@@ -327,7 +327,7 @@ class TestCustomCompletionInputs:
                     "api_key": "test",
                 },
                 "max_loop_count": 1,
-            },  # 空内容
+            },  # Empty content
             {
                 "uid": "test",
                 "messages": [LLMMessage(role="assistant", content="test")],
@@ -337,7 +337,7 @@ class TestCustomCompletionInputs:
                     "api_key": "test",
                 },
                 "max_loop_count": 1,
-            },  # 不是以user开始
+            },  # Doesn't start with user
             {
                 "uid": "test",
                 "messages": [
@@ -350,19 +350,19 @@ class TestCustomCompletionInputs:
                     "api_key": "test",
                 },
                 "max_loop_count": 1,
-            },  # 顺序错误
+            },  # Wrong order
         ]
 
         for invalid_data in invalid_data_sets:
             try:
                 CustomCompletionInputs(**invalid_data)
             except (ValidationError, ValueError, RequestValidationError):
-                # 验证错误是预期的
+                # Verify error is expected
                 pass
 
     def test_completion_inputs_large_conversation(self) -> None:
-        """测试大对话完成输入."""
-        # 创建大型对话历史 - ensure proper alternating pattern ending with user
+        """test大对话完成输入."""
+        # Create large conversation history - ensure proper alternating pattern ending with user
         large_messages: List[LLMMessage] = []
         for i in range(49):  # Create alternating user/assistant messages
             large_messages.append(
@@ -389,17 +389,17 @@ class TestCustomCompletionInputs:
             if hasattr(completion_inputs, "messages"):
                 assert len(completion_inputs.messages) == 49
         except (ValidationError, TypeError):
-            # 可能有消息数量或长度限制
+            # May have message count or length limit
             pass
 
     def test_completion_inputs_serialization(self) -> None:
-        """测试完成输入序列化."""
+        """test完成输入序列化."""
         serialization_data: Dict[str, Any] = {
             "uid": "serialization-test",
             "messages": [
-                LLMMessage(role="user", content="序列化测试"),
+                LLMMessage(role="user", content="序列化test"),
                 LLMMessage(role="assistant", content="序列化响应"),
-                LLMMessage(role="user", content="继续测试"),
+                LLMMessage(role="user", content="继续test"),
             ],
             "model_config": {
                 "domain": "serialization-model",
@@ -412,13 +412,13 @@ class TestCustomCompletionInputs:
         try:
             completion_inputs = CustomCompletionInputs(**serialization_data)
 
-            # 测试字典转换
+            # Test dictionary conversion
             if hasattr(completion_inputs, "model_dump"):
                 input_dict = completion_inputs.model_dump()
                 assert isinstance(input_dict, dict)
                 assert input_dict["uid"] == "serialization-test"
 
-            # 测试JSON序列化
+            # Test JSON serialization
             if hasattr(completion_inputs, "model_dump_json"):
                 json_str = completion_inputs.model_dump_json()
                 assert isinstance(json_str, str)
@@ -426,13 +426,13 @@ class TestCustomCompletionInputs:
                 assert parsed_data["max_loop_count"] == 3
 
         except (ValidationError, TypeError):
-            pytest.skip("序列化测试失败，可能缺少必需字段")
+            pytest.skip("序列化test失败，可能缺少必需字段")
 
     def test_completion_inputs_streaming_configuration(self) -> None:
-        """测试流式配置完成输入."""
+        """test流式配置完成输入."""
         streaming_data: Dict[str, Any] = {
             "uid": "streaming-test",
-            "messages": [LLMMessage(role="user", content="流式测试")],
+            "messages": [LLMMessage(role="user", content="流式test")],
             "model_config": {
                 "domain": "streaming-model",
                 "api": "https://api.example.com",
@@ -447,14 +447,14 @@ class TestCustomCompletionInputs:
             if hasattr(completion_inputs, "stream"):
                 assert completion_inputs.stream is True
         except (ValidationError, TypeError):
-            # 流式配置可能有特定验证
+            # Streaming configuration may have specific validation
             pass
 
     def test_completion_inputs_workflow_integration(self) -> None:
-        """测试工作流集成完成输入."""
+        """test工作流集成完成输入."""
         workflow_data: Dict[str, Any] = {
             "uid": "workflow-test",
-            "messages": [LLMMessage(role="user", content="工作流测试")],
+            "messages": [LLMMessage(role="user", content="工作流test")],
             "model_config": {
                 "domain": "workflow-model",
                 "api": "https://api.example.com",
@@ -479,11 +479,11 @@ class TestCustomCompletionInputs:
             if hasattr(completion_inputs, "max_loop_count"):
                 assert completion_inputs.max_loop_count == 5
         except (ValidationError, TypeError):
-            # 工作流配置可能有特定结构要求
+            # Workflow configuration may have specific structure requirements
             pass
 
     def test_completion_inputs_copy_and_update(self) -> None:
-        """测试完成输入复制和更新."""
+        """test完成输入复制和更新."""
         original_data: Dict[str, Any] = {
             "uid": "original-test",
             "messages": [LLMMessage(role="user", content="原始消息")],
@@ -498,12 +498,12 @@ class TestCustomCompletionInputs:
         try:
             completion_inputs = CustomCompletionInputs(**original_data)
 
-            # 测试复制
+            # Test copying
             if hasattr(completion_inputs, "model_copy"):
                 copied_inputs = completion_inputs.model_copy()
                 assert copied_inputs.model_config_inputs.domain == "original-model"
 
-                # 测试更新
+                # Test update
                 updated_inputs = completion_inputs.model_copy(
                     update={"max_loop_count": 5}
                 )
@@ -512,16 +512,16 @@ class TestCustomCompletionInputs:
                     getattr(updated_inputs.model_config_inputs, "domain", None)
                     == "original-model"
                 )
-                # 消息应该保持不变
+                # Messages should remain unchanged
                 assert len(updated_inputs.messages) == 1
 
         except (ValidationError, TypeError):
-            pytest.skip("复制和更新测试失败")
+            pytest.skip("复制和更新test失败")
 
     def test_completion_inputs_concurrent_safety(self) -> None:
-        """测试完成输入并发安全性."""
+        """test完成输入并发安全性."""
         base_data: Dict[str, Any] = {
-            "messages": [LLMMessage(role="user", content="并发测试")],
+            "messages": [LLMMessage(role="user", content="并发test")],
             "model_config": {
                 "domain": "concurrent-model",
                 "api": "https://api.example.com",
@@ -540,11 +540,11 @@ class TestCustomCompletionInputs:
                 }
                 inputs = CustomCompletionInputs(**thread_data)
                 results.append(inputs)
-                time.sleep(0.01)  # 模拟处理时间
+                time.sleep(0.01)  # Simulate processing time
             except (ValidationError, TypeError):
                 results.append(None)
 
-        # 创建多个线程
+        # Create multiple threads
         threads = []
         for i in range(5):
             thread = threading.Thread(target=create_inputs, args=(i,))

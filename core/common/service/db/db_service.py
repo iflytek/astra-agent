@@ -44,11 +44,11 @@ class DatabaseService(Service):
             pool_recycle=self.pool_recycle,
         )
 
-    def __enter__(self):
+    def __enter__(self):  # type: ignore[no-untyped-def]
         self._session = Session(self.engine)
         return self._session
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback):  # type: ignore[no-untyped-def]
         if exc_type is not None:  # If an exception has been raised
             logger.error(
                 f"Session rollback because of exception: {exc_type.__name__} {exc_value}"
@@ -58,13 +58,13 @@ class DatabaseService(Service):
             self._session.commit()
         self._session.close()
 
-    def get_session(self):
+    def get_session(self):  # type: ignore[no-untyped-def]
         with Session(self.engine) as session:
             yield session
 
 
 @contextmanager
-def session_getter(db_service: "DatabaseService"):
+def session_getter(db_service: "DatabaseService"):  # type: ignore[no-untyped-def]
     try:
         session = Session(db_service.engine)
         yield session

@@ -3,6 +3,7 @@ SQL utility module for converting SQL statements to parametric format.
 """
 
 import itertools
+from typing import Any, Dict, Iterator, Tuple
 
 from sqlglot import exp, parse_one
 
@@ -19,7 +20,9 @@ def generate_param_name(index: int) -> str:
     return f"param{index}"
 
 
-def replace_literals_with_params(expression, param_map, counter) -> exp.Expression:
+def replace_literals_with_params(
+    expression: exp.Expression, param_map: Dict[str, Any], counter: Iterator[int]
+) -> exp.Expression:
     """Replace literals in SQL expression with parameters.
 
     Args:
@@ -33,7 +36,7 @@ def replace_literals_with_params(expression, param_map, counter) -> exp.Expressi
     if isinstance(expression, exp.Boolean):
         key = generate_param_name(next(counter))
         param_map[key] = (
-                expression.this is True or str(expression.this).upper() == "TRUE"
+            expression.this is True or str(expression.this).upper() == "TRUE"
         )
         return exp.Var(this=f":{key}")
 
@@ -60,7 +63,9 @@ def replace_literals_with_params(expression, param_map, counter) -> exp.Expressi
     return expression
 
 
-def _handle_literal(expression, counter):
+def _handle_literal(
+    expression: exp.Expression, counter: Iterator[int]
+) -> Tuple[str, Any]:
     """Handle literal values in SQL expression.
 
     Args:
@@ -93,13 +98,14 @@ def _handle_literal(expression, counter):
     return key, value
 
 
-def convert_sql_to_parametric(sql):
+def convert_sql_to_parametric(sql: str) -> Tuple[str, Dict[str, Any]]:
     """
-    Replace all literals (numbers, strings, booleans) in SQL statement with parameters, and return parameterized SQL and parameter dictionary.
+    Replace all literals (numbers, strings, booleans) in SQL statement with
+    parameters, and return parameterized SQL and parameter dictionary.
     """
     # Parse SQL syntax tree
     tree = parse_one(sql)
-    param_map = {}
+    param_map: Dict[str, Any] = {}
     counter = itertools.count(1)
     # Replace all literals with parameters
     new_tree = replace_literals_with_params(tree, param_map, counter)

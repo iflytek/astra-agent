@@ -2,9 +2,9 @@ import time
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from io import StringIO
-from typing import Optional
+from typing import Any, Generator, Optional
 
-import requests
+import requests  # type: ignore[import-untyped]
 from dotenv import dotenv_values, load_dotenv
 from pydantic import BaseModel, Field
 
@@ -33,13 +33,13 @@ class Polaris(BaseModel):
     )
     cookie: Optional[str] = Field(default="")
 
-    def _login_payload(self):
+    def _login_payload(self) -> LoginPayload:
         payload = LoginPayload(
             addr=self.base_url, account=self.username, password=self.password
         )
-        return payload.model_dump(by_alias=False)
+        return payload.model_dump(by_alias=False)  # type: ignore[return-value]
 
-    def _set_cookie(self, session: requests.Session):
+    def _set_cookie(self, session: requests.Session) -> None:
         url = f"{self.base_url}/api/v1/user/login"
         response = session.post(url, json=self._login_payload(), timeout=5)
 
@@ -48,23 +48,23 @@ class Polaris(BaseModel):
             self.cookie_create_at = datetime.now()
 
     @contextmanager
-    def _session(self):
+    def _session(self) -> Generator[requests.Session, None, None]:
         with requests.Session() as session:
             self._set_cookie(session)
             yield session
 
     @staticmethod
-    def set_env(configs_content: str):
-        load_dotenv(stream=StringIO(configs_content), override=True)
+    def set_env(configs_content: str) -> None:
+        load_dotenv(stream=StringIO(configs_content), override=False)
 
-    def pull(
+    def pull(  # type: ignore[return]
         self,
         config_filter: ConfigFilter,
         retry_count: int = 3,
         retry_interval: int = 10,
-        set_env=True,
-        verbose=False,
-    ):
+        set_env: bool = True,
+        verbose: bool = False,
+    ) -> dict[str, Any]:
         for i in range(retry_count):
             try:
                 with self._session() as session:
@@ -72,7 +72,6 @@ class Polaris(BaseModel):
                     response = session.get(url, cookies={"JSESSIONID": self.cookie})
                     response.raise_for_status()
                     content = response.json()["data"]["content"]
-                    print("set env:::", set_env)
                     if set_env:
                         self.set_env(content)
                     if verbose:

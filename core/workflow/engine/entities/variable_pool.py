@@ -4,10 +4,11 @@ import re
 from enum import Enum, unique
 from typing import Any, Dict, Optional, cast
 
+from workflow.consts.engine.value_type import ValueType
 from workflow.domain.entities.chat import HistoryItem
 from workflow.engine.entities.history import History
 from workflow.engine.entities.node_entities import NodeType
-from workflow.engine.entities.workflow_dsl import Node, NodeData
+from workflow.engine.entities.workflow_dsl import InputSchema, Node, NodeData, NodeRef
 from workflow.engine.nodes.entities.node_run_result import NodeRunResult
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
@@ -243,7 +244,7 @@ class VariablePool:
         self.output_variable_mapping: Dict[str, Any] = {}
         if not protocol:
             raise CustomException(
-                err_code=CodeEnum.EngProtocolValidateErr,
+                err_code=CodeEnum.ENG_PROTOCOL_VALIDATE_ERROR,
                 err_msg="Node configuration information not found",
             )
         self.nodes = protocol
@@ -255,7 +256,7 @@ class VariablePool:
         self.history_v2: Optional[History] = None
         self.stream_node_has_sent_first_token: Dict[str, bool] = (
             {}
-        )  # Mark whether the streaming output node(llm node, agent node) sends the first frame
+        )  # Mark whether the streaming output node (LLM node, agent node) sends the first frame
         self.system_params = SystemParams()
 
     def __deepcopy__(self, memo: dict) -> "VariablePool":
@@ -316,7 +317,7 @@ class VariablePool:
                 return node.data
 
         raise CustomException(
-            err_code=CodeEnum.EngProtocolValidateErr,
+            err_code=CodeEnum.ENG_PROTOCOL_VALIDATE_ERROR,
             err_msg=f"Node configuration information not found, node id = {node_id}",
         )
 
@@ -328,21 +329,21 @@ class VariablePool:
             node_id = node.id
             if not node_id:
                 raise CustomException(
-                    err_code=CodeEnum.EngProtocolValidateErr,
+                    err_code=CodeEnum.ENG_PROTOCOL_VALIDATE_ERROR,
                     err_msg="Node ID is empty",
                     cause_error="Node ID is empty",
                 )
             node_inputs = node.data.inputs
 
             for node_input in node_inputs:
-                input_key = node_input.get("name", "")
-                input_schema = node_input.get("schema", {})
-                input_value = input_schema.get("value", {})
-                json_input_type = input_schema.get("type", "string")
+                input_key = node_input.name
+                input_schema = node_input.input_schema
+                input_value = input_schema.value
+                json_input_type = input_schema.type
                 python_input_type_list = schema_type_map_python.get(json_input_type, [])
                 input_content: Any = ""
-                if input_value.get("type", "literal") == "literal":
-                    input_content = input_value.get("content")
+                if input_value.type == ValueType.LITERAL.value:
+                    input_content = input_value.content
                     input_content_org = input_content
                     type_match = any(
                         isinstance(input_content, t) for t in python_input_type_list
@@ -372,11 +373,11 @@ class VariablePool:
         for node in self.nodes:
             output_nodes = node.data.outputs
             for output_node in output_nodes:
-                output_key = output_node.get("name", "")
-                output_schema = output_node.get("schema", {})
-                output_required = output_node.get("required", False)
+                output_key = output_node.name
+                output_schema = output_node.output_schema
+                output_required = output_node.required
                 output_content = schema_type_default_value.get(
-                    output_schema.get("type")
+                    output_schema.get("type", "")
                 )
                 if "default" in output_schema:
                     output_content = output_schema.get("default")
@@ -388,21 +389,36 @@ class VariablePool:
                 mapping_key = assemble_mapping_key(node.id, output_key)
                 self.output_variable_mapping.update({mapping_key: mapping_value})
 
-    # TODO 注释
     def add_history(self, history_lists: list[dict]) -> None:
+        """
+        Add chat history for nodes.
+
+        :param history_lists: List of history dictionaries containing node ID and chat history
+        """
         if not history_lists:
             return
-        # 将历史存入dict key是string val是一个列表
+        # Store history in dict with node ID as key and chat history list as value
         for history in history_lists:
             node_id = history.get("nodeID", "")
             chat_history = history.get("chat_history", [])
             self.history_mapping.update({node_id: chat_history})
 
     def add_init_history(self, history_lists: list[HistoryItem]) -> None:
+        """
+        Initialize history with HistoryItem objects.
+
+        :param history_lists: List of HistoryItem objects to initialize history
+        """
         self.history_v2 = History()
         self.history_v2.init_history(history=history_lists)
 
     def get_history(self, node_id: str) -> list[SparkAiMessage]:
+        """
+        Get chat history for a specific node.
+
+        :param node_id: ID of the node to get history for
+        :return: List of SparkAiMessage objects representing the chat history
+        """
         history: list[SparkAiMessage] = []
         if node_id not in self.history_mapping:
             return history
@@ -416,6 +432,12 @@ class VariablePool:
         return history
 
     def get_aipensonal_history(self, node_id: str) -> list[SparkAiMessage]:
+        """
+        Get AI personal history for a specific node with special Bot tag processing.
+
+        :param node_id: ID of the node to get AI personal history for
+        :return: List of SparkAiMessage objects with processed Bot tags
+        """
         history: list[SparkAiMessage] = []
         if node_id not in self.history_mapping:
             return history
@@ -446,21 +468,25 @@ class VariablePool:
         span: Span,
     ) -> None:
         """
-        初始化
+        Initialize variables for a node with validation.
+
+        :param node_id: ID of the node to initialize variables for
+        :param key_name_list: List of variable names to initialize
+        :param value: Dictionary containing variable values
+        :param span: Span object for tracing and error reporting
         """
         self.do_validate(
             node_id=node_id, key_name_list=key_name_list, outputs=value, span=span
         )
-        # 生成chat_id
+        # Generate chat_id from span
         self.chat_id = span.chat_id
         for key in key_name_list:
             mapping_key = assemble_mapping_key(node_id, key)
             if mapping_key not in self.output_variable_mapping:
                 span.add_error_event(f"input key {mapping_key} not exist")
-                # raise Exception(f"节点 {node_id} 不存在值 {key}")
                 raise CustomException(
-                    err_code=CodeEnum.VariablePoolSetParameterError,
-                    err_msg=f"节点 {node_id} 输入参数 {mapping_key} 不存在",
+                    err_code=CodeEnum.VARIABLE_POOL_SET_PARAMETER_ERROR,
+                    err_msg=f"Node {node_id} input parameter {mapping_key} does not exist",
                 )
             mapping_value = self.output_variable_mapping[mapping_key]
             value_schema = mapping_value.get("schema")
@@ -477,6 +503,13 @@ class VariablePool:
                 mapping_value.update({"value": input_value_content})
 
     def get_output_schema(self, node_id: str, key_name: str) -> Dict[str, Any]:
+        """
+        Get the output schema for a specific node and variable.
+
+        :param node_id: ID of the node
+        :param key_name: Name of the variable
+        :return: Schema dictionary for the output variable, empty dict if not found
+        """
         mapping_key = assemble_mapping_key(node_id, key_name)
         if mapping_key not in self.output_variable_mapping:
             return {}
@@ -486,7 +519,12 @@ class VariablePool:
 
     def get_output_variable(self, node_id: str, key_name: str, span: Span) -> Any:
         """
-        description: 获取 outputs variable
+        Get output variable value for a specific node and variable name.
+
+        :param node_id: ID of the node
+        :param key_name: Name of the variable (supports nested access with dot notation)
+        :param span: Span object for tracing
+        :return: Value of the output variable
         """
         key_name_list = key_name.split(".")
         if len(key_name_list) == 1:
@@ -523,9 +561,9 @@ class VariablePool:
                     )
                     if key not in mapping_schema:
                         cause_error = f"key {key} not in {mapping_schema_orig}"
-                        msg = f"节点 {node_id} 不存在值 {key}"
+                        msg = f"Node {node_id} does not have value {key}"
                         raise CustomException(
-                            err_code=CodeEnum.VariablePoolGetParameterError,
+                            err_code=CodeEnum.VARIABLE_POOL_GET_PARAMETER_ERROR,
                             err_msg=msg,
                             cause_error=cause_error,
                         )
@@ -552,9 +590,9 @@ class VariablePool:
                 )
                 if key not in mapping_schema:
                     cause_error = f"key {key} not in {mapping_schema_orig}"
-                    msg = f"节点 {node_id} 不存在值 {key}"
+                    msg = f"Node {node_id} does not have value {key}"
                     raise CustomException(
-                        err_code=CodeEnum.VariablePoolGetParameterError,
+                        err_code=CodeEnum.VARIABLE_POOL_GET_PARAMETER_ERROR,
                         err_msg=msg,
                         cause_error=cause_error,
                     )
@@ -572,44 +610,47 @@ class VariablePool:
         self, node_id: str, key_name: str, span: Optional[Span] = None
     ) -> RefNodeInfo:
         """
-        获取节点引用变量的node_id
+        Get the referenced node ID for a variable.
+
+        :param node_id: ID of the current node
+        :param key_name: Name of the variable to get reference for
+        :param span: Optional span object for tracing
+        :return: RefNodeInfo object containing reference information
         """
         ref_node_id = ""
         ref_var_name = ""
         ref_var_type = ""
-        literal_var_value = ""  # 只有ref_var_type==literal时才有值，值为透传值内容
-        llm_resp_format = None  # 只有引用的是大模型节点时，才会有这个值
-        # 复杂类型处理
+        literal_var_value = (
+            ""  # Only has value when ref_var_type==literal, contains literal value
+        )
+        llm_resp_format = None  # Only has value when referencing LLM node
+        # Handle complex types
         key_name_ = extract_variable_name(key_name)
         if not key_name_:
-            raise CustomException(err_code=CodeEnum.VariableParseError)
+            raise CustomException(err_code=CodeEnum.VARIABLE_PARSE_ERROR)
         mapping_key = assemble_mapping_key(node_id, key_name_)
         if mapping_key in self.input_variable_mapping:
             input_value = self.input_variable_mapping[mapping_key]
-            ref_var_type = (
-                input_value.get("schema", {}).get("value", {}).get("type", "")
-            )
-            if ref_var_type == "literal":
+            input_schema: InputSchema = input_value.get("schema")
+            ref_var_type = input_schema.value.type
+            ref_content = input_schema.value.content
+            if ref_var_type == ValueType.LITERAL.value:
                 ref_node_id = node_id
                 ref_var_name = input_value.get("name")
-                literal_var_value = (
-                    input_value.get("schema").get("value").get("content")
-                )
-            elif ref_var_type == "ref":
-                ref_node_id = (
-                    input_value.get("schema").get("value").get("content").get("nodeId")
-                )
-                ref_var_name = (
-                    input_value.get("schema").get("value").get("content").get("name")
-                )
+                literal_var_value = str(ref_content)
+            elif ref_var_type == ValueType.REF.value and isinstance(
+                ref_content, NodeRef
+            ):
+                ref_node_id = ref_content.nodeId
+                ref_var_name = ref_content.name
                 if ref_node_id.split(":")[0] == NodeType.LLM.value:
                     for one in self.nodes:
                         one_node_id = one.id
                         if one_node_id == ref_node_id:
                             llm_resp_format = one.data.nodeParam.get("respFormat", 0)
             else:
-                # 报错，协议有问题
-                raise CustomException(err_code=CodeEnum.VariableParseError)
+                # Error: protocol issue
+                raise CustomException(err_code=CodeEnum.VARIABLE_PARSE_ERROR)
         return RefNodeInfo(
             ref_node_id=ref_node_id,
             ref_var_name=ref_var_name,
@@ -620,29 +661,34 @@ class VariablePool:
 
     def get_variable(self, node_id: str, key_name: str, span: Span) -> Any:
         """
-        get mapping key
+        Get variable value by mapping key.
+
+        :param node_id: ID of the node
+        :param key_name: Name of the variable
+        :param span: Span object for tracing
+        :return: Variable value
         """
         try:
             key_name_ = key_name.split(".")[0]
             mapping_key = assemble_mapping_key(node_id, key_name_)
             if mapping_key in self.input_variable_mapping:
                 input_value = self.input_variable_mapping[mapping_key]
-                input_schema = input_value.get("schema")
-                if input_schema.get("value", {}).get("type") == "literal":
+                input_schema: InputSchema = input_value.get("schema")
+                if input_schema.value.type == ValueType.LITERAL.value:
                     return input_value.get("value")
                 else:
+                    ref_content = input_schema.value.content
                     node_id = (
-                        input_schema.get("value", {}).get("content", {}).get("nodeId")
+                        ref_content.nodeId if isinstance(ref_content, NodeRef) else ""
                     )
                     node_value = (
-                        input_schema.get("value", {}).get("content", {}).get("name")
+                        ref_content.name if isinstance(ref_content, NodeRef) else ""
                     )
-                    # msg = f"node id {node_id}, node value {node_value}"
                     return self.get_output_variable(
                         node_id=node_id, key_name=node_value, span=span
                     )
             if mapping_key in self.output_variable_mapping:
-                # 支持嵌套 input.iii.yyy
+                # Support nested access like input.iii.yyy
                 output_value = self.get_output_variable(
                     node_id=node_id, key_name=key_name, span=span
                 )
@@ -653,6 +699,13 @@ class VariablePool:
     def add_end_node_variable(
         self, node_id: str, key_name_list: list[str], value: NodeRunResult
     ) -> None:
+        """
+        Add variables for end node.
+
+        :param node_id: ID of the end node
+        :param key_name_list: List of variable names to add
+        :param value: NodeRunResult containing output values
+        """
         output_value = value.outputs
         for key in key_name_list:
             key_mapping = assemble_mapping_key(node_id, key)
@@ -667,6 +720,15 @@ class VariablePool:
         outputs: dict,
         span: Optional[Span] = None,
     ) -> None:
+        """
+        Validate output values against schema definitions.
+
+        :param node_id: ID of the node to validate
+        :param key_name_list: List of variable names to validate
+        :param outputs: Dictionary containing output values to validate
+        :param span: Optional span object for tracing
+        :raises Exception: If validation fails
+        """
         required = []
         schemas: dict = copy.deepcopy(self.validate_template)
         for mapping_key in self.output_variable_mapping.keys():
@@ -677,26 +739,14 @@ class VariablePool:
                 schemas["properties"].update({key: value_schema})
                 if mapping_value.get("required", False):
                     required.append(key)
-        # for key in key_name_list:
-        #     mapping_key = assemble_mapping_key(node_id, key)
-        #     if mapping_key not in self.output_variable_mapping:
-        #         continue
-        #     mapping_value = self.output_variable_mapping[mapping_key]
-        #     value_schema = mapping_value.get("schema")
-        #     schemas["properties"].update({key: value_schema})
-        #     if mapping_value.get("required", False):
-        #         required.append(key)
         if required:
             schemas.update({"required": required})
         er_msgs = [
-            f"字段: {er['schema_path']}, 错误信息: {er['message']}"
+            f"Field: {er['schema_path']}, Error: {er['message']}"
             for er in CNValidator(schemas).validate(outputs)
         ]
         if er_msgs:
             raise Exception(f"{';'.join(er_msgs)}")
-            # raise CustomException(err_code=CodeEnum.ChainOutputError,
-            #                       cause_error=f"node {node_id} output value "
-            #                                   f"type err, err reason {';'.join(er_msgs)}", add_msg=True)
 
     def add_variable(
         self,
@@ -705,8 +755,15 @@ class VariablePool:
         value: NodeRunResult,
         span: Span,
     ) -> None:
+        """
+        Add variables to the variable pool with validation.
+
+        :param node_id: ID of the node
+        :param key_name_list: List of variable names to add
+        :param value: NodeRunResult containing output and error values
+        :param span: Span object for tracing
+        """
         output_value = value.outputs
-        # add_value = {"node_id": node_id, "key": key_name_list, "value": output_value}
         if node_id.split(":")[0] == "node-end":
             self.add_end_node_variable(node_id, key_name_list, value)
             return
@@ -728,45 +785,18 @@ class VariablePool:
                 span.add_info_event(
                     f"variable_pool add_variable: {key} not in {output_value}"
                 )
-        # 特殊处理，添加异常结果
+        # Special handling: add error results
         mapping_key = assemble_mapping_key(node_id, "errorCode")
         mapping_value = {
             "value": value.error_outputs.get("errorCode", 0),
-            "schema": {"description": "节点异常码", "type": "integer"},
+            "schema": {"description": "Node error code", "type": "integer"},
             "required": False,
         }
         self.output_variable_mapping.update({mapping_key: mapping_value})
         mapping_key = assemble_mapping_key(node_id, "errorMessage")
         mapping_value = {
             "value": value.error_outputs.get("errorMessage", ""),
-            "schema": {"description": "节点异常信息", "type": "string"},
+            "schema": {"description": "Node error message", "type": "string"},
             "required": False,
         }
         self.output_variable_mapping.update({mapping_key: mapping_value})
-        # for key in key_name_list:
-        #     mapping_key = assemble_mapping_key(node_id, key)
-        #     if mapping_key not in self.output_variable_mapping:
-        #         continue
-        #     mapping_value = self.output_variable_mapping[mapping_key]
-        #     value_schema = mapping_value.get("schema")
-        #     validate_schema = copy.deepcopy(self.validate_template)
-        #
-        #     validate_schema["properties"].update({key: value_schema})
-        #     data_json = {key: output_value.get(key)}
-        #     import jsonschema
-        #     er_msgs = [
-        #         f"path: {er.json_path}, message: {er.message}" for er in
-        #         list(jsonschema.Draft7Validator(validate_schema).iter_errors(data_json))
-        #     ]
-        #     if er_msgs:
-        #         raise CustomException(err_code=CodeEnum.ChainOutputError,
-        #                               cause_error=f"node {node_id} output value "
-        #                                           f"type err, err reason {';'.join(er_msgs)}", add_msg=True)
-        #     self.output_variable_mapping[mapping_key].update({"value": output_value.get(key)})
-
-
-if __name__ == "__main__":
-    try:
-        raise Exception("hellp")
-    except Exception as err:
-        print(f"{err}")

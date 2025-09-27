@@ -1,7 +1,6 @@
-import time
-import traceback
 from typing import Any, Dict
 
+from pydantic import Field
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_running_status import NodeRunningStatus
@@ -32,41 +31,9 @@ class EndNode(BaseOutputNode):
     :param outputMode: Mode for output generation (prompt mode or direct mode)
     """
 
-    template: str = ""
-    reasoningTemplate: str = ""
+    template: str = Field(default="")
+    reasoningTemplate: str = Field(default="")
     outputMode: int
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration dictionary for the end node.
-
-        :return: Dictionary containing end node configuration parameters
-        """
-        return {
-            "template": self.template,
-            "outputMode": self.outputMode,
-            "streamOutput": self.streamOutput,
-            "reasoningTemplate": self.reasoningTemplate,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution is not implemented for end nodes.
-
-        :param variable_pool: Pool containing variables and their values
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution results
-        :raises: NotImplementedError - synchronous execution not supported
-        """
-        raise NotImplementedError("Synchronous execution not implemented for end nodes")
 
     async def async_execute(
         self,
@@ -93,7 +60,6 @@ class EndNode(BaseOutputNode):
         # Initialize execution variables
         content = ""
         reasoning_content = ""
-        start_time = time.time()
         inputs: dict = {}
         outputs: dict = {}
         prompt_template = ""
@@ -136,7 +102,7 @@ class EndNode(BaseOutputNode):
             for dep_msg_node in msg_or_end_node_deps[self.node_id].data_dep:
                 if dep_msg_node not in node_run_status:
                     raise CustomException(
-                        err_code=CodeEnum.EndNodeSchemaError,
+                        err_code=CodeEnum.END_NODE_SCHEMA_ERROR,
                         cause_error=f"Node {dep_msg_node} not found in node_run_status",
                     )
                 await node_run_status[dep_msg_node].complete.wait()
@@ -184,7 +150,6 @@ class EndNode(BaseOutputNode):
                 node_id=self.node_id,
                 node_type=self.node_type,
                 alias_name=self.alias_name,
-                time_cost=str(round(time.time() - start_time, 3)),
             )
             # Notify callbacks that node execution has completed
             await callbacks.on_node_end(
@@ -196,27 +161,26 @@ class EndNode(BaseOutputNode):
             return node_run_result
         except CustomException as err:
             # Handle custom exceptions with proper error tracking
-            traceback.print_exc()
             span.record_exception(err)
             run_result = NodeRunResult(
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err.message,
-                error_code=err.code,
+                error=err,
             )
             return run_result
         except Exception as err:
             # Handle unexpected exceptions with generic error handling
-            traceback.print_exc()
             span.record_exception(err)
             run_result = NodeRunResult(
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.EndNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.END_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )
             return run_result

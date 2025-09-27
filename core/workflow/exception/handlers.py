@@ -19,7 +19,6 @@ while maintaining security by not exposing internal system details.
 
 from fastapi import Request, Response
 from fastapi.exceptions import RequestValidationError
-
 from workflow.domain.entities.response import response_error, response_error_sse
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.trace.span import Span
@@ -70,11 +69,11 @@ async def validation_exception_handler(
             "/workflow/v1/resume",
         ]:
             return response_error_sse(
-                CodeEnum.ParamError.code, "\n".join(errors_list), span_ctx.sid
+                CodeEnum.PARAM_ERROR.code, "\n".join(errors_list), span_ctx.sid
             )
 
         # Handle other endpoints with standard JSON response format
         else:
             return response_error(
-                CodeEnum.ParamError.code, "\n".join(errors_list), span_ctx.sid
+                CodeEnum.PARAM_ERROR.code, "\n".join(errors_list), span_ctx.sid
             )

@@ -6,10 +6,10 @@ parse them, and perform validation to ensure compliance with OpenAPI specificati
 """
 
 import json
+
 from openapi_spec_validator import validate
 from openapi_spec_validator.validation.exceptions import OpenAPIValidationError
-
-from utils.json_schemas.read_json_schemas import SchemaProcess
+from plugin.link.utils.json_schemas.read_json_schemas import SchemaProcess
 
 if __name__ == "__main__":
     dir_ = "./"

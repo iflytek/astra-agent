@@ -105,7 +105,7 @@ class WorkflowPluginRunner(BaseModel):
             )
 
             flow_client = AsyncOpenAI(
-                base_url=agent_config.workflow_sse_base_url, api_key="no_need"
+                base_url=agent_config.WORKFLOW_SSE_BASE_URL, api_key="no_need"
             )
 
             try:
@@ -132,6 +132,8 @@ class WorkflowPluginRunner(BaseModel):
 
                     if ctx.code != 0:
                         yield self._create_error_response(ctx, chunk_data)
+                    elif not chunk.choices:
+                        continue
                     else:
                         content = chunk.choices[0].delta.content
                         reasoning_content = (
@@ -175,7 +177,7 @@ class WorkflowPluginFactory(BaseModel):
             )
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    agent_config.get_workflows_url, json={"flow_id": workflow_id}
+                    agent_config.GET_WORKFLOWS_URL, json={"flow_id": workflow_id}
                 ) as response:
                     response.raise_for_status()
                     result = await response.json()

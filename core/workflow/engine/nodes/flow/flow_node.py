@@ -7,11 +7,11 @@ from typing import Any, Dict, Optional, Tuple
 
 import aiohttp
 from aiohttp import ClientTimeout
-
-from workflow.consts.flow import FLOW_FINISH_REASON
+from pydantic import Field
+from workflow.consts.engine.chat_status import ChatStatus
 from workflow.domain.models.ai_app import App
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
-from workflow.engine.entities.history import History
+from workflow.engine.entities.history import EnableChatHistoryV2, History
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_entities import NodeType
 from workflow.engine.entities.output_mode import EndNodeOutputModeEnum
@@ -38,12 +38,14 @@ class FlowNode(BaseNode):
     """
 
     # Flow configuration parameters
-    flowId: str  # Target flow ID to execute
-    appId: str  # Application ID for authentication
-    uid: str  # User ID for the flow execution
+    flowId: str = Field(..., min_length=1)  # Target flow ID to execute
+    appId: str = Field(..., min_length=1)  # Application ID for authentication
+    uid: str = Field(..., min_length=1)  # User ID for the flow execution
 
     # Chat history configuration for conversation context
-    enableChatHistoryV2: dict = {}
+    enableChatHistoryV2: EnableChatHistoryV2 = Field(
+        default_factory=EnableChatHistoryV2
+    )
 
     # Default chat body template for API requests
     chatBody: dict = {
@@ -56,40 +58,6 @@ class FlowNode(BaseNode):
 
     # Optional version specification for the target flow
     version: Optional[str] = None
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the node configuration as a dictionary.
-
-        :return: Dictionary containing flow configuration parameters
-        """
-        return {
-            "flow_id": self.flowId,
-            "app_id": self.appId,
-            "uid": self.uid,
-            "enableChatHistoryV2": self.enableChatHistoryV2,
-            "version": self.version,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution is not supported for flow nodes.
-        Flow nodes require asynchronous execution due to API calls.
-
-        :param variable_pool: Variable pool containing workflow variables
-        :param span: Tracing span for observability
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution results
-        :raises: NotImplementedError as sync execution is not supported
-        """
-        raise NotImplementedError("Flow nodes only support async execution")
 
     def assemble_chat_body(self, inputs: dict) -> dict:
         """
@@ -139,7 +107,6 @@ class FlowNode(BaseNode):
             msg_or_end_node_deps: Dict[str, MsgOrEndDepInfo] = kwargs.get(
                 "msg_or_end_node_deps", {}
             )
-            start_time = time.time()
 
             # Collect input variables from the variable pool
             inputs = {}
@@ -190,7 +157,6 @@ class FlowNode(BaseNode):
                 inputs=inputs,
                 raw_output="",
                 outputs=order_outputs,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -204,8 +170,7 @@ class FlowNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             # Handle unexpected exceptions and record in tracing
@@ -215,8 +180,10 @@ class FlowNode(BaseNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.WorkflowExecutionError.code,
+                error=CustomException(
+                    CodeEnum.WORKFLOW_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )
 
     async def req_flow_api_with_see(
@@ -250,7 +217,7 @@ class FlowNode(BaseNode):
         )
         if output_mode is None:
             raise CustomException(
-                err_code=CodeEnum.WorkflowExecutionError,
+                err_code=CodeEnum.WORKFLOW_EXECUTION_ERROR,
                 cause_error=f"Flow output mode not configured for flow_id: {self.flowId}",
             )
 
@@ -297,7 +264,7 @@ class FlowNode(BaseNode):
                         # Check for API errors
                         if msg.get("code", 0) != 0:
                             raise CustomException(
-                                err_code=CodeEnum.WorkflowExecutionError,
+                                err_code=CodeEnum.WORKFLOW_EXECUTION_ERROR,
                                 err_msg=msg.get("message", ""),
                                 cause_error=json.dumps(msg, ensure_ascii=False),
                             )
@@ -328,13 +295,16 @@ class FlowNode(BaseNode):
                             )
 
                         # Check for completion
-                        if choices[0].get("finish_reason") == FLOW_FINISH_REASON:
+                        if (
+                            choices[0].get("finish_reason")
+                            == ChatStatus.FINISH_REASON.value
+                        ):
                             token_usage = msg.get("usage", {})
                             break
         except asyncio.TimeoutError as e:
             # Handle timeout errors with detailed information
             raise CustomException(
-                err_code=CodeEnum.WorkflowExecutionError,
+                err_code=CodeEnum.WORKFLOW_EXECUTION_ERROR,
                 err_msg=f"Flow node response timeout ({interval_timeout}s)",
                 cause_error=f"Flow node response timeout ({interval_timeout}s)",
             ) from e
@@ -373,10 +343,8 @@ class FlowNode(BaseNode):
 
         # Process chat history if enabled
         history = []
-        if self.enableChatHistoryV2 and self.enableChatHistoryV2.get(
-            "isEnabled", False
-        ):
-            rounds = self.enableChatHistoryV2.get("rounds", 1)
+        if self.enableChatHistoryV2.is_enabled:
+            rounds = self.enableChatHistoryV2.rounds
             if variable_pool.history_v2:
                 history_v2 = History(
                     origin_history=variable_pool.history_v2.origin_history,
@@ -427,7 +395,7 @@ class FlowNode(BaseNode):
             # Validate app existence
             if not app or app.id == 0:
                 raise CustomException(
-                    err_code=CodeEnum.AppNotFound,
+                    err_code=CodeEnum.APP_NOT_FOUND_ERROR,
                     err_msg=f"App not found for nested workflow execution: {self.appId}",
                 )
 
@@ -469,7 +437,7 @@ class FlowNode(BaseNode):
                 outputs = json.loads(result_content)
             except Exception as e:
                 raise CustomException(
-                    err_code=CodeEnum.WorkflowExecRespFormatError,
+                    err_code=CodeEnum.WORKFLOW_EXEC_RESP_FORMAT_ERROR,
                     cause_error=f"Workflow response format error. Response: {result_content}, "
                     f"Expected deserialization keys: {self.output_identifier}",
                 ) from e
@@ -482,7 +450,7 @@ class FlowNode(BaseNode):
             outputs["reasoning_content"] = result_reasoning_content
         else:
             raise CustomException(
-                err_code=CodeEnum.WorkflowExecutionError,
+                err_code=CodeEnum.WORKFLOW_EXECUTION_ERROR,
                 cause_error=f"Invalid workflow output mode: {output_mode}",
             )
 

@@ -14,6 +14,7 @@ COPY core/memory/database/uv.lock ./
 RUN uv sync -i https://pypi.tuna.tsinghua.edu.cn/simple/
 
 COPY core/common ./common
-COPY core/memory ./memory
+RUN mkdir ./memory
+COPY core/memory/database ./memory/database
 
 CMD ["uv", "run", "memory/database/main.py"]

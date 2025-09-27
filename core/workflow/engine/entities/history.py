@@ -1,5 +1,4 @@
-from pydantic import BaseModel
-
+from pydantic import BaseModel, Field
 from workflow.domain.entities.chat import HistoryItem
 from workflow.infra.providers.llm.iflytek_spark.schemas import SparkAiMessage
 
@@ -21,14 +20,6 @@ class History(BaseModel):
 
         :param history: List of history items to initialize with
         """
-        # result = []
-        # if history:
-        #     for h in history:
-        #         user = h.get("role","")
-        #         content = h.get("content","")
-        #         content_type = h.get("content_type")
-        #         item = {"role":user,"content":content,"content_type":content_type}
-        #         result.append(item)
         self.origin_history = history
 
     @staticmethod
@@ -195,39 +186,13 @@ class ProcessArrayMethod:
         return images, others
 
 
-# if __name__ == '__main__':
-#     content = [
-#                 {
-#                     "role": "user",
-#                     "content_type": "text",
-#                     "content": "你好1"
-#                 },
-#                 {
-#                     "role": "assistant",
-#                     "content_type": "text",
-#                     "content": "你好,我是你的工作助手，请问有什么可以帮您？2"
-#                 },
-#                 {
-#                     "role": "user",
-#                     "content_type": "image",
-#                     "content": "你好3"
-#                 },
-#                 {
-#                     "role": "assistant",
-#                     "content_type": "text",
-#                     "content": "你好,我是你的工作助手，请问有什么可以帮您？4"
-#                 },
-#                 {
-#                     "role": "user",
-#                     "content_type": "text",
-#                     "content": "你好5"
-#                 },
-#                 {
-#                     "role": "assistant",
-#                     "content_type": "image",
-#                     "content": "你好,我是你的工作助手，请问有什么可以帮您？6"
-#                 },
-#             ]
-#     images,others = ProcessArrayMethod.process_image_array(content)
-#     print(images,type(images))
-#     print(others,type(others))
+class EnableChatHistoryV2(BaseModel):
+    """
+    Enable chat history v2.
+
+    :param is_enabled: Whether to enable chat history v2
+    :param rounds: Maximum number of conversation rounds
+    """
+
+    is_enabled: bool = Field(default=False, alias="isEnabled")
+    rounds: int = Field(default=1, gt=0, alias="rounds")

@@ -6,7 +6,7 @@ from common.service.base import ServiceFactory, ServiceType
 from common.service.otlp.metric.metric_service import OtlpMetricService
 
 
-def init_otlp_metric():
+def init_otlp_metric() -> None:
 
     # global global_otlp_metric_args
 
@@ -14,8 +14,8 @@ def init_otlp_metric():
         return
 
     global_otlp_metric_args.otlp_endpoint = os.getenv("OTLP_ENDPOINT", "")
-    global_otlp_metric_args.otlp_service_name = os.getenv("OTLP_SERVICE_NAME", "")
-    global_otlp_metric_args.otlp_dc = os.getenv("OTLP_DC", "")
+    global_otlp_metric_args.otlp_service_name = os.getenv("SERVICE_NAME", "")
+    global_otlp_metric_args.otlp_dc = os.getenv("SERVICE_LOCATION", "")
     global_otlp_metric_args.metric_timeout = int(
         os.getenv("OTLP_METRIC_TIMEOUT", "5000")
     )
@@ -37,11 +37,11 @@ def init_otlp_metric():
 class OtlpMetricFactory(ServiceFactory):
     name = ServiceType.OSS_SERVICE
 
-    def __init__(self):
-        super().__init__(OtlpMetricService)
+    def __init__(self) -> None:
+        super().__init__(OtlpMetricService)  # type: ignore[arg-type]
 
-    def create(self):
+    def create(self, *args: tuple, **kwargs: dict) -> OtlpMetricService:
         init_otlp_metric()
         # if config.mode == "public":
         # return # api service
-        return OtlpMetricService()
+        return OtlpMetricService()  # type: ignore[return-value]

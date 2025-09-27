@@ -6,9 +6,8 @@ execution requests. It defines the required and optional fields with their const
 
 from typing import Optional
 
-from pydantic import Field
-
 from memory.database.api.schemas.common_types import DidUidCommon
+from pydantic import Field
 
 
 class ExecDDLInput(DidUidCommon):  # pylint: disable=too-few-public-methods
@@ -20,6 +19,7 @@ class ExecDDLInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         ddl (str): DDL statement to execute (required, min length 1)
         space_id (Optional[str]): Team space ID (optional)
     """
+
     # ddl: Required, minimum length 1
     ddl: str = Field(..., min_length=1, description="Required, minimum length 1")
     # space_id: Optional

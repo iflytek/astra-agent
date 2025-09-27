@@ -1,5 +1,7 @@
 """Module providing standardized HTTP response formats for API endpoints."""
 
+from typing import Any, Optional
+
 from starlette.responses import JSONResponse
 
 
@@ -15,7 +17,7 @@ class SuccessResponse:  # pylint: disable=too-few-public-methods
     code: int
     message: str
 
-    def __init__(self, message="success", sid=None):
+    def __init__(self, message: str = "success", sid: Optional[str] = None) -> None:
         """Initialize success response.
 
         Args:
@@ -42,7 +44,9 @@ class SuccessDataResponse:  # pylint: disable=too-few-public-methods
     message: str
     data: object
 
-    def __init__(self, data, message="success", sid=None):
+    def __init__(
+        self, data: Any, message: str = "success", sid: Optional[str] = None
+    ) -> None:
         """Initialize success response with data.
 
         Args:
@@ -57,7 +61,9 @@ class SuccessDataResponse:  # pylint: disable=too-few-public-methods
             self.sid = sid
 
 
-def format_response(code, data=None, message=" ", sid=None):
+def format_response(
+    code: int, data: Optional[Any] = None, message: str = " ", sid: Optional[str] = None
+) -> JSONResponse:
     """Format standardized API response.
 
     Args:

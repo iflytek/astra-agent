@@ -5,7 +5,7 @@
 import socket
 
 
-def get_host_ip():
+def get_host_ip() -> str:
     """
     Query local ip address
     :return: ip

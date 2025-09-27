@@ -82,9 +82,9 @@ def count_errors_in_output(output: str) -> int:
     return 0
 
 
-def main() -> None:
-    """Main function that runs all code quality checks."""
-    checks: Dict[str, Tuple[List[str], Optional[str]]] = {
+def get_quality_checks() -> Dict[str, Tuple[List[str], Optional[str]]]:
+    """Define all quality check configurations."""
+    return {
         "Black formatting check": (
             ["python", "-m", "black", "--check", "--line-length=88", "."],
             None,
@@ -124,10 +124,6 @@ def main() -> None:
             ["python", "-m", "pytest", "tests/unit", "-v", "--tb=short"],
             None,
         ),
-        # "Pytest integration tests": (
-        #     ["python", "-m", "pytest", "tests/integration", "-v", "--tb=short"],
-        #     "Integration tests skipped - requires external dependencies (database, Redis, etc)",
-        # ),
         "Pytest coverage check": (
             [
                 "python",
@@ -165,42 +161,43 @@ def main() -> None:
         ),
     }
 
-    results: List[Tuple[str, Optional[bool], str, int]] = []
 
-    print("🔍 Starting code quality checks...")
-    print("=" * 60)
+def run_single_check(
+    description: str, command: List[str], fallback_msg: Optional[str]
+) -> Tuple[str, Optional[bool], str, int]:
+    """Run a single quality check and return the result."""
+    print(f"Running {description}...")
 
-    for description, (command, fallback_msg) in checks.items():
-        print(f"Running {description}...")
+    if fallback_msg:
+        success, output = run_command_with_fallback(command, description, fallback_msg)
+        error_count = 0
+    else:
+        success, output, error_count = run_command_smart(command, description)
 
-        if fallback_msg:
-            success, output = run_command_with_fallback(
-                command, description, fallback_msg
-            )
-            error_count = 0
+    if success is True:
+        if description == "Pyright type check" and error_count > 0:
+            print(f"⚠️ {description} - Detected {error_count} type issues")
         else:
-            success, output, error_count = run_command_smart(command, description)
-
-        results.append((description, success, output, error_count))
-
-        if success is True:
-            if description == "Pyright type check" and error_count > 0:
-                print(f"⚠️ {description} - Detected {error_count} type issues")
-            else:
-                print(f"✅ {description} - Passed")
-        elif success is None:  # fallback/skip
-            print(f"⚠️ {description} - {output}")
+            print(f"✅ {description} - Passed")
+    elif success is None:  # fallback/skip
+        print(f"⚠️ {description} - {output}")
+    else:
+        print(f"❌ {description} - Failed")
+        # Only show brief error summary
+        if len(output) < 500:
+            print(f"   Error message: {output}")
         else:
-            print(f"❌ {description} - Failed")
-            # Only show brief error summary
-            if len(output) < 500:
-                print(f"   Error message: {output}")
-            else:
-                lines = output.split("\n")[:5]  # Only show first 5 lines
-                print(f"   Error message preview: {' '.join(lines)}...")
-        print("-" * 40)
+            lines = output.split("\n")[:5]  # Only show first 5 lines
+            print(f"   Error message preview: {' '.join(lines)}...")
+    print("-" * 40)
 
-    # Summary results
+    return description, success, output, error_count
+
+
+def print_results_summary(
+    results: List[Tuple[str, Optional[bool], str, int]],
+) -> Tuple[int, int, int]:
+    """Print summary of all check results and return counts."""
     print("\n📊 Check Results Summary:")
     print("=" * 60)
 
@@ -224,7 +221,13 @@ def main() -> None:
     print("-" * 60)
     print(f"Total: {passed}/{total} checks passed, {skipped} skipped, {failed} failed")
 
-    # Calculate quality rating
+    return passed, skipped, failed
+
+
+def calculate_quality_metrics(
+    results: List[Tuple[str, Optional[bool], str, int]],
+) -> Tuple[int, int, bool]:
+    """Calculate quality metrics from results."""
     core_tools_passed = 0
     pyright_error_count = 0
     pylint_passed = False
@@ -242,44 +245,71 @@ def main() -> None:
             elif description == "Pylint static analysis":
                 pylint_passed = True
 
+    return core_tools_passed, pyright_error_count, pylint_passed
+
+
+def print_success_report(pyright_error_count: int, pylint_passed: bool) -> None:
+    """Print detailed success report."""
+    print("🎉 Core code quality checks passed! Project meets standard specifications.")
+
+    if pyright_error_count == 0:
+        print("📈 Quality rating: A+ grade (All tools 100% passed)")
+    elif pyright_error_count < 100:
+        print(
+            f"📈 Quality rating: A grade (Core tools 100% passed, {pyright_error_count} type issues need optimization)"
+        )
+    else:
+        print(
+            f"📈 Quality rating: B+ grade (Core tools 100% passed, {pyright_error_count} type issues to be fixed)"
+        )
+
+    # Detailed analysis report
+    print("\n📋 Detailed Quality Analysis:")
+    print("  - Code formatting (Black): ✅ Fully compliant")
+    print("  - Import sorting (isort): ✅ Fully compliant")
+    print("  - Code style (Flake8): ✅ Fully compliant")
+    pyright_status = (
+        "✅ Fully compliant"
+        if pyright_error_count == 0
+        else f"⚠️ {pyright_error_count} issues"
+    )
+    print(f"  - Type checking (Pyright): {pyright_status}")
+    print(
+        f"  - Static analysis (Pylint): {'✅ Passed' if pylint_passed else '⚠️ Needs check'}"
+    )
+
+    # Provide fix suggestions
+    if pyright_error_count > 0:
+        print("\n🔧 Fix suggestions:")
+        print("  - Prioritize fixing high-frequency type errors")
+        print("  - Add missing type annotations")
+        print("  - Handle Any and Unknown type issues")
+
+
+def main() -> None:
+    """Main function that runs all code quality checks."""
+    checks = get_quality_checks()
+    results: List[Tuple[str, Optional[bool], str, int]] = []
+
+    print("🔍 Starting code quality checks...")
+    print("=" * 60)
+
+    # Run all checks
+    for description, (command, fallback_msg) in checks.items():
+        result = run_single_check(description, command, fallback_msg)
+        results.append(result)
+
+    # Print summary
+    passed, skipped, failed = print_results_summary(results)
+
+    # Calculate metrics and determine outcome
+    core_tools_passed, pyright_error_count, pylint_passed = calculate_quality_metrics(
+        results
+    )
+
     if failed == 0:
         if core_tools_passed >= 3:  # Black, isort, Flake8 all pass
-            print(
-                "🎉 Core code quality checks passed! Project meets standard specifications."
-            )
-            if pyright_error_count == 0:
-                print("📈 Quality rating: A+ grade (All tools 100% passed)")
-            elif pyright_error_count < 100:
-                print(
-                    f"📈 Quality rating: A grade (Core tools 100% passed, {pyright_error_count} type issues need optimization)"
-                )
-            else:
-                print(
-                    f"📈 Quality rating: B+ grade (Core tools 100% passed, {pyright_error_count} type issues to be fixed)"
-                )
-
-            # Detailed analysis report
-            print("\n📋 Detailed Quality Analysis:")
-            print("  - Code formatting (Black): ✅ Fully compliant")
-            print("  - Import sorting (isort): ✅ Fully compliant")
-            print("  - Code style (Flake8): ✅ Fully compliant")
-            pyright_status = (
-                "✅ Fully compliant"
-                if pyright_error_count == 0
-                else f"⚠️ {pyright_error_count} issues"
-            )
-            print(f"  - Type checking (Pyright): {pyright_status}")
-            print(
-                f"  - Static analysis (Pylint): {'✅ Passed' if pylint_passed else '⚠️ Needs check'}"
-            )
-
-            # Provide fix suggestions
-            if pyright_error_count > 0:
-                print("\n🔧 Fix suggestions:")
-                print("  - Prioritize fixing high-frequency type errors")
-                print("  - Add missing type annotations")
-                print("  - Handle Any and Unknown type issues")
-
+            print_success_report(pyright_error_count, pylint_passed)
             sys.exit(0)
         else:
             print("⚠️ Some core quality checks did not pass.")

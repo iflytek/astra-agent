@@ -4,7 +4,6 @@ from base64 import b64encode
 from typing import Any, Dict, List, Set, Tuple
 
 import requests  # type: ignore
-
 from workflow.exception.e import CustomException
 from workflow.exception.errors.code_convert import CodeConvert
 from workflow.exception.errors.err_code import CodeEnum
@@ -289,7 +288,7 @@ class Tool:
             except requests.ConnectionError as e:
                 # Handle connection errors
                 raise CustomException(
-                    CodeEnum.SparkLinkConnectionErr,
+                    CodeEnum.SPARK_LINK_CONNECTION_ERROR,
                     err_msg="Tool request failed, connection error",
                     cause_error="Tool request failed, connection error",
                 ) from e
@@ -374,7 +373,7 @@ class Link:
         response_json = requests.get(
             self.get_url, headers=self.const_headers, params=params
         ).json()
-        if response_json.get("code", -1) != 0:
+        if response_json.get("code", CodeEnum.SPARK_LINK_ACTION_ERROR.code) != 0:
             # TODO: Add logging for error cases
             return []
         return response_json.get("data", {}).get("tools", [])
@@ -453,7 +452,7 @@ class Link:
             tool_id = tool_schema.get("id")
             if tool_id is None:
                 raise CustomException(
-                    CodeEnum.SparkLinkToolNotExistErr,
+                    CodeEnum.SPARK_LINK_TOOL_NOT_EXIST_ERROR,
                     err_msg="Tool ID is empty",
                     cause_error=json.dumps(tool_schema, ensure_ascii=False),
                 )

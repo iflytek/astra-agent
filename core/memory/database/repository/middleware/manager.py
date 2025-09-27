@@ -2,7 +2,7 @@
 Service manager module for managing service factories and their dependencies.
 """
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from venv import logger
 
 from memory.database.repository.middleware.base import Service
@@ -19,17 +19,17 @@ class ServiceManager:
         dependencies: Dictionary of service dependencies
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the service manager with empty containers."""
         self.services: Dict[str, "Service"] = {}
-        self.factories = {}
-        self.dependencies = {}
+        self.factories: Dict[ServiceType, "ServiceFactory"] = {}
+        self.dependencies: Dict[ServiceType, Optional[List[ServiceType]]] = {}
 
     async def register_factory(
-            self,
-            service_factory: "ServiceFactory",
-            dependencies: Optional[List[ServiceType]] = None,
-    ):
+        self,
+        service_factory: "ServiceFactory",
+        dependencies: Optional[List[ServiceType]] = None,
+    ) -> None:
         """
         Registers a new factory with dependencies.
 
@@ -44,7 +44,7 @@ class ServiceManager:
         self.dependencies[service_name] = dependencies
         await self._create_service(service_name)
 
-    async def get(self, service_name: ServiceType):
+    async def get(self, service_name: ServiceType) -> Any:
         """
         Get (or create) a service by its name.
 
@@ -59,7 +59,7 @@ class ServiceManager:
 
         return self.services[service_name]
 
-    async def _create_service(self, service_name: ServiceType):
+    async def _create_service(self, service_name: ServiceType) -> Any:
         """
         Create a new service given its name, handling dependencies.
 
@@ -73,7 +73,7 @@ class ServiceManager:
         self.services[service_name] = await self.factories[service_name].create()
         self.services[service_name].set_ready()
 
-    def _validate_service_creation(self, service_name: ServiceType):
+    def _validate_service_creation(self, service_name: ServiceType) -> None:
         """
         Validate whether the service can be created.
 

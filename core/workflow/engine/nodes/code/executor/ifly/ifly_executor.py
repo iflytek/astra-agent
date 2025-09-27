@@ -5,7 +5,6 @@ from typing import Any
 
 import httpx
 from aiohttp import ClientSession
-
 from workflow.engine.nodes.code.executor.base_executor import BaseExecutor
 from workflow.exception.e import CustomException, CustomExceptionCD
 from workflow.exception.errors.err_code import CodeEnum
@@ -41,7 +40,7 @@ class IFlyExecutor(BaseExecutor):
         url = os.getenv("CODE_EXEC_URL", "")
         if not url:
             raise CustomException(
-                err_code=CodeEnum.CodeExecutionError,
+                err_code=CodeEnum.CODE_EXECUTION_ERROR,
                 err_msg="code_exec_url not found",
                 cause_error="code_exec_url not found",
             )
@@ -64,7 +63,7 @@ class IFlyExecutor(BaseExecutor):
                 retry_times += 1
                 if retry_times > MAX_RETRY_TIMES:
                     raise CustomException(
-                        err_code=CodeEnum.CodeExecutionError,
+                        err_code=CodeEnum.CODE_EXECUTION_ERROR,
                         err_msg="Retry attempts exceeded 5 times",
                         cause_error="Retry attempts exceeded 5 times",
                     )
@@ -77,7 +76,10 @@ class IFlyExecutor(BaseExecutor):
                     span.add_info_events({"code execute result": resp_body_str})
                     resp_code = resp_body.get("code", 0)
                     # Pod is not ready yet, retry after delay
-                    if resp_code == ThirdApiCodeEnum.CodeExecutePodNotReadyError.code:
+                    if (
+                        resp_code
+                        == ThirdApiCodeEnum.CODE_EXECUTE_POD_NOT_READY_ERROR.code
+                    ):
                         await asyncio.sleep(1)
                         continue
                     stderr = resp_body.get("data", {}).get("stderr", "")
@@ -85,11 +87,11 @@ class IFlyExecutor(BaseExecutor):
                     span.add_error_event(f"stderr: {stderr}")
                     span.add_error_event(f"response message: {resp_message}")
                     err_code = (
-                        CodeEnum.CodeExecutionTimeoutError.code
+                        CodeEnum.CODE_EXECUTION_TIMEOUT_ERROR.code
                         if resp_message.startswith(
                             "exec code error::context deadline exceeded::signal: killed"
                         )
-                        else CodeEnum.CodeExecutionError.code
+                        else CodeEnum.CODE_EXECUTION_ERROR.code
                     )
 
                     raise CustomExceptionCD(
@@ -101,7 +103,7 @@ class IFlyExecutor(BaseExecutor):
                 raise err
             else:
                 raise CustomException(
-                    err_code=CodeEnum.CodeExecutionError, cause_error=err
+                    err_code=CodeEnum.CODE_EXECUTION_ERROR, cause_error=err
                 ) from err
 
         return runner_result
@@ -139,7 +141,7 @@ class IFlyExecutor(BaseExecutor):
                 else:
                     span.add_error_event(f"{resp_body_str}")
                     raise CustomExceptionCD(
-                        err_code=CodeEnum.CodeExecutionError.value[0],
+                        err_code=CodeEnum.CODE_EXECUTION_ERROR.value[0],
                         err_msg=f"{resp_body_str}",
                     )
 

@@ -1,4 +1,4 @@
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import BaseExc
 from exceptions.codes import (
     c_0,

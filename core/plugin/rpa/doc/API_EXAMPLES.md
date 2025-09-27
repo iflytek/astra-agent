@@ -1,35 +1,35 @@
-# 🔌 API 使用示例
+# 🔌 API Usage Examples
 
-本文档提供了星辰 RPA 服务器的详细 API 使用示例。
+This document provides detailed API usage examples for the Xingchen RPA Server.
 
-## 📋 目录
+## 📋 Table of Contents
 
-- [基本用法](#基本用法)
-- [Python 客户端示例](#python-客户端示例)
-- [JavaScript 客户端示例](#javascript-客户端示例)
-- [cURL 示例](#curl-示例)
-- [错误处理](#错误处理)
-- [高级用法](#高级用法)
+- [Basic Usage](#basic-usage)
+- [Python Client Examples](#python-client-examples)
+- [JavaScript Client Examples](#javascript-client-examples)
+- [cURL Examples](#curl-examples)
+- [Error Handling](#error-handling)
+- [Advanced Usage](#advanced-usage)
 
-## 🚀 基本用法
+## 🚀 Basic Usage
 
-### API 端点
+### API Endpoints
 
-- **基础 URL**: `http://localhost:19999`
-- **API 版本**: `v1`
-- **主要端点**: `/rpa/v1/exec`
+- **Base URL**: `http://localhost:19999`
+- **API Version**: `v1`
+- **Main Endpoint**: `/rpa/v1/exec`
 
-### 认证
+### Authentication
 
-所有 API 请求都需要在请求头中包含 Bearer Token：
+All API requests require a Bearer Token in the request headers:
 
 ```
 Authorization: Bearer <your-token>
 ```
 
-## 🐍 Python 客户端示例
+## 🐍 Python Client Examples
 
-### 基本异步客户端
+### Basic Async Client
 
 ```python
 import asyncio
@@ -47,7 +47,7 @@ class RPAClient:
 
     async def execute_task(self, project_id: str, params: dict = None,
                           exec_position: str = "EXECUTOR", sid: str = None):
-        """执行 RPA 任务"""
+        """Execute RPA task"""
         url = f"{self.base_url}/rpa/v1/exec"
 
         payload = {
@@ -62,7 +62,7 @@ class RPAClient:
                 "POST", url,
                 headers=self.headers,
                 json=payload,
-                timeout=600  # 10分钟超时
+                timeout=600  # 10 minutes timeout
             ) as response:
                 if response.status_code != 200:
                     raise Exception(f"Request failed: {response.status_code}")
@@ -70,12 +70,12 @@ class RPAClient:
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
                         try:
-                            data = json.loads(line[6:])  # 去掉 "data: " 前缀
+                            data = json.loads(line[6:])  # Remove "data: " prefix
                             yield data
                         except json.JSONDecodeError:
                             continue
 
-# 使用示例
+# Usage Example
 async def main():
     client = RPAClient("http://localhost:19999", "your-token-here")
 
@@ -92,26 +92,26 @@ async def main():
             },
             sid="unique-session-id"
         ):
-            print(f"收到事件: {event}")
+            print(f"Received event: {event}")
 
-            # 检查任务状态
-            if event.get("code") == 0:  # 成功
-                print("✅ 任务执行成功")
-                print(f"结果: {event.get('data')}")
+            # Check task status
+            if event.get("code") == 0:  # Success
+                print("✅ Task executed successfully")
+                print(f"Result: {event.get('data')}")
                 break
-            elif event.get("code") != 0:  # 错误
-                print(f"❌ 任务执行失败: {event.get('message')}")
+            elif event.get("code") != 0:  # Error
+                print(f"❌ Task execution failed: {event.get('message')}")
                 break
 
     except Exception as e:
-        print(f"请求失败: {e}")
+        print(f"Request failed: {e}")
 
-# 运行示例
+# Run example
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 同步客户端版本
+### Synchronous Client Version
 
 ```python
 import requests
@@ -129,7 +129,7 @@ class SyncRPAClient:
 
     def execute_task(self, project_id: str, params: dict = None,
                     exec_position: str = "EXECUTOR", sid: str = None):
-        """执行 RPA 任务 (同步版本)"""
+        """Execute RPA task (synchronous version)"""
         url = f"{self.base_url}/rpa/v1/exec"
 
         payload = {
@@ -157,7 +157,7 @@ class SyncRPAClient:
                     except json.JSONDecodeError:
                         continue
 
-# 使用示例
+# Usage Example
 def main():
     client = SyncRPAClient("http://localhost:19999", "your-token-here")
 
@@ -166,22 +166,22 @@ def main():
         params={"action": "test"},
         sid="sync-session-id"
     ):
-        print(f"事件: {event}")
+        print(f"Event: {event}")
 
         if event.get("code") == 0:
-            print("任务完成")
+            print("Task completed")
             break
         elif event.get("code") != 0:
-            print("任务失败")
+            print("Task failed")
             break
 
 if __name__ == "__main__":
     main()
 ```
 
-## 🌐 JavaScript 客户端示例
+## 🌐 JavaScript Client Examples
 
-### 使用 EventSource (浏览器)
+### Using EventSource (Browser)
 
 ```javascript
 class RPAClient {
@@ -249,7 +249,7 @@ class RPAClient {
     }
 }
 
-// 使用示例
+// Usage Example
 async function main() {
     const client = new RPAClient('http://localhost:19999', 'your-token-here');
 
@@ -265,27 +265,27 @@ async function main() {
         );
 
         for await (const event of stream) {
-            console.log('收到事件:', event);
+            console.log('Received event:', event);
 
             if (event.code === 0) {
-                console.log('✅ 任务执行成功');
-                console.log('结果:', event.data);
+                console.log('✅ Task executed successfully');
+                console.log('Result:', event.data);
                 break;
             } else if (event.code !== 0) {
-                console.log('❌ 任务执行失败:', event.message);
+                console.log('❌ Task execution failed:', event.message);
                 break;
             }
         }
     } catch (error) {
-        console.error('请求失败:', error);
+        console.error('Request failed:', error);
     }
 }
 
-// 运行示例
+// Run example
 main();
 ```
 
-### Node.js 客户端
+### Node.js Client
 
 ```javascript
 const https = require('https');
@@ -332,7 +332,7 @@ class NodeRPAClient {
                 res.on('data', (chunk) => {
                     buffer += chunk.toString();
                     const lines = buffer.split('\n');
-                    buffer = lines.pop(); // 保留不完整的行
+                    buffer = lines.pop(); // Keep incomplete lines
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
@@ -358,7 +358,7 @@ class NodeRPAClient {
     }
 }
 
-// 使用示例
+// Usage Example
 async function main() {
     const client = new NodeRPAClient('http://localhost:19999', 'your-token-here');
 
@@ -371,27 +371,27 @@ async function main() {
         );
 
         for (const event of events) {
-            console.log('事件:', event);
+            console.log('Event:', event);
 
             if (event.code === 0) {
-                console.log('任务成功完成');
+                console.log('Task completed successfully');
                 break;
             } else if (event.code !== 0) {
-                console.log('任务执行失败');
+                console.log('Task execution failed');
                 break;
             }
         }
     } catch (error) {
-        console.error('请求失败:', error);
+        console.error('Request failed:', error);
     }
 }
 
 main();
 ```
 
-## 🔧 cURL 示例
+## 🔧 cURL Examples
 
-### 基本请求
+### Basic Request
 
 ```bash
 curl -X POST "http://localhost:19999/rpa/v1/exec" \
@@ -408,7 +408,7 @@ curl -X POST "http://localhost:19999/rpa/v1/exec" \
   }'
 ```
 
-### 带超时的请求
+### Request with Timeout
 
 ```bash
 curl -X POST "http://localhost:19999/rpa/v1/exec" \
@@ -427,14 +427,14 @@ curl -X POST "http://localhost:19999/rpa/v1/exec" \
   }'
 ```
 
-### 使用环境变量
+### Using Environment Variables
 
 ```bash
-# 设置环境变量
+# Set environment variables
 export RPA_SERVER_URL="http://localhost:19999"
 export RPA_TOKEN="your-token-here"
 
-# 使用环境变量的请求
+# Request using environment variables
 curl -X POST "${RPA_SERVER_URL}/rpa/v1/exec" \
   -H "Authorization: Bearer ${RPA_TOKEN}" \
   -H "Content-Type: application/json" \
@@ -444,19 +444,19 @@ curl -X POST "${RPA_SERVER_URL}/rpa/v1/exec" \
   }'
 ```
 
-## ❌ 错误处理
+## ❌ Error Handling
 
-### 常见错误码
+### Common Error Codes
 
-| 错误码 | 说明 | 处理方式 |
-|-------|------|---------|
-| 0 | 成功 | 正常处理结果 |
-| 55001 | 创建任务错误 | 检查请求参数和 RPA API 配置 |
-| 55002 | 查询任务错误 | 检查任务 ID 和网络连接 |
-| 55003 | 超时错误 | 增加超时时间或检查任务复杂度 |
-| 55999 | 未知错误 | 查看详细错误信息和日志 |
+| Error Code | Description | Solution |
+|-----------|-------------|----------|
+| 0 | Success | Handle result normally |
+| 55001 | Task creation error | Check request parameters and RPA API configuration |
+| 55002 | Task query error | Check task ID and network connection |
+| 55003 | Timeout error | Increase timeout or check task complexity |
+| 55999 | Unknown error | Check detailed error information and logs |
 
-### Python 错误处理示例
+### Python Error Handling Example
 
 ```python
 import asyncio
@@ -464,54 +464,54 @@ import httpx
 import json
 
 async def robust_execute_task(client, project_id, max_retries=3):
-    """带重试机制的任务执行"""
+    """Task execution with retry mechanism"""
     for attempt in range(max_retries):
         try:
             async for event in client.execute_task(project_id):
                 code = event.get("code")
                 message = event.get("message", "")
 
-                if code == 0:  # 成功
+                if code == 0:  # Success
                     return event.get("data")
-                elif code == 55003:  # 超时
-                    print(f"任务超时，尝试重试 ({attempt + 1}/{max_retries})")
+                elif code == 55003:  # Timeout
+                    print(f"Task timeout, attempting retry ({attempt + 1}/{max_retries})")
                     break
-                elif code in [55001, 55002]:  # 任务创建/查询错误
-                    print(f"任务执行错误: {message}")
+                elif code in [55001, 55002]:  # Task creation/query error
+                    print(f"Task execution error: {message}")
                     if "Invalid project" in message:
-                        raise ValueError(f"无效的项目ID: {project_id}")
+                        raise ValueError(f"Invalid project ID: {project_id}")
                     break
-                else:  # 其他错误
-                    print(f"未知错误 (代码: {code}): {message}")
+                else:  # Other errors
+                    print(f"Unknown error (code: {code}): {message}")
                     break
         except httpx.RequestError as e:
-            print(f"网络请求错误: {e}")
+            print(f"Network request error: {e}")
             if attempt < max_retries - 1:
-                await asyncio.sleep(2 ** attempt)  # 指数退避
+                await asyncio.sleep(2 ** attempt)  # Exponential backoff
             else:
                 raise
         except json.JSONDecodeError as e:
-            print(f"JSON 解析错误: {e}")
+            print(f"JSON parsing error: {e}")
             break
 
-    raise Exception(f"任务执行失败，已重试 {max_retries} 次")
+    raise Exception(f"Task execution failed after {max_retries} retries")
 
-# 使用示例
+# Usage Example
 async def main():
     client = RPAClient("http://localhost:19999", "your-token")
 
     try:
         result = await robust_execute_task(client, "test-project-123")
-        print(f"任务成功完成: {result}")
+        print(f"Task completed successfully: {result}")
     except Exception as e:
-        print(f"最终失败: {e}")
+        print(f"Final failure: {e}")
 
 asyncio.run(main())
 ```
 
-## 🚀 高级用法
+## 🚀 Advanced Usage
 
-### 批量任务执行
+### Batch Task Execution
 
 ```python
 import asyncio
@@ -529,7 +529,7 @@ class BatchRPAClient:
         }
 
     async def execute_single_task(self, session, task_config):
-        """执行单个任务"""
+        """Execute single task"""
         async with self.semaphore:
             url = f"{self.base_url}/rpa/v1/exec"
 
@@ -570,7 +570,7 @@ class BatchRPAClient:
                 }
 
     async def execute_batch(self, task_configs):
-        """批量执行任务"""
+        """Execute batch tasks"""
         async with aiohttp.ClientSession() as session:
             tasks = [
                 self.execute_single_task(session, config)
@@ -579,11 +579,11 @@ class BatchRPAClient:
 
             return await asyncio.gather(*tasks, return_exceptions=True)
 
-# 使用示例
+# Usage Example
 async def batch_example():
     client = BatchRPAClient("http://localhost:19999", "your-token", max_concurrent=3)
 
-    # 定义批量任务
+    # Define batch tasks
     tasks = [
         {
             "project_id": "project-1",
@@ -602,24 +602,24 @@ async def batch_example():
         }
     ]
 
-    # 执行批量任务
+    # Execute batch tasks
     results = await client.execute_batch(tasks)
 
-    # 处理结果
+    # Process results
     for result in results:
         if isinstance(result, Exception):
-            print(f"任务异常: {result}")
+            print(f"Task exception: {result}")
         else:
-            print(f"任务 {result['task_id']}: {result['status']}")
+            print(f"Task {result['task_id']}: {result['status']}")
             if result['status'] == 'completed':
-                print(f"  结果: {result['result']}")
+                print(f"  Result: {result['result']}")
             elif result['status'] in ['failed', 'error']:
-                print(f"  错误: {result['error']}")
+                print(f"  Error: {result['error']}")
 
 asyncio.run(batch_example())
 ```
 
-### 任务进度监控
+### Task Progress Monitoring
 
 ```python
 import asyncio
@@ -633,42 +633,42 @@ class ProgressMonitor:
         self.last_update = None
 
     async def execute_with_progress(self, project_id, params=None, sid=None):
-        """带进度监控的任务执行"""
+        """Task execution with progress monitoring"""
         self.start_time = time.time()
         self.last_update = self.start_time
 
-        print(f"🚀 开始执行任务: {project_id}")
-        print(f"⏰ 开始时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"🚀 Starting task execution: {project_id}")
+        print(f"⏰ Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         try:
             async for event in self.client.execute_task(project_id, params, sid=sid):
                 current_time = time.time()
                 elapsed = current_time - self.start_time
 
-                print(f"\n📊 任务状态更新 (耗时: {elapsed:.2f}s)")
-                print(f"   代码: {event.get('code')}")
-                print(f"   消息: {event.get('message')}")
+                print(f"\n📊 Task status update (elapsed: {elapsed:.2f}s)")
+                print(f"   Code: {event.get('code')}")
+                print(f"   Message: {event.get('message')}")
 
                 if event.get('data'):
-                    print(f"   数据: {event.get('data')}")
+                    print(f"   Data: {event.get('data')}")
 
-                # 检查任务完成
+                # Check task completion
                 if event.get("code") == 0:
-                    print(f"\n✅ 任务完成! 总耗时: {elapsed:.2f}s")
+                    print(f"\n✅ Task completed! Total time: {elapsed:.2f}s")
                     return event.get("data")
                 elif event.get("code") != 0:
-                    print(f"\n❌ 任务失败! 耗时: {elapsed:.2f}s")
-                    raise Exception(f"任务失败: {event.get('message')}")
+                    print(f"\n❌ Task failed! Elapsed time: {elapsed:.2f}s")
+                    raise Exception(f"Task failed: {event.get('message')}")
 
                 self.last_update = current_time
 
         except Exception as e:
             elapsed = time.time() - self.start_time
-            print(f"\n💥 任务异常! 耗时: {elapsed:.2f}s")
-            print(f"   错误: {e}")
+            print(f"\n💥 Task exception! Elapsed time: {elapsed:.2f}s")
+            print(f"   Error: {e}")
             raise
 
-# 使用示例
+# Usage Example
 async def monitor_example():
     client = RPAClient("http://localhost:19999", "your-token")
     monitor = ProgressMonitor(client)
@@ -683,20 +683,20 @@ async def monitor_example():
             },
             sid="monitor-session"
         )
-        print(f"🎉 最终结果: {result}")
+        print(f"🎉 Final result: {result}")
 
     except Exception as e:
-        print(f"💔 执行失败: {e}")
+        print(f"💔 Execution failed: {e}")
 
 asyncio.run(monitor_example())
 ```
 
 ---
 
-## 📞 需要帮助？
+## 📞 Need Help?
 
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/your-org/xingchen-rpa-server/issues)
-- 📖 **详细文档**: [README.md](./README.md)
-- 🧪 **测试指南**: [TEST_SUMMARY.md](./TEST_SUMMARY.md)
+- 🐛 **Issue Reports**: [GitHub Issues](https://github.com/your-org/xingchen-rpa-server/issues)
+- 📖 **Detailed Documentation**: [README.md](./README.md)
+- 🧪 **Testing Guide**: [TEST_SUMMARY.md](./TEST_SUMMARY.md)
 
-这些示例涵盖了常见的使用场景，您可以根据具体需求进行调整和扩展。
+These examples cover common use cases and can be adjusted and extended based on your specific requirements.

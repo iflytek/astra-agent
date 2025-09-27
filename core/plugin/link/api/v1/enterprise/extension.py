@@ -5,8 +5,11 @@ including MCP tool registration and other advanced functionality.
 """
 
 from fastapi import APIRouter, Body
-from api.schemas.enterprise.extension_schema import MCPManagerRequest, MCPManagerResponse
-from service.enterprise.extension import register_mcp
+from plugin.link.api.schemas.enterprise.extension_schema import (
+    MCPManagerRequest,
+    MCPManagerResponse,
+)
+from plugin.link.service.enterprise.extension import register_mcp
 
 # Enterprise extension features
 extension_router = APIRouter(tags=["extension api: enterprise version only"])

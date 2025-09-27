@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Type, Union, cast
 
-from workflow.consts.flow import XFLLMStatus
-from workflow.consts.model_provider import ModelProviderEnum
-from workflow.consts.tool_type import ToolType
+from workflow.consts.engine.chat_status import ChatStatus, SparkLLMStatus
+from workflow.consts.engine.model_provider import ModelProviderEnum
+from workflow.consts.engine.tool_type import ToolType
 from workflow.engine.entities.node_entities import NodeType
 from workflow.exception.e import CustomException
 from workflow.exception.errors.code_convert import CodeConvert
@@ -38,7 +38,7 @@ def generate_agent_output_optimize(
     )  # Ensure Chinese characters are not escaped and format is clear
 
     md = (
-        f"**推理工具 {type}**\n"
+        f"**Reasoning tool {type}**\n"
         f"> {reason}\n\n"
         f"```json\n"
         f"{json_content}\n"
@@ -179,11 +179,11 @@ class AgentFrameProcessor(FrameProcessor):
         :return: Unified frame with processed agent response data
         """
         code = llm_response.get("code", 0)
-        status = XFLLMStatus.RUNNING.value
+        status = SparkLLMStatus.RUNNING.value
         text = {"content": "", "reasoning_content": ""}
-        is_finish = llm_response["choices"][0].get("finish_reason")
-        if is_finish == "stop":
-            status = XFLLMStatus.END.value
+        is_finish: str = llm_response["choices"][0].get("finish_reason")
+        if is_finish == ChatStatus.FINISH_REASON.value:
+            status = SparkLLMStatus.END.value
         delta = llm_response["choices"][0].get("delta", {})
         if delta.get("content"):
             text["content"] = delta["content"]
@@ -213,13 +213,13 @@ class OpenAIFrameProcessor(FrameProcessor):
         code = llm_response.get(
             "code", 0
         )  # Originally no code field in frame, but set to -1 when model node execution fails
-        status = XFLLMStatus.RUNNING.value
+        status = SparkLLMStatus.RUNNING.value
         text = {"content": "", "reasoning_content": ""}
-        is_finish = llm_response["choices"][0].get("finish_reason")
-        if is_finish == "stop":
-            status = XFLLMStatus.END.value
-        if is_finish and is_finish != "stop":
-            status = XFLLMStatus.END.value
+        is_finish: str = llm_response["choices"][0].get("finish_reason")
+        if is_finish == ChatStatus.FINISH_REASON.value:
+            status = SparkLLMStatus.END.value
+        if is_finish and is_finish != ChatStatus.FINISH_REASON.value:
+            status = SparkLLMStatus.END.value
         delta = llm_response["choices"][0].get("delta", {})
         if delta.get("content"):
             text["content"] = delta["content"]
@@ -244,14 +244,14 @@ class KnowledgeProFrameProcessor(FrameProcessor):
         code = response.get(
             "code", 0
         )  # Originally no code field in frame, but set to -1 when knowledge node execution fails
-        status = XFLLMStatus.RUNNING.value
+        status = SparkLLMStatus.RUNNING.value
         text = {
             "content": response.get("data", {}).get("content", ""),
             "reasoning_content": "",
         }
         is_finish = response.get("finish_reason", "")
-        if is_finish == "stop":
-            status = XFLLMStatus.END.value
+        if is_finish == ChatStatus.FINISH_REASON.value:
+            status = SparkLLMStatus.END.value
         return UnionFrame(code, status, text)
 
 
@@ -271,7 +271,7 @@ class FlowFrameProcessor(FrameProcessor):
         :return: Unified frame with processed flow response data
         """
         code = response.get("code", 0)
-        status = XFLLMStatus.RUNNING.value
+        status = SparkLLMStatus.RUNNING.value
         text = {"content": "", "reasoning_content": ""}
         if len(response["choices"]) > 0:
             delta = response["choices"][0].get("delta", {})
@@ -280,8 +280,8 @@ class FlowFrameProcessor(FrameProcessor):
             if delta.get("reasoning_content"):
                 text["reasoning_content"] = delta["reasoning_content"]
             is_finish = response["choices"][0].get("finish_reason")
-            if is_finish == "stop":
-                status = XFLLMStatus.END.value
+            if is_finish == ChatStatus.FINISH_REASON.value:
+                status = SparkLLMStatus.END.value
         return UnionFrame(code, status, text)
 
 
@@ -330,14 +330,3 @@ class FrameProcessorFactory:
             raise ValueError(f"Unsupported protocol: {protocol}")
         # All registered processors are concrete subclasses of FrameProcessor
         return cast(FrameProcessor, processor_class())
-
-
-if __name__ == "__main__":
-    aipaas_response = {
-        "header": {"code": 200, "status": "success"},
-        "payload": {"choices": {"text": ["Hello, world!"]}},
-    }
-
-    processor = FrameProcessorFactory.get_processor("aipaas")
-    frame = processor.process_frame(aipaas_response)
-    print(frame)

@@ -74,43 +74,45 @@ class MASDKService(Service):
         :param log: Error log message from MASDK
         :return: LLMGenerate error response with appropriate error code and message
         """
-        print(log)
-
         # Handle empty or None log messages
         if log == "" or log is None:
             return LLMGenerate.workflow_end_error(
-                sid, CodeEnum.MASDKConnectError.code, CodeEnum.MASDKConnectError.msg
+                sid, CodeEnum.MASDK_CONNECT_ERROR.code, CodeEnum.MASDK_CONNECT_ERROR.msg
             )
 
         # Check for specific MASDK error codes in the log message
         if '"{\\"xingchen_agent_workflow\\":\\"11200\\"}"' in log:
             # License limit exceeded error
             return LLMGenerate.workflow_end_error(
-                sid, CodeEnum.MASDKLiccLimitError.code, CodeEnum.MASDKLiccLimitError.msg
+                sid,
+                CodeEnum.MASDK_LICC_LIMIT_ERROR.code,
+                CodeEnum.MASDK_LICC_LIMIT_ERROR.msg,
             )
         elif '"{\\"xingchen_agent_workflow\\":\\"11201\\"}"' in log:
             # Over limit error
             return LLMGenerate.workflow_end_error(
-                sid, CodeEnum.MASDKOverLimitError.code, CodeEnum.MASDKOverLimitError.msg
+                sid,
+                CodeEnum.MASDK_OVER_LIMIT_ERROR.code,
+                CodeEnum.MASDK_OVER_LIMIT_ERROR.msg,
             )
         elif '"{\\"xingchen_agent_workflow\\":\\"11202\\"}"' in log:
             # QPS (Queries Per Second) limit exceeded error
             return LLMGenerate.workflow_end_error(
                 sid,
-                CodeEnum.MASDKOverQPSLimitError.code,
-                CodeEnum.MASDKOverQPSLimitError.msg,
+                CodeEnum.MASDK_OVER_QPS_LIMIT_ERROR.code,
+                CodeEnum.MASDK_OVER_QPS_LIMIT_ERROR.msg,
             )
         elif '"{\\"xingchen_agent_workflow\\":\\"11203\\"}"' in log:
             # Concurrent limit exceeded error
             return LLMGenerate.workflow_end_error(
                 sid,
-                CodeEnum.MASDKOverConcLimitError.code,
-                CodeEnum.MASDKOverConcLimitError.msg,
+                CodeEnum.MASDK_OVER_CONC_LIMIT_ERROR.code,
+                CodeEnum.MASDK_OVER_CONC_LIMIT_ERROR.msg,
             )
         else:
             # Unknown error - return generic error with log details
             return LLMGenerate.workflow_end_error(
                 sid,
-                CodeEnum.MASDKUnknownError.code,
-                CodeEnum.MASDKUnknownError.msg + log,
+                CodeEnum.MASDK_UNKNOWN_ERROR.code,
+                CodeEnum.MASDK_UNKNOWN_ERROR.msg + log,
             )

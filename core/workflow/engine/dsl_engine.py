@@ -11,12 +11,13 @@ import pickle
 import time
 from abc import ABC, abstractmethod
 from asyncio.tasks import Task
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
-
-from workflow.consts.flow import ErrorHandler, XFLLMStatus
-from workflow.consts.model_provider import ModelProviderEnum
+from workflow.consts.engine.chat_status import ChatStatus, SparkLLMStatus
+from workflow.consts.engine.error_handler import ErrorHandler
+from workflow.consts.engine.model_provider import ModelProviderEnum
+from workflow.consts.engine.value_type import ValueType
 from workflow.domain.entities.chat import HistoryItem
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.chains import Chains, SimplePath
@@ -28,10 +29,11 @@ from workflow.engine.entities.node_entities import (
 )
 from workflow.engine.entities.node_running_status import NodeRunningStatus
 from workflow.engine.entities.output_mode import EndNodeOutputModeEnum
+from workflow.engine.entities.retry_config import RetryConfig
 from workflow.engine.entities.variable_pool import VariablePool
-from workflow.engine.entities.workflow_dsl import Node, WorkflowDSL
+from workflow.engine.entities.workflow_dsl import Edge, Node, NodeRef, WorkflowDSL
 from workflow.engine.node import NodeFactory, SparkFlowEngineNode
-from workflow.engine.nodes.base_node import BaseNode, RetryConfig
+from workflow.engine.nodes.base_node import BaseNode
 from workflow.engine.nodes.cache_node import tool_classes
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
@@ -42,18 +44,6 @@ from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.workflow_log import WorkflowLog
 from workflow.extensions.otlp.trace.span import Span
 from workflow.infra.providers.llm.iflytek_spark.schemas import StreamOutputMsg
-
-
-async def wait_at_least_one_task_completed(tasks: list[Task]) -> None:
-    """
-    Wait for at least one task to complete and cancel all pending tasks.
-
-    :param tasks: List of asyncio tasks to wait for
-    :return: None
-    """
-    _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-    for task in pending:
-        task.cancel()
 
 
 class WorkflowEngineCtx(BaseModel):
@@ -174,7 +164,7 @@ class TimeoutErrorHandler(ExceptionHandlerBase):
         :return: Tuple of (None, False) for timeout errors, or delegate to next handler
         """
         if isinstance(error, asyncio.TimeoutError):
-            return None, False  # 不继续处理，直接抛出
+            return None, False  # Do not continue processing, raise directly
 
         if self.next_handler:
             return await self.next_handler.handle(
@@ -417,9 +407,9 @@ class RetryableErrorHandler(ExceptionHandlerBase):
             )
         except Exception as err:
             raise CustomException(
-                err_code=CodeEnum.VariablePoolSetParameterError,
-                err_msg=f"节点名称: {node.node_id}, 错误信息: {err}",
-                cause_error=f"节点名称: {node.node_id}, 错误信息: {err}",
+                err_code=CodeEnum.VARIABLE_POOL_SET_PARAMETER_ERROR,
+                err_msg=f"Node name: {node.node_id}, error message: {err}",
+                cause_error=f"Node name: {node.node_id}, error message: {err}",
             ) from err
 
         # Handle special logic for streaming nodes
@@ -480,13 +470,16 @@ class RetryableErrorHandler(ExceptionHandlerBase):
                 if stream_node_id == run_result.node_id:
                     llm_content = self._get_error_llm_content(node_type, node)
 
+                    domain = (
+                        node.node_instance.domain
+                        if hasattr(node.node_instance, "domain")
+                        else ""
+                    )
                     await workflow_engine_ctx.variable_pool.stream_data[key][
                         run_result.node_id
                     ].put(
                         StreamOutputMsg(
-                            domain=node.node_instance.get_node_config().get(
-                                "domain", ""
-                            ),
+                            domain=domain,
                             llm_response=llm_content,
                             exception_occurred=True,
                         )
@@ -495,39 +488,47 @@ class RetryableErrorHandler(ExceptionHandlerBase):
     def _get_error_llm_content(
         self, node_type: str, node: SparkFlowEngineNode
     ) -> Dict[str, Any]:
-        """获取错误时的LLM内容"""
+        """
+        Get LLM content for error scenarios.
+
+        :param node_type: The type of the node
+        :param node: The node instance
+        :return: Dictionary containing error LLM content
+        """
         if node_type == NodeType.AGENT.value:
             return {
                 "code": -1,
-                "choices": [{"finish_reason": "stop"}],
+                "choices": [{"finish_reason": ChatStatus.FINISH_REASON.value}],
             }
         elif node_type == NodeType.KNOWLEDGE_PRO.value:
             return {
                 "code": -1,
-                "finish_reason": "stop",
+                "finish_reason": ChatStatus.FINISH_REASON.value,
             }
         elif node_type == NodeType.FLOW.value:
             return {
                 "code": -1,
-                "choices": [{"finish_reason": "stop"}],
+                "choices": [{"finish_reason": ChatStatus.FINISH_REASON.value}],
             }
         elif node_type == NodeType.LLM.value:
-            model_source = node.node_instance.get_node_config().get(
-                "source", ModelProviderEnum.XINGHUO.value
+            model_source = (
+                node.node_instance.source
+                if hasattr(node.node_instance, "source")
+                else ModelProviderEnum.XINGHUO.value
             )
 
             if model_source == ModelProviderEnum.XINGHUO.value:
                 return {
                     "header": {
                         "code": -1,
-                        "status": XFLLMStatus.END.value,
+                        "status": SparkLLMStatus.END.value,
                     },
                     "payload": {"choices": {"text": [{}]}},
                 }
             elif model_source == ModelProviderEnum.OPENAI.value:
                 return {
                     "code": -1,
-                    "choices": [{"finish_reason": "stop"}],
+                    "choices": [{"finish_reason": ChatStatus.FINISH_REASON.value}],
                 }
 
         return {"code": -1}
@@ -567,7 +568,7 @@ class GeneralErrorHandler(ExceptionHandlerBase):
         node.node_log.set_end()
 
         custom_error = CustomException(
-            CodeEnum.NodeRunErr, err_msg=f"{error}", cause_error=f"{error}"
+            CodeEnum.NODE_RUN_ERROR, err_msg=f"{error}", cause_error=f"{error}"
         )
 
         await workflow_engine_ctx.callback.on_node_end(
@@ -757,7 +758,7 @@ class NodeExecutionStrategyManager:
     def __init__(self) -> None:
         self.strategies = [
             QuestionAnswerNodeStrategy(),
-            DefaultNodeExecutionStrategy(),  # 默认策略放在最后
+            DefaultNodeExecutionStrategy(),  # Default strategy placed last
         ]
 
     def get_strategy(self, node_type: str) -> NodeExecutionStrategy:
@@ -868,7 +869,7 @@ class WorkflowEngine(BaseModel):
         await self.engine_ctx.end_complete.wait()
 
         # Wait for all tasks to complete
-        await self._wait_all_tasks_completion(self.engine_ctx.dfs_tasks)
+        await self._wait_all_tasks_completion(span)
 
         return self.engine_ctx.responses[0]
 
@@ -938,10 +939,6 @@ class WorkflowEngine(BaseModel):
         if next_inactive_nodes:
             await self._handle_inactive_nodes(node, next_inactive_nodes, span_context)
 
-        # Handle end node
-        if self._is_end_node(node):
-            run_result = await self._handle_end_node(node, run_result)
-
         return next_active_nodes, run_result
 
     async def _handle_inactive_nodes(
@@ -975,31 +972,26 @@ class WorkflowEngine(BaseModel):
 
     async def _handle_end_node(
         self,
-        node: SparkFlowEngineNode,
-        run_result: Optional[NodeRunResult],
-    ) -> NodeRunResult:
+        task_result: Any,
+    ) -> None:
         """
         Handle end node execution.
 
-        :param node: The end node
-        :param run_result: Optional existing run result
-        :return: NodeRunResult containing the end node execution result
+        :param task_result: containing the end node execution result
+        :return: None
         """
-        await self.engine_ctx.node_run_status[node.node_id].complete.wait()
 
-        if run_result:
-            return run_result
-
-        # Find end node result from DFS tasks
-        for task in self.engine_ctx.dfs_tasks:
-            task_result = task.result()
-            if task_result and (
+        if (
+            task_result
+            and isinstance(task_result, NodeRunResult)
+            and (
                 task_result.node_id.startswith(NodeType.END.value)
                 or task_result.node_id.startswith(NodeType.ITERATION_END.value)
-            ):
-                return task_result
+            )
+        ):
+            self.engine_ctx.responses.append(task_result)
 
-        raise CustomException(CodeEnum.EngRunErr, err_msg="结束节点未返回结果")
+        return None
 
     async def _get_next_nodes(
         self,
@@ -1034,7 +1026,8 @@ class WorkflowEngine(BaseModel):
                 # Branch nodes need to select branch based on result
                 if not run_result:
                     raise CustomException(
-                        CodeEnum.EngRunErr, err_msg="Branch node did not return result"
+                        CodeEnum.ENG_RUN_ERROR,
+                        err_msg="Branch node did not return result",
                     )
                 next_active_nodes = await self._handle_branch_node_logic(
                     node, run_result, node_type
@@ -1082,8 +1075,8 @@ class WorkflowEngine(BaseModel):
 
         if not intents:
             raise CustomException(
-                CodeEnum.EngRunErr,
-                err_msg=f"找不到分支: {intents}",
+                CodeEnum.ENG_RUN_ERROR,
+                err_msg=f"Branch not found: {intents}",
             )
 
         # Select next nodes based on intent
@@ -1098,7 +1091,11 @@ class WorkflowEngine(BaseModel):
         :param node: The node to get the default intent chain for
         :return: List of default intent chain node IDs, or None if not found
         """
-        intent_chains = node.node_instance.get_node_config().get("intentChains", [])
+        intent_chains = (
+            node.node_instance.intentChains
+            if hasattr(node.node_instance, "intentChains")
+            else []
+        )
 
         for intent in intent_chains:
             if intent.get("name", "") == "default":
@@ -1120,7 +1117,7 @@ class WorkflowEngine(BaseModel):
 
         if node_type == NodeType.QUESTION_ANSWER.value:
             instance = node.node_instance
-            answer_type = instance.get_node_config().get("answerType")
+            answer_type = instance.answerType if hasattr(instance, "answerType") else ""
             return answer_type == "option"
 
         return False
@@ -1168,43 +1165,53 @@ class WorkflowEngine(BaseModel):
         :return: Tuple of (node run result, False for no failure branch)
         """
 
+        error: CustomException | None = None
         try:
             strategy = self.strategy_manager.get_strategy(node.node_id.split("::")[0])
             run_result = await strategy.execute_node(
                 node, self.engine_ctx, span_context
             )
             return run_result, False
-
-        except CustomException as err:
-            await self.engine_ctx.callback.on_node_end(
-                node_id=node.node_id,
-                alias_name=node.node_alias_name,
-                error=err,
-            )
-            raise err
-
         except Exception as err:
-            custom_err = CustomException(
-                CodeEnum.NodeRunErr, err_msg=f"{err}", cause_error=f"{err}"
-            )
-            await self.engine_ctx.callback.on_node_end(
-                node_id=node.node_id, alias_name=node.node_alias_name, error=custom_err
-            )
-            raise custom_err from err
+            if isinstance(err, CustomException):
+                error = err
+            else:
+                error = CustomException(CodeEnum.NODE_RUN_ERROR, cause_error=err)
+        finally:
+            if error:
+                current_task = asyncio.current_task()
+                for task in self.engine_ctx.dfs_tasks:
+                    # not cancel current task, need to wait for it to complete
+                    if current_task and task == current_task:
+                        continue
+                    task.cancel()
+                await self.engine_ctx.callback.on_node_end(
+                    node_id=node.node_id,
+                    alias_name=node.node_alias_name,
+                    error=error,
+                )
+                raise error
+        raise RuntimeError("Unexpected end of execute without error handling")
 
     async def _execute_with_error_handling(
         self,
         node: SparkFlowEngineNode,
         span_context: Span,
     ) -> Tuple[NodeRunResult, bool]:
-        """带错误处理的节点执行"""
+        """
+        Execute node with error handling and retry mechanism.
+
+        :param node: The node to execute
+        :param span_context: Tracing span for observability
+        :return: Tuple of (node run result, whether this is a failure branch)
+        """
         retry_config = node.node_instance.retry_config
         max_retries = retry_config.max_retries
         node_type = node.node_id.split("::")[0]
 
         for attempt in range(max_retries + 1):
             try:
-                # 根据节点类型选择执行方式
+                # Select execution method based on node type
                 if node_type in CONTINUE_ON_ERROR_NOT_STREAM_NODE_TYPE:
                     run_result = await self._execute_non_stream_node(
                         node, span_context, retry_config
@@ -1212,35 +1219,35 @@ class WorkflowEngine(BaseModel):
                 else:
                     run_result = await self._execute_stream_node(node, span_context)
 
-                # 检查执行结果
+                # Check execution result
                 if run_result.status == WorkflowNodeExecutionStatus.SUCCEEDED:
                     return run_result, False
 
-                # 如果不是成功状态，抛出异常进入重试逻辑
+                # If not successful status, raise exception to enter retry logic
                 raise CustomException(
-                    CodeEnum.NodeRunErr,
+                    CodeEnum.NODE_RUN_ERROR,
                     err_msg=f"{run_result.error}",
                     cause_error=f"{run_result.error}",
                 )
 
             except Exception as error:
-                # 使用责任链处理错误
+                # Use chain of responsibility to handle errors
                 result, should_retry = await self.error_handler_chain.handle_error(
                     error, node, self.engine_ctx, attempt, span_context
                 )
 
                 if result is not None:
-                    # 错误处理器返回了结果
+                    # Error handler returned a result
                     fail_branch = (
                         retry_config.error_strategy == ErrorHandler.FailBranch.value
                     )
                     return result, fail_branch
 
                 if not should_retry:
-                    # 不需要重试，重新抛出异常
+                    # No need to retry, re-raise exception
                     raise error
 
-        # 不应该到达这里
+        # Should not reach here
         raise RuntimeError("Unexpected end of retry loop")
 
     async def _execute_non_stream_node(
@@ -1249,7 +1256,14 @@ class WorkflowEngine(BaseModel):
         span_context: Span,
         retry_config: RetryConfig,
     ) -> NodeRunResult:
-        """执行非流式节点"""
+        """
+        Execute non-streaming node with timeout.
+
+        :param node: The node to execute
+        :param span_context: Tracing span for observability
+        :param retry_config: Retry configuration for the node
+        :return: NodeRunResult containing the execution result
+        """
         try:
             strategy = self.strategy_manager.get_strategy(node.node_id.split("::")[0])
             return await asyncio.wait_for(
@@ -1258,9 +1272,9 @@ class WorkflowEngine(BaseModel):
             )
         except asyncio.TimeoutError as e:
             raise CustomException(
-                CodeEnum.NodeRunErr,
-                err_msg="节点执行超时",
-                cause_error="节点执行超时",
+                CodeEnum.NODE_RUN_ERROR,
+                err_msg="Node execution timeout",
+                cause_error="Node execution timeout",
             ) from e
 
     async def _execute_stream_node(
@@ -1268,9 +1282,15 @@ class WorkflowEngine(BaseModel):
         node: SparkFlowEngineNode,
         span_context: Span,
     ) -> NodeRunResult:
-        """执行流式节点"""
+        """
+        Execute streaming node with failure node cancellation handling.
 
-        # 创建等待任务来处理失败节点的取消
+        :param node: The node to execute
+        :param span_context: Tracing span for observability
+        :return: NodeRunResult containing the execution result
+        """
+
+        # Create waiting task to handle cancellation of failure nodes
         async def wait_and_deactivate() -> None:
             await node.node_instance.stream_node_first_token.wait()
             cancel_error_node_ids = [
@@ -1293,9 +1313,15 @@ class WorkflowEngine(BaseModel):
         node: SparkFlowEngineNode,
         span: Span,
     ) -> None:
-        """深度优先搜索执行节点"""
+        """
+        Execute node using depth-first search algorithm.
+
+        :param node: The node to execute
+        :param span: Tracing span for observability
+        :return: None
+        """
         with span.start() as dfs_span:
-            # 检查节点是否已在处理中
+            # Check if node is already being processed
             node_status = self.engine_ctx.node_run_status[node.node_id]
             if (
                 node_status.processing.is_set()
@@ -1304,18 +1330,18 @@ class WorkflowEngine(BaseModel):
                 return
 
             try:
-                # 执行节点
+                # Execute the node
                 next_active_nodes, run_result = await self._execute_single_node(
                     node, dfs_span
                 )
 
-                # 处理执行结果
+                # Handle execution result
                 await self._handle_node_execution_result(
                     next_active_nodes, run_result, dfs_span
                 )
 
             except Exception as e:
-                dfs_span.add_error_event(f"节点执行错误: {e}")
+                dfs_span.add_error_event(f"Node execution error: {e}")
                 self.engine_ctx.end_complete.set()
                 raise e
 
@@ -1325,16 +1351,23 @@ class WorkflowEngine(BaseModel):
         run_result: Optional[NodeRunResult],
         span_context: Span,
     ) -> None:
-        """处理节点执行结果"""
+        """
+        Handle node execution result and schedule next nodes.
+
+        :param next_active_nodes: List of next nodes to execute
+        :param run_result: Result of the current node execution
+        :param span_context: Tracing span for observability
+        :return: None
+        """
         if not next_active_nodes:
-            # 没有下一个节点，设置为成功并完成
+            # No next nodes, set as successful and complete
             if run_result:
                 run_result.status = WorkflowNodeExecutionStatus.SUCCEEDED
                 self.engine_ctx.responses.append(run_result)
             self.engine_ctx.end_complete.set()
             return
 
-        # 为每个下一个节点创建执行任务
+        # Create execution tasks for each next node
         for next_node in next_active_nodes:
             if not self.engine_ctx.node_run_status[
                 next_node.node_id
@@ -1348,35 +1381,75 @@ class WorkflowEngine(BaseModel):
                 )
                 self.engine_ctx.dfs_tasks.append(task)
 
-    async def _wait_all_tasks_completion(self, dfs_tasks: List[Task]) -> None:
-        """等待所有任务完成"""
-        if not dfs_tasks:
+    async def _cancel_pending_task(self, tasks: Set[Task]) -> None:
+        """
+        Cancel all pending tasks and ensure they are awaited.
+
+        :param tasks: List of asyncio tasks to cancel
+        :return: None
+        """
+        if not tasks:
+            return
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    async def _wait_all_tasks_completion(self, span: Span) -> None:
+        """
+        Wait for all DFS tasks to complete.
+
+        :param span: Tracing span for observability
+        :return: None
+        """
+        if not self.engine_ctx.dfs_tasks:
             return
 
         done, pending = await asyncio.wait(
-            dfs_tasks, return_when=asyncio.FIRST_EXCEPTION
+            self.engine_ctx.dfs_tasks, return_when=asyncio.FIRST_EXCEPTION
         )
 
-        # 取消所有待处理的任务
-        for task in pending:
-            task.cancel()
+        # Cancel all pending tasks and ensure they are awaited
+        await self._cancel_pending_task(pending)
 
-        # 检查已完成的任务是否有异常
-        try:
-            for task in done:
-                task.result()
-        except Exception:
-            raise
+        exceptions: List[Exception] = []
+
+        # Check if completed tasks have exceptions
+        for task in done:
+            try:
+                if task.cancelled():
+                    continue
+                task_result = task.result()
+                await self._handle_end_node(task_result)
+            except Exception as e:
+                exceptions.append(e)
+
+        if not self.engine_ctx.responses:
+            exceptions.append(
+                CustomException(
+                    CodeEnum.ENG_RUN_ERROR, err_msg="End node did not return result"
+                )
+            )
+
+        if exceptions:
+            for exception in exceptions:
+                span.record_exception(exception)
+            raise exceptions[0]
+        return None
 
     def _validate_start_node(self) -> None:
-        """验证开始节点"""
+        """
+        Validate that the start node is of correct type.
+
+        :return: None
+        :raises CustomException: If start node type is invalid
+        """
         start_node_type = self.sparkflow_engine_node.id.split(":")[0]
         valid_start_types = [NodeType.START.value, NodeType.ITERATION_START.value]
 
         if start_node_type not in valid_start_types:
             raise CustomException(
-                CodeEnum.EngRunErr,
-                err_msg=f"节点:{self.sparkflow_engine_node.id}不是开始节点",
+                CodeEnum.ENG_RUN_ERROR,
+                err_msg=f"Node:{self.sparkflow_engine_node.id} is not a start node",
             )
 
     async def _initialize_variable_pool_with_start_node(
@@ -1387,7 +1460,17 @@ class WorkflowEngine(BaseModel):
         history: List,
         history_v2: List[HistoryItem],
     ) -> None:
-        """初始化变量池"""
+        """
+        Initialize variable pool with start node inputs and history.
+
+        :param inputs: Input parameters for the workflow
+        :param span: Tracing span for observability
+        :param callback: Callback handler for workflow events
+        :param history: Historical conversation data
+        :param history_v2: Historical conversation data (version 2)
+        :return: None
+        :raises CustomException: If initialization fails
+        """
         try:
             self.engine_ctx.variable_pool.add_init_variable(
                 node_id=self.sparkflow_engine_node.id,
@@ -1399,7 +1482,7 @@ class WorkflowEngine(BaseModel):
             self.engine_ctx.variable_pool.add_init_history(history_v2)
         except Exception as e:
             ce = CustomException(
-                err_code=CodeEnum.StartNodeSchemaError,
+                err_code=CodeEnum.START_NODE_SCHEMA_ERROR,
                 err_msg=str(e),
                 cause_error=str(e),
             )
@@ -1424,35 +1507,39 @@ class WorkflowEngine(BaseModel):
             case NodeType.AGENT.value:
                 return {
                     "code": -1,
-                    "choices": [{"finish_reason": "stop"}],
+                    "choices": [{"finish_reason": ChatStatus.FINISH_REASON.value}],
                 }
             case NodeType.KNOWLEDGE_PRO.value:
                 return {
                     "code": -1,
-                    "finish_reason": "stop",
+                    "finish_reason": ChatStatus.FINISH_REASON.value,
                 }
             case NodeType.FLOW.value:
                 return {
                     "code": -1,
-                    "choices": [{"finish_reason": "stop"}],
+                    "choices": [{"finish_reason": ChatStatus.FINISH_REASON.value}],
                 }
             case NodeType.LLM.value:
-                model_source = node.node_instance.get_node_config().get(
-                    "source", ModelProviderEnum.XINGHUO.value
+                model_source = (
+                    node.node_instance.source
+                    if hasattr(node.node_instance, "source")
+                    else ModelProviderEnum.XINGHUO.value
                 )
                 match model_source:
                     case ModelProviderEnum.XINGHUO.value:
                         return {
                             "header": {
                                 "code": -1,
-                                "status": XFLLMStatus.END.value,
+                                "status": SparkLLMStatus.END.value,
                             },
                             "payload": {"choices": {"text": [{}]}},
                         }
                     case ModelProviderEnum.OPENAI.value:
                         return {
                             "code": -1,
-                            "choices": [{"finish_reason": "stop"}],
+                            "choices": [
+                                {"finish_reason": ChatStatus.FINISH_REASON.value}
+                            ],
                         }
             case _:
                 return {"code": -1}
@@ -1463,12 +1550,18 @@ class WorkflowEngine(BaseModel):
         node: SparkFlowEngineNode,
         span_context: Span,
     ) -> None:
-        """处理消息节点依赖"""
+        """
+        Handle message node dependencies for the current node.
+
+        :param node: The current node
+        :param span_context: Tracing span for observability
+        :return: None
+        """
         node_type = node.node_id.split("::")[0]
         if node_type in [NodeType.START.value, NodeType.ITERATION_START.value]:
             return
 
-        # 检查消息或结束节点依赖
+        # Check message or end node dependencies
         for msg_node_id, dep in self.engine_ctx.msg_or_end_node_deps.items():
             data_dep_path_info = (
                 dep.data_dep_path_info.get(node.node_id, False)
@@ -1487,7 +1580,7 @@ class WorkflowEngine(BaseModel):
             if should_execute_message_node:
                 self.engine_ctx.node_run_status[msg_node_id].pre_processing.set()
 
-                # 创建消息节点执行任务
+                # Create message node execution task
                 task = asyncio.create_task(
                     self._execute_message_node(msg_node_id, span_context)
                 )
@@ -1498,7 +1591,13 @@ class WorkflowEngine(BaseModel):
         msg_node_id: str,
         span_context: Span,
     ) -> NodeRunResult:
-        """执行消息节点"""
+        """
+        Execute a message node.
+
+        :param msg_node_id: The ID of the message node to execute
+        :param span_context: Tracing span for observability
+        :return: NodeRunResult containing the execution result
+        """
         try:
             node = self.engine_ctx.built_nodes[msg_node_id]
             strategy = self.strategy_manager.get_strategy(node.node_id.split("::")[0])
@@ -1524,14 +1623,20 @@ class WorkflowEngine(BaseModel):
     async def _set_nodes_logical_run_status(
         self, not_run_node_ids: List[str], span: Span
     ) -> None:
-        """设置节点逻辑运行状态"""
+        """
+        Set logical run status for nodes that should not run.
+
+        :param not_run_node_ids: List of node IDs that should not run
+        :param span: Tracing span for observability
+        :return: None
+        """
         for not_run_node_id in not_run_node_ids:
-            # 获取当前节点所在的链路
+            # Get chains that the current node belongs to
             chains_of_node = self.engine_ctx.chains.get_node_chains(
                 not_run_node_id
             ) or self.engine_ctx.chains.get_node_chains_with_node_id(not_run_node_id)
 
-            # 检查是否有激活的链路
+            # Check if there are any active chains
             node_should_not_run = True
             for chain in chains_of_node:
                 if not chain.inactive.is_set():
@@ -1539,7 +1644,7 @@ class WorkflowEngine(BaseModel):
                     break
 
             if node_should_not_run:
-                # 设置节点状态
+                # Set node status
                 node_status = self.engine_ctx.node_run_status[not_run_node_id]
                 node_status.not_run.set()
                 node_status.processing.set()
@@ -1549,7 +1654,7 @@ class WorkflowEngine(BaseModel):
                 if span:
                     span.add_info_events({"not_run_node_id": not_run_node_id})
 
-                # 递归处理后续节点
+                # Recursively process subsequent nodes
                 if not self._is_terminal_node(not_run_node_id):
                     try:
                         next_node_ids = self.engine_ctx.chains.edge_dict[
@@ -1560,7 +1665,12 @@ class WorkflowEngine(BaseModel):
                         raise e
 
     def _is_terminal_node(self, node_id: str) -> bool:
-        """判断是否是终端节点"""
+        """
+        Check if the node is a terminal node.
+
+        :param node_id: The ID of the node to check
+        :return: True if the node is a terminal node, False otherwise
+        """
         return node_id.startswith(NodeType.END.value) or node_id.startswith(
             NodeType.ITERATION_END.value
         )
@@ -1569,7 +1679,12 @@ class WorkflowEngine(BaseModel):
         self,
         node: SparkFlowEngineNode,
     ) -> None:
-        """等待前驱节点完成"""
+        """
+        Wait for predecessor nodes to complete.
+
+        :param node: The node to wait for predecessors
+        :return: None
+        """
         node_type = node.id.split(":")[0]
         if node_type in [NodeType.START.value, NodeType.ITERATION_START.value]:
             return
@@ -1581,7 +1696,7 @@ class WorkflowEngine(BaseModel):
             if simple_path.inactive.is_set():
                 continue
 
-            # 为每个前驱节点创建等待任务
+            # Create waiting tasks for each predecessor node
             for i in range(len(simple_path.node_id_list) - 1):
                 pre_node_id, current_node_id = (
                     simple_path.node_id_list[i],
@@ -1598,20 +1713,38 @@ class WorkflowEngine(BaseModel):
         if tasks:
             await asyncio.wait(tasks)
 
+    async def _wait_at_least_one_task_completed(self, tasks: list[Task]) -> None:
+        """
+        Wait for at least one task to complete and cancel all pending tasks.
+
+        :param tasks: List of asyncio tasks to wait for
+        :return: None
+        """
+        self.engine_ctx.dfs_tasks.extend(tasks)
+        _, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        await self._cancel_pending_task(pending)
+
     def _create_predecessor_wait_tasks(
         self,
         node: SparkFlowEngineNode,
         pre_node_id: str,
         simple_path: SimplePath,
     ) -> List[Task]:
-        """创建前驱节点等待任务"""
+        """
+        Create waiting tasks for predecessor nodes.
+
+        :param node: The current node
+        :param pre_node_id: The ID of the predecessor node
+        :param simple_path: The simple path containing the nodes
+        :return: List of asyncio tasks for waiting
+        """
         tasks = []
         pre_nodes = node.get_pre_nodes()
 
         for pre_node in pre_nodes:
             if pre_node.node_id == pre_node_id:
                 wait_task = asyncio.create_task(
-                    wait_at_least_one_task_completed(
+                    self._wait_at_least_one_task_completed(
                         [
                             asyncio.create_task(
                                 self.engine_ctx.node_run_status[
@@ -1623,7 +1756,7 @@ class WorkflowEngine(BaseModel):
                     )
                 )
                 tasks.append(wait_task)
-
+        self.engine_ctx.dfs_tasks.extend(tasks)
         return tasks
 
     def dumps(self, span: Span) -> bytes:
@@ -1808,7 +1941,7 @@ class WorkflowEngineBuilder:
             # Check for duplicate nodes
             if node.id in self.built_nodes:
                 raise CustomException(
-                    CodeEnum.EngBuildErr,
+                    CodeEnum.ENG_BUILD_ERROR,
                     err_msg=f"Node: {node.id} duplicate build",
                 )
             self.built_nodes[node.id] = spark_node_instance
@@ -1896,16 +2029,8 @@ class WorkflowEngineBuilder:
 
         if not node_class:
             raise CustomException(
-                CodeEnum.EngNodeProtocolValidateErr,
-                err_msg=f"当前workflow不支持节点类型：{node_type}",
-            )
-
-        # Validate node configuration
-        errs = BaseNode.schema_validate(node_body=node.dict(), node_type=node_type)
-        if errs:
-            raise CustomException(
-                CodeEnum.EngNodeProtocolValidateErr,
-                err_msg=f"Node: {node_id} configuration parameter validation failed, reason: {errs}",
+                CodeEnum.ENG_NODE_PROTOCOL_VALIDATE_ERROR,
+                err_msg=f"Current workflow does not support node type: {node_type}",
             )
 
     def _create_engine_node(
@@ -1919,20 +2044,26 @@ class WorkflowEngineBuilder:
         :return: SparkFlowEngineNode instance
         """
         node = self.sparkflow_dsl.check_nodes_exist(node_id)
-        # 验证节点
+        # Validate node configuration
         self._validate_node(node_id, node)
         return NodeFactory.create(node, span_context)
 
     def _build_iteration_engines(self) -> None:
+        """
+        Build iteration engines for iteration nodes.
+
+        :return: None
+        :raises CustomException: If iteration start node is not found
+        """
         for (
             iteration_start_node_id,
             _,
         ) in self.iteration_engine_nodes.items():
             if iteration_start_node_id not in self.built_nodes:
                 raise CustomException(
-                    CodeEnum.EngBuildErr,
-                    err_msg=f"迭代开始节点：{iteration_start_node_id}不存在",
-                    cause_error=f"迭代开始节点：{iteration_start_node_id}不存在",
+                    CodeEnum.ENG_BUILD_ERROR,
+                    err_msg=f"Iteration start node: {iteration_start_node_id} does not exist",
+                    cause_error=f"Iteration start node: {iteration_start_node_id} does not exist",
                 )
 
             self.iteration_engine[iteration_start_node_id] = WorkflowEngine(
@@ -1975,7 +2106,7 @@ class WorkflowEngineBuilder:
         classes = node.data.nodeParam.get("intentChains")
         if not classes:
             raise CustomException(
-                CodeEnum.EngNodeProtocolValidateErr,
+                CodeEnum.ENG_NODE_PROTOCOL_VALIDATE_ERROR,
                 err_msg=f"Decision node: {node_id} intent does not exist",
                 cause_error=f"Decision node: {node_id} intent does not exist",
             )
@@ -2004,7 +2135,7 @@ class WorkflowEngineBuilder:
         iteration_start_node_id = node.data.nodeParam.get("IterationStartNodeId", "")
         if not iteration_start_node_id:
             raise CustomException(
-                CodeEnum.EngNodeProtocolValidateErr,
+                CodeEnum.ENG_NODE_PROTOCOL_VALIDATE_ERROR,
                 err_msg=f"Iteration node: {node.id} iteration start node does not exist",
             )
         self.iteration_engine_nodes[iteration_start_node_id] = node_id
@@ -2016,13 +2147,17 @@ class WorkflowEngineBuilder:
         :param spark_node_instance: The SparkFlow engine node instance
         :return: None
         """
-        end_node_config = spark_node_instance.node_instance.get_node_config()
-        if end_node_config["outputMode"] == 0:
+        output_mode = (
+            spark_node_instance.node_instance.outputMode
+            if hasattr(spark_node_instance.node_instance, "outputMode")
+            else 0
+        )
+        if output_mode == 0:
             self.end_node_output_mode = EndNodeOutputModeEnum.VARIABLE_MODE
         else:
             self.end_node_output_mode = EndNodeOutputModeEnum.PROMPT_MODE
 
-    def _build_single_edge_dependency(self, edge: Dict) -> None:
+    def _build_single_edge_dependency(self, edge: Edge) -> None:
         """
         Build dependency for a single edge.
 
@@ -2030,23 +2165,23 @@ class WorkflowEngineBuilder:
         :return: None
         :raises CustomException: If source or target node is not found
         """
-        source_node_id = edge.get("sourceNodeId", "")
-        source_handle = edge.get("sourceHandle", "")
-        target_node_id = edge.get("targetNodeId", "")
+        source_node_id = edge.sourceNodeId
+        source_handle = edge.sourceHandle
+        target_node_id = edge.targetNodeId
 
         source_node = self.built_nodes.get(source_node_id)
         target_node = self.built_nodes.get(target_node_id)
 
         if not source_node:
             raise CustomException(
-                CodeEnum.EngBuildErr,
+                CodeEnum.ENG_BUILD_ERROR,
                 err_msg=f"Node not found {source_node_id}",
                 cause_error=f"Node not found {source_node_id}",
             )
 
         if not target_node:
             raise CustomException(
-                CodeEnum.EngBuildErr,
+                CodeEnum.ENG_BUILD_ERROR,
                 err_msg=f"Node not found {target_node_id}",
                 cause_error=f"Node not found {target_node_id}",
             )
@@ -2080,21 +2215,18 @@ class WorkflowEngineBuilder:
 
             inputs = node.data.inputs
             for input_item in inputs:
-                var_type = input_item.get("schema", {}).get("value", {}).get("type")
-                if var_type == "literal":
+                var_type = input_item.input_schema.value.type
+                if var_type == ValueType.LITERAL.value:
                     continue
 
-                ref_node_id = (
-                    input_item.get("schema", {})
-                    .get("value", {})
-                    .get("content", {})
-                    .get("nodeId", "")
-                )
+                content = input_item.input_schema.value.content
+                if isinstance(content, NodeRef):
+                    ref_node_id = content.nodeId
 
                 if ref_node_id:
                     self.msg_or_end_node_deps[node.id].data_dep.add(ref_node_id)
 
-                    # 检查是否存在正常路径
+                    # Check if normal path exists
                     if self._has_normal_path(ref_node_id, node.id):
                         self.msg_or_end_node_deps[node.id].data_dep_path_info[
                             ref_node_id
@@ -2109,13 +2241,13 @@ class WorkflowEngineBuilder:
         :return: True if normal path exists, False otherwise
         """
         # Build graph
-        graph: Dict[str, List[Dict]] = {}
+        graph: Dict[str, List[Dict[str, str]]] = {}
         for edge in self.sparkflow_dsl.edges:
-            src = edge["sourceNodeId"]
-            tgt = edge["targetNodeId"]
+            src = edge.sourceNodeId
+            tgt = edge.targetNodeId
             if src not in graph:
                 graph[src] = []
-            graph[src].append({"target": tgt, "handle": edge.get("sourceHandle")})
+            graph[src].append({"target": tgt, "handle": edge.sourceHandle})
 
         visited = set()
 
@@ -2198,11 +2330,8 @@ class WorkflowEngineBuilder:
             if node.id == node_id:
                 retry_config = node.data.retryConfig
                 return (
-                    retry_config.get("shouldRetry", False)
-                    and retry_config.get(
-                        "errorStrategy", ErrorHandler.Interrupted.value
-                    )
-                    == ErrorHandler.FailBranch.value
+                    retry_config.should_retry
+                    and retry_config.error_strategy == ErrorHandler.FailBranch.value
                 )
         return False
 

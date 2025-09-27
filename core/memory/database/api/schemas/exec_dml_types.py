@@ -7,9 +7,8 @@ for executing database modification operations.
 
 from typing import Literal, Optional
 
-from pydantic import Field
-
 from memory.database.api.schemas.common_types import DidUidCommon
+from pydantic import Field
 
 
 class ExecDMLInput(DidUidCommon):  # pylint: disable=too-few-public-methods
@@ -23,6 +22,7 @@ class ExecDMLInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         env (Literal["prod", "test"]): Environment (required, either 'prod' or 'test')
         space_id (Optional[str]): Team space ID (optional)
     """
+
     # app_id: Required, cannot contain Chinese and special characters
     app_id: str = Field(
         ...,
@@ -32,6 +32,8 @@ class ExecDMLInput(DidUidCommon):  # pylint: disable=too-few-public-methods
     # dml: Required
     dml: str
     # env: Required, can only be prod or test
-    env: Literal["prod", "test"] = Field(..., description="Required, can only be prod or test")
+    env: Literal["prod", "test"] = Field(
+        ..., description="Required, can only be prod or test"
+    )
     # space_id: Optional
     space_id: Optional[str] = Field(default="", description="Team space ID")

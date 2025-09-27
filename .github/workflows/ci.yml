@@ -1,0 +1,385 @@
+name: 🚀 CI Pipeline
+
+on:
+  push:
+    branches: [main, 'feature/**', 'bugfix/**', 'hotfix/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  attestations: write
+  id-token: write
+
+env:
+  PYTHON: python3
+
+jobs:
+  # ============================================================================
+  # Stage 1: Project Detection & Setup
+  # ============================================================================
+  detect-projects:
+    name: 🔍 Detect Projects
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has-projects: ${{ steps.detect.outputs.has-projects }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect active projects
+        id: detect
+        run: |
+          echo "🔍 Detecting projects..."
+
+          # Generate project matrix
+          matrix="{\"include\":["
+          first=true
+
+          # Java projects
+          if [[ -f "console/backend/pom.xml" ]]; then
+            [[ "$first" == "false" ]] && matrix+=","
+            matrix+="{\"name\":\"console-backend\",\"path\":\"console/backend\",\"type\":\"java\",\"setup\":\"java\",\"cache\":\"maven\"}"
+            first=false
+            echo "✅ Java: console/backend"
+          fi
+
+          # TypeScript projects
+          if [[ -f "console/frontend/package.json" && -f "console/frontend/tsconfig.json" ]]; then
+            [[ "$first" == "false" ]] && matrix+=","
+            matrix+="{\"name\":\"console-frontend\",\"path\":\"console/frontend\",\"type\":\"typescript\",\"setup\":\"node\",\"cache\":\"npm\"}"
+            first=false
+            echo "✅ TypeScript: console/frontend"
+          fi
+
+          # Go projects
+          if [[ -f "core/tenant/go.mod" ]]; then
+            [[ "$first" == "false" ]] && matrix+=","
+            matrix+="{\"name\":\"core-tenant\",\"path\":\"core/tenant\",\"type\":\"go\",\"setup\":\"go\",\"cache\":\"go\"}"
+            first=false
+            echo "✅ Go: core/tenant"
+          fi
+
+          # Python projects - use pyproject.toml detection
+          for project in core/memory/database core/plugin/rpa core/plugin/link core/plugin/aitools core/agent core/knowledge core/workflow; do
+            if [[ -f "$project/pyproject.toml" ]] || [[ -f "$project/requirements.txt" ]]; then
+              [[ "$first" == "false" ]] && matrix+=","
+              name=$(basename "$project")
+              # Handle nested paths
+              if [[ "$project" == core/memory/database ]]; then
+                name="core-memory"
+              elif [[ "$project" == core/plugin/* ]]; then
+                name="core-$(basename "$project")"
+              fi
+              matrix+="{\"name\":\"$name\",\"path\":\"$project\",\"type\":\"python\",\"setup\":\"python\",\"cache\":\"pip\"}"
+              first=false
+              echo "✅ Python: $project"
+            fi
+          done
+
+          matrix+="]}"
+
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+          # Fix: Ensure clean boolean output without extra whitespace
+          if [[ "$first" == "false" ]]; then
+            echo "has-projects=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-projects=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "🎯 Generated matrix: $matrix"
+
+  # ============================================================================
+  # Stage 2: Quality Checks & Tests (Parallel by Project)
+  # ============================================================================
+  check:
+    name: 🔍 Check ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: [detect-projects]
+    if: needs.detect-projects.outputs.has-projects == 'true'
+    timeout-minutes: 5
+    strategy:
+      matrix: ${{ fromJson(needs.detect-projects.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        if: matrix.setup == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Setup Node.js
+        if: matrix.setup == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: console/frontend/package-lock.json
+
+      - name: Setup Go
+        if: matrix.setup == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: core/tenant/go.sum
+
+      - name: Setup Python
+        if: matrix.setup == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        if: matrix.setup == 'python'
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+
+      - name: Quality check
+        working-directory: ${{ matrix.path }}
+        run: |
+          echo "🔍 Running quality check for ${{ matrix.name }} (${{ matrix.type }})"
+          case "${{ matrix.type }}" in
+            java)
+              echo "📦 Compiling Java project..."
+              mvn clean compile
+              echo "✨ Running Spotless format check..."
+              mvn spotless:check
+              echo "🔍 Running Checkstyle..."
+              mvn checkstyle:check
+              echo "🐛 Running SpotBugs..."
+              mvn clean compile spotbugs:check
+              echo "📊 Running PMD..."
+              mvn clean compile pmd:check
+              ;;
+            typescript)
+              echo "📦 Installing dependencies..."
+              npm ci --legacy-peer-deps
+              echo "✨ Checking format compliance..."
+              UNFORMATTED=$(npx prettier --list-different "**/*.{ts,tsx,js,jsx,json,md}" 2>/dev/null || true) && \
+              if [ -n "$UNFORMATTED" ]; then \
+                echo "Files that need formatting:" && \
+                echo "$UNFORMATTED" && \
+                echo "Run 'npm run format' to fix formatting issues." && \
+                exit 1; \
+              fi && \
+              echo "🔍 Running TypeScript type checking..." && \
+              npx tsc --noEmit --pretty && \
+              echo "📋 Running ESLint..." && \
+              npx eslint "**/*.{ts,tsx}" --format=stylish --max-warnings=0
+              ;;
+            go)
+              echo "🔍 Running Go quality checks..."
+              echo "🛠️ Installing golangci-lint..."
+              curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.5.0
+              export PATH=$PATH:$(go env GOPATH)/bin
+              echo "✨ Checking go fmt compliance..."
+              UNFORMATTED=$(gofmt -l .) && \
+              if [ -n "$UNFORMATTED" ]; then \
+                echo "Files that need formatting:" && \
+                echo "$UNFORMATTED" && \
+                echo "Run 'go fmt ./...' to fix formatting issues." && \
+                exit 1; \
+              fi
+              echo "🔍 Running go vet..."
+              go vet ./...
+              echo "📋 Running golangci-lint..."
+              golangci-lint run ./... --timeout=5m
+              ;;
+            python)
+              echo "🛠️ Installing Python quality tools..."
+              python3 -m pip install black==24.4.2 isort==5.13.2 flake8==7.0.0 mypy==1.9.0 pylint==3.1.0
+              echo "🔍 Running Python quality checks..."
+              echo "1. Running flake8 code style check..."
+              python3 -m flake8 --max-line-length 88 --ignore=E203,W503,E501 --max-complexity 10 .
+              echo "2. Running isort import formatting..."
+              python3 -m isort --profile black .
+              echo "3. Running black code formatting..."
+              python3 -m black .
+              echo "4. Running mypy type checking..."
+              python3 -m mypy --disallow-untyped-defs --disallow-incomplete-defs --check-untyped-defs --no-implicit-optional .
+              echo "5. Running pylint code analysis..."
+              python3 -m pylint --max-line-length=88 --max-args=7 --max-locals=15 --max-returns=6 --max-branches=12 --max-statements=50 *.py
+              ;;
+          esac
+
+  test:
+    name: 🧪 Test ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    needs: [detect-projects]
+    if: needs.detect-projects.outputs.has-projects == 'true'
+    timeout-minutes: 5
+    strategy:
+      matrix: ${{ fromJson(needs.detect-projects.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        if: matrix.setup == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Setup Node.js
+        if: matrix.setup == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: console/frontend/package-lock.json
+
+      - name: Setup Go
+        if: matrix.setup == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: core/tenant/go.sum
+
+      - name: Setup Python
+        if: matrix.setup == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        if: matrix.setup == 'python'
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+
+      - name: Run tests
+        working-directory: ${{ matrix.path }}
+        run: |
+          echo "🧪 Running tests for ${{ matrix.name }} (${{ matrix.type }})"
+          case "${{ matrix.type }}" in
+            java)
+              echo "🧪 Running Java tests..."
+              mvn test
+              ;;
+            typescript)
+              echo "📦 Installing dependencies..."
+              npm ci --legacy-peer-deps
+              echo "🧪 Running TypeScript tests..."
+              if [ -f package.json ] && grep -q '"test"' package.json; then
+                # Check if test script is actually for unit testing (not dev server)
+                if grep -q '"test":.*vite.*--host' package.json || grep -q '"test":.*dev' package.json; then
+                  echo "Test script appears to be dev server, skipping"
+                else
+                  npm test
+                fi
+              else
+                echo "No test script found in package.json"
+              fi
+              ;;
+            go)
+              echo "🧪 Running Go tests..."
+              go test ./...
+              ;;
+            python)
+              echo "📦 Installing dependencies..."
+              if [ -f "uv.lock" ]; then
+                echo "Installing dependencies with uv..."
+                uv sync
+                echo "🧪 Running Python tests..."
+                if [ -d "tests" ]; then
+                  uv run python -m pytest tests/ -v
+                else
+                  echo "No tests directory found"
+                fi
+              elif [ -f "requirements.txt" ]; then
+                echo "Installing from requirements.txt..."
+                python3 -m pip install -r requirements.txt
+                echo "🛠️ Installing pytest..."
+                python3 -m pip install pytest==8.0.0
+                echo "🧪 Running Python tests..."
+                if [ -d "tests" ]; then
+                  python3 -m pytest tests/ -v
+                else
+                  echo "No tests directory found"
+                fi
+              elif [ -f "pyproject.toml" ]; then
+                echo "Extracting dependencies from pyproject.toml..."
+                sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml | grep -E '^\s*"' | sed 's/^\s*"//' | sed 's/",\?$//' > /tmp/deps.txt
+                echo "Installing dependencies..."
+                python3 -m pip install -r /tmp/deps.txt
+                echo "🛠️ Installing pytest..."
+                python3 -m pip install pytest==8.0.0
+                echo "🧪 Running Python tests..."
+                if [ -d "tests" ]; then
+                  python3 -m pytest tests/ -v
+                else
+                  echo "No tests directory found"
+                fi
+              fi
+              ;;
+          esac
+
+  # ============================================================================
+  # Stage 4: Additional Checks
+  # ============================================================================
+  comment-check:
+    name: 💬 Comment Check
+    runs-on: ubuntu-latest
+    needs: [detect-projects]
+    if: needs.detect-projects.outputs.has-projects == 'true'
+    timeout-minutes: 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check comment language
+        run: |
+          echo "💬 Checking comment language compliance..."
+          chmod +x makefiles/check-comments.sh
+          ./makefiles/check-comments.sh
+
+  # ============================================================================
+  # Stage 5: Summary
+  # ============================================================================
+  summary:
+    name: 📊 Summary
+    runs-on: ubuntu-latest
+    needs: [detect-projects, check, test, comment-check]
+    if: always() && needs.detect-projects.outputs.has-projects == 'true'
+    timeout-minutes: 2
+    steps:
+      - name: Generate summary
+        run: |
+          echo "=== 🚀 CI Pipeline Summary ==="
+          echo ""
+          echo "🔍 Project Detection: ${{ needs.detect-projects.result }}"
+          echo "🔍 Quality Checks: ${{ needs.check.result }}"
+          echo "🧪 Tests: ${{ needs.test.result }}"
+          echo "💬 Comment Check: ${{ needs.comment-check.result }}"
+          echo ""
+
+          # Check overall success
+          if [[ "${{ needs.detect-projects.result }}" == "success" && \
+                "${{ needs.check.result }}" == "success" && \
+                "${{ needs.test.result }}" == "success" && \
+                "${{ needs.comment-check.result }}" == "success" ]]; then
+            echo "✅ 🎉 All checks passed! Ready for merge."
+          else
+            echo "❌ 🚨 Some checks failed. Please review the logs."
+            exit 1
+          fi

@@ -1233,7 +1233,6 @@ dependencies = [
     { name = "snowflake-id" },
     { name = "sqlalchemy" },
     { name = "uvicorn" },
-    { name = "xingchen-utils" },
 ]
 
 [package.metadata]
@@ -1254,7 +1253,6 @@ requires-dist = [
     { name = "snowflake-id", specifier = ">=1.0.2" },
     { name = "sqlalchemy", specifier = "==2.0.30" },
     { name = "uvicorn", specifier = ">=0.34.0" },
-    { name = "xingchen-utils", url = "https://depend.iflytek.com/artifactory/pypi-private/xingchen_utils/1.0.8/xingchen_utils-1.0.8-py3-none-any.whl" },
 ]
 
 [[package]]
@@ -1503,49 +1501,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2d/82/f56956041adef78f849db6b289b282e72b55ab8045a75abad81898c28d19/wrapt-1.17.2-py3-none-any.whl", hash = "sha256:b18f2d1533a71f069c7f82d524a52599053d4c7166e9dd374ae2136b7f40f7c8", size = 23594, upload-time = "2025-01-14T10:35:44.018Z" },
 ]
 
-[[package]]
-name = "xingchen-utils"
-version = "1.0.8"
-source = { url = "https://depend.iflytek.com/artifactory/pypi-private/xingchen_utils/1.0.8/xingchen_utils-1.0.8-py3-none-any.whl" }
-dependencies = [
-    { name = "confluent-kafka" },
-    { name = "googleapis-common-protos" },
-    { name = "grpc-google-iam-v1" },
-    { name = "loguru" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-exporter-opencensus" },
-    { name = "opentelemetry-exporter-otlp" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc" },
-    { name = "opentelemetry-proto" },
-    { name = "opentelemetry-sdk" },
-    { name = "opentelemetry-semantic-conventions" },
-    { name = "pydantic" },
-    { name = "python-dotenv" },
-    { name = "websocket-client" },
-    { name = "websockets" },
-]
-wheels = [
-    { url = "https://depend.iflytek.com/artifactory/pypi-private/xingchen_utils/1.0.8/xingchen_utils-1.0.8-py3-none-any.whl", hash = "sha256:5d99d0747425790307b816ba101f52747025fd37e6a613d8b57bbeae1a20680d" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "confluent-kafka", specifier = ">=2.5.0,<3.0.0" },
-    { name = "googleapis-common-protos", specifier = "==1.60.0" },
-    { name = "grpc-google-iam-v1", specifier = "==0.12.6" },
-    { name = "loguru", specifier = ">=0.7.2,<0.8.0" },
-    { name = "opentelemetry-api", specifier = ">=1.25.0,<2.0.0" },
-    { name = "opentelemetry-exporter-opencensus", specifier = ">=0.46b0,<0.47" },
-    { name = "opentelemetry-exporter-otlp", specifier = ">=1.25.0,<2.0.0" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc", specifier = ">=1.25.0,<2.0.0" },
-    { name = "opentelemetry-proto", specifier = ">=1.25.0,<2.0.0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.25.0,<2.0.0" },
-    { name = "opentelemetry-semantic-conventions", specifier = ">=0.46b0,<0.47" },
-    { name = "pydantic", specifier = ">=2.9.2,<3.0.0" },
-    { name = "python-dotenv", specifier = ">=1.0.1,<2.0.0" },
-    { name = "websocket-client", specifier = "==1.8.0" },
-    { name = "websockets", specifier = "==12.0" },
-]
 
 [[package]]
 name = "yarl"

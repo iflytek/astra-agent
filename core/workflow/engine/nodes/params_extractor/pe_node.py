@@ -1,13 +1,13 @@
 import copy
 import json
 import re
-import time
-import traceback
-from typing import Any, Dict
+from typing import Any
 
+from pydantic import Field
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
 from workflow.engine.entities.variable_pool import VariablePool
+from workflow.engine.entities.workflow_dsl import OutputItem
 from workflow.engine.nodes.base_node import BaseLLMNode
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
@@ -33,59 +33,23 @@ class ParamsExtractorNode(BaseLLMNode):
     """
 
     # Configuration parameters for the parameter extractor
-    question_type: str = "not_knowledge"  # Type of question for LLM processing
-    extractor_params: list = []  # List of parameters to extract
-    reasonMode: int = 0  # Mode for reasoning (0: function calling, 1: prompt-based)
-    instruction: str = ""  # Additional instructions for parameter extraction
+    question_type: str = Field(
+        default="not_knowledge"
+    )  # Type of question for LLM processing
+    extractor_params: list[OutputItem] = Field(
+        default_factory=list
+    )  # List of parameters to extract
+    reasonMode: int = Field(
+        default=0
+    )  # Mode for reasoning (0: function calling, 1: prompt-based)
+    instruction: str = Field(
+        default=""
+    )  # Additional instructions for parameter extraction
     fc_schema_params: dict = {
         "type": "object",
         "properties": {},
         "required": [],
     }  # Function calling schema
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration parameters for this node.
-
-        :return: Dictionary containing all node configuration parameters
-        """
-        return {
-            "model": self.model,
-            "url": self.url,
-            "domain": self.domain,
-            "temperature": self.temperature,
-            "appId": self.appId,
-            "apiKey": self.apiKey,
-            "apiSecret": self.apiSecret,
-            "maxTokens": self.maxTokens,
-            "uid": self.uid,
-            "topK": self.topK,
-            "patch_id": self.patch_id,
-            "question_type": self.question_type,
-            "extractor_params": self.extractor_params,
-            "reasonMode": self.reasonMode,
-            "instruction": self.instruction,
-            "fc_schema_params": self.fc_schema_params,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented).
-
-        :param variable_pool: Pool of variables for the workflow
-        :param span: Tracing span for monitoring
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments
-        :return: Node execution result
-        :raises NotImplementedError: This method is not implemented
-        """
-        raise NotImplementedError
 
     def assemble_schema_info(self) -> dict:
         """
@@ -100,16 +64,14 @@ class ParamsExtractorNode(BaseLLMNode):
         for extra_params in self.extractor_params:
             schema_content["properties"].update(
                 {
-                    extra_params["name"]: {
-                        "type": extra_params.get("schema", {}).get("type"),
-                        "description": extra_params.get("schema", {}).get(
-                            "description"
-                        ),
+                    extra_params.name: {
+                        "type": extra_params.output_schema.get("type"),
+                        "description": extra_params.output_schema.get("description"),
                     }
                 }
             )
-            if extra_params["required"]:
-                schema_content["required"].append(extra_params["name"])
+            if extra_params.required:
+                schema_content["required"].append(extra_params.name)
         return schema_content
 
     async def async_execute_prompt(
@@ -131,7 +93,6 @@ class ParamsExtractorNode(BaseLLMNode):
         :param event_log_node_trace: Optional node trace logging
         :return: Node execution result with extracted parameters
         """
-        start_time = time.time()
         try:
             schema_content = self.assemble_schema_info()
             span.add_info_events(
@@ -192,7 +153,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -206,8 +166,7 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.cause_error}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             span.record_exception(err)
@@ -216,8 +175,10 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.ExtractExecutionError.code,
+                error=CustomException(
+                    CodeEnum.EXTRACT_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )
 
     async def async_execute(
@@ -245,9 +206,8 @@ class ParamsExtractorNode(BaseLLMNode):
                 variable_pool=variable_pool,
                 span=span,
                 event_log_node_trace=event_log_node_trace,
-                flow_id=callbacks.flow_id,
+                flow_id=callbacks.flow_id if callbacks else "",
             )
-        start_time = time.time()
         try:
             schema_content = self.assemble_schema_info()
             functions = [Function(parameters=schema_content)]
@@ -319,7 +279,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -327,7 +286,6 @@ class ParamsExtractorNode(BaseLLMNode):
                 ),
             )
         except CustomException as err:
-            traceback.print_exc()
             span.add_error_event(f"{err}")
             span.record_exception(err)
             return NodeRunResult(
@@ -335,19 +293,19 @@ class ParamsExtractorNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
-            traceback.print_exc()
             span.add_error_event(f"{err}")
             return NodeRunResult(
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.ExtractExecutionError.code,
+                error=CustomException(
+                    CodeEnum.EXTRACT_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )
 
     def schema_fixed_data(self, res_dict: dict, variable_pool: VariablePool) -> dict:

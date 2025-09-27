@@ -49,7 +49,7 @@ class ChatCompletion(CompletionBase):
                     "app_id": self.app_id,
                     "bot_id": self.inputs.bot_id,
                     "uid": self.inputs.uid,
-                    "question": self.inputs.messages[-1].content,
+                    "question": self.inputs.get_last_message_content(),
                     "caller": self.inputs.meta_data.caller,
                     "caller_sid": self.inputs.meta_data.caller_sid,
                 }
@@ -71,56 +71,91 @@ class ChatCompletion(CompletionBase):
 
                 yield response
 
-    async def completion(self) -> dict[str, Any]:
-        """Non-streaming"""
-        response = ReasonChatCompletion(
+    def _initialize_response(self) -> ReasonChatCompletion:
+        """Initialize the response object for non-streaming completion"""
+        return ReasonChatCompletion(
             id=self.span.sid,
             created=cur_timestamp(),
             model="",
             object="chat.completion",
             choices=[ReasonChoice(message=ReasonChoiceMessage(), finish_reason="stop")],
         )
+
+    def _is_valid_chunk_line(self, line: str) -> bool:
+        """Check if the line is a valid chunk data line"""
+        return line != "data: [DONE]\n\n" and line.startswith("data: ")
+
+    def _update_reasoning_content(
+        self, response: ReasonChatCompletion, chunk: ReasonChatCompletionChunk
+    ) -> None:
+        """Update reasoning content in the response"""
+        if chunk.choices[0].delta.reasoning_content:
+            if response.choices[0].message.reasoning_content is None:
+                response.choices[0].message.reasoning_content = ""
+            response.choices[0].message.reasoning_content += chunk.choices[
+                0
+            ].delta.reasoning_content
+
+    def _update_content(
+        self, response: ReasonChatCompletion, chunk: ReasonChatCompletionChunk
+    ) -> None:
+        """Update content in the response"""
+        if chunk.choices[0].delta.content:
+            if response.choices[0].message.content is None:
+                response.choices[0].message.content = ""
+            response.choices[0].message.content += chunk.choices[0].delta.content
+
+    def _update_tool_calls(
+        self, response: ReasonChatCompletion, chunk: ReasonChatCompletionChunk
+    ) -> None:
+        """Update tool calls in the response"""
+        if chunk.choices[0].delta.tool_calls:
+            if response.choices[0].message.tool_calls is None:
+                response.choices[0].message.tool_calls = []
+            for tool_call in chunk.choices[0].delta.tool_calls:
+                if tool_call.function is not None:
+                    response.choices[0].message.tool_calls.append(
+                        ReasonChoiceMessageToolCall(
+                            reason=tool_call.reason,
+                            function=ReasonChoiceMessageToolCallFunction(
+                                arguments=tool_call.function.arguments,
+                                name=tool_call.function.name,
+                                response=tool_call.function.response,
+                            ),
+                            type=tool_call.type,
+                        )
+                    )
+
+    def _update_response_metadata(
+        self, response: ReasonChatCompletion, chunk: ReasonChatCompletionChunk
+    ) -> None:
+        """Update response metadata"""
+        if chunk.model:
+            response.model = chunk.model
+        response.code = chunk.code
+        response.message = chunk.message
+        if chunk.knowledge_metadata:
+            response.knowledge_metadata = chunk.knowledge_metadata
+
+    async def completion(self) -> dict[str, Any]:
+        """Non-streaming"""
+        response = self._initialize_response()
+
         async for line in self.stream_completion():
-
-            if line == "data: [DONE]\n\n":
+            if not self._is_valid_chunk_line(line):
                 continue
 
-            if not line.startswith("data: "):
-                continue
             chunk_data = json.loads(line.lstrip("data: ").strip())
             chunk = ReasonChatCompletionChunk(**chunk_data)
-            if chunk.choices[0].delta.reasoning_content:
-                if response.choices[0].message.reasoning_content is None:
-                    response.choices[0].message.reasoning_content = ""
-                response.choices[0].message.reasoning_content += chunk.choices[
-                    0
-                ].delta.reasoning_content
-            if chunk.choices[0].delta.content:
-                if response.choices[0].message.content is None:
-                    response.choices[0].message.content = ""
-                response.choices[0].message.content += chunk.choices[0].delta.content
-            if chunk.choices[0].delta.tool_calls:
-                if response.choices[0].message.tool_calls is None:
-                    response.choices[0].message.tool_calls = []
-                for tool_call in chunk.choices[0].delta.tool_calls:
-                    if tool_call.function is not None:
-                        response.choices[0].message.tool_calls.append(
-                            ReasonChoiceMessageToolCall(
-                                reason=tool_call.reason,
-                                function=ReasonChoiceMessageToolCallFunction(
-                                    arguments=tool_call.function.arguments,
-                                    name=tool_call.function.name,
-                                    response=tool_call.function.response,
-                                ),
-                                type=tool_call.type,
-                            )
-                        )
-            if chunk.model:
-                response.model = chunk.model
-            response.code = chunk.code
-            response.message = chunk.message
-            if chunk.knowledge_metadata:
-                response.knowledge_metadata = chunk.knowledge_metadata
+
+            if not chunk.choices:
+                continue
+
+            self._update_reasoning_content(response, chunk)
+            self._update_content(response, chunk)
+            self._update_tool_calls(response, chunk)
+            self._update_response_metadata(response, chunk)
+
         return response.model_dump()
 
     async def build_runner(self, span: Span) -> OpenAPIRunner:

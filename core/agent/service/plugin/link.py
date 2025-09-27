@@ -69,7 +69,7 @@ class LinkPluginRunner(BaseModel):
         for parameter_name, parameter_detail in body_properties.items():
             parameter_type = parameter_detail.get("type")
             if parameter_type == "object":
-                # 递归
+                # recursive
                 _properties = self.assemble_body(
                     parameter_detail, action_input, business_input
                 )
@@ -149,7 +149,7 @@ class LinkPluginRunner(BaseModel):
                 timeout = aiohttp.ClientTimeout(total=40)
                 async with aiohttp.ClientSession() as session:
                     async with session.post(
-                        agent_config.run_link_url,
+                        agent_config.RUN_LINK_URL,
                         data=json.dumps(run_link_payload),
                         timeout=timeout,
                         headers={"Content-Type": "application/json"},
@@ -221,7 +221,7 @@ class LinkPluginFactory(BaseModel):
             if not self.tool_ids:
                 return []
 
-            url = agent_config.versions_link_url + "?" + f"app_id={self.app_id}"
+            url = agent_config.VERSIONS_LINK_URL + "?" + f"app_id={self.app_id}"
 
             for tool_id in self.tool_ids:
                 if isinstance(tool_id, str):
@@ -311,7 +311,7 @@ class LinkPluginFactory(BaseModel):
             parameter_type = parameter_detail.get("type")
             parameter_x_from = parameter_detail.get("x-from")
             if parameter_type == "object":
-                # 递归
+                # recursive
                 self.recursive_parse_request_body_schema(
                     parameter_detail, properties, required_set
                 )

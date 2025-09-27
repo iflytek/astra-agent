@@ -1,1 +1,1 @@
-"""Infra测试模块。"""
+"""Infrastructure test module."""

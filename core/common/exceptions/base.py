@@ -56,7 +56,7 @@ class BaseExc(Exception):
         om: str = "",
         on: str = "",
         **kwargs: dict,
-    ):
+    ) -> "BaseExc":
         """
 
         此方法会copy出一个新的异常对象便于修改，避免更改全局声明的异常
@@ -102,8 +102,8 @@ class BaseExc(Exception):
         n_s.kwargs = kwargs
         return n_s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.c}: {self.m}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()

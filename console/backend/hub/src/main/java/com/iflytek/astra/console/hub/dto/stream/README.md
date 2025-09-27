@@ -1,1 +1,0 @@
-# Streaming Processing Data Transfer Objects

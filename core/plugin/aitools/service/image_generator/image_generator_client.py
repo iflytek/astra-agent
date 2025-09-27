@@ -37,7 +37,7 @@ def sha256base64(data):
 
 def parse_url(request_url):
     stidx = request_url.index("://")
-    host = request_url[stidx + 3:]
+    host = request_url[stidx + 3 :]
     schema = request_url[: stidx + 3]
     edidx = host.index("/")
     if edidx <= 0:
@@ -152,4 +152,3 @@ class ImageGenerator:
 
     # def get_image_base64(self):
     #     return self.image_base64, self.sid, self.error_message
-

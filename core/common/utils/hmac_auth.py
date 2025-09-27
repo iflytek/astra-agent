@@ -11,12 +11,16 @@ from wsgiref.handlers import format_date_time
 class HMACAuth:
 
     @staticmethod
-    def build_auth_request_url(request_url, method="GET", api_key="", api_secret=""):
+    def build_auth_request_url(
+        request_url: str, method: str = "GET", api_key: str = "", api_secret: str = ""
+    ) -> str:
         values = HMACAuth.build_auth_params(request_url, method, api_key, api_secret)
         return request_url + "?" + urlencode(values)
 
     @staticmethod
-    def build_auth_params(request_url, method="GET", api_key="", api_secret="") -> dict:
+    def build_auth_params(
+        request_url: str, method: str = "GET", api_key: str = "", api_secret: str = ""
+    ) -> dict:
         url_result = parse.urlparse(request_url)
         date = format_date_time(mktime(datetime.now().timetuple()))
         signature_origin = "host: {}\ndate: {}\n{} {} HTTP/1.1".format(
@@ -45,7 +49,9 @@ class HMACAuth:
         return values
 
     @staticmethod
-    def build_auth_header(request_url, method="GET", api_key="", api_secret="") -> dict:
+    def build_auth_header(
+        request_url: str, method: str = "GET", api_key: str = "", api_secret: str = ""
+    ) -> dict:
         u = urlparse(request_url)
         host = u.hostname
         path = u.path

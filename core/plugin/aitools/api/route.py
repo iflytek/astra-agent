@@ -10,18 +10,11 @@ import base64
 import json
 import logging
 import os
+import time
 import uuid
 
 import requests
 from fastapi import APIRouter, Request
-
-from common.otlp.metrics.meter import Meter
-from common.otlp.trace.span import Span
-from common.otlp.log_trace.node_trace_log import (
-    NodeTraceLog,
-    Status
-)
-
 from plugin.aitools.api.schema.types import (
     OCRLLM,
     ErrorCResponse,
@@ -33,23 +26,24 @@ from plugin.aitools.api.schema.types import (
     SuccessDataResponse,
 )
 from plugin.aitools.common.logger import log
-from plugin.aitools.const.polaris_keys.common_keys import (
-   OFFICIAL_TOOL_KEY
-)
 from plugin.aitools.const.const import IMAGE_GENERATE_MAX_PROMPT_LEN
 from plugin.aitools.const.err_code.code import CodeEnum
 from plugin.aitools.const.err_code.code_convert import CodeConvert
-from plugin.aitools.service.ase_sdk.ability.common.entities.req_data import Credentials
-from plugin.aitools.service.ase_sdk.ability.ocr_llm.client_multithreading import (
+from plugin.aitools.service.ase_sdk.common.entities.req_data import Credentials
+from plugin.aitools.service.ocr_llm.client_multithreading import (
     OcrLLMClientMultithreading,
 )
-from plugin.aitools.service.ase_sdk.ability.ocr_llm.entities.req_data_multithreading import (
+from plugin.aitools.service.ocr_llm.entities.req_data_multithreading import (
     BodyM,
     OcrLLMReqSourceDataMultithreading,
     PayloadM,
 )
-from plugin.aitools.service.ase_sdk.ability.oss.client import OSSClient
 from plugin.aitools.service.ase_sdk.exception.CustomException import CustomException
+
+from common.otlp.log_trace.node_trace_log import NodeTraceLog, Status
+from common.otlp.metrics.meter import Meter
+from common.otlp.trace.span import Span
+from common.service import get_kafka_producer_service, get_oss_service
 
 app = APIRouter(prefix="/aitools/v1")
 
@@ -82,11 +76,10 @@ def image_understanding(params: ImageUnderstandingInput, request: Request):
 
 @app.post("/ocr")
 def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
-    app_id = os.getenv("OCR_LLM_APP_ID")
+    app_id = os.getenv("AI_APP_ID")
     uid = str(uuid.uuid1())
     caller = ""
     tool_id = ""
-    tool_type = os.getenv(OFFICIAL_TOOL_KEY)
     span = Span(
         app_id=app_id,
         uid=uid,
@@ -100,19 +93,20 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
         span_context.set_attributes(
             attributes={"file_url": str(ase_ocr_llm_vo.file_url)}
         )
-        # node_trace = NodeTrace(
-        #     flow_id=tool_id,
-        #     sid=span_context.sid,
-        #     app_id=span_context.app_id,
-        #     uid=span_context.uid,
-        #     bot_id="/ocr",
-        #     chat_id=span_context.sid,
-        #     sub="aitools",
-        #     caller=caller,
-        #     log_caller=tool_type,
-        #     question=json.dumps(str(usr_input), ensure_ascii=False),
-        # )
-        # node_trace.record_start()
+
+        node_trace = NodeTraceLog(
+            service_id=tool_id,
+            sid=span_context.sid,
+            app_id=span_context.app_id,
+            uid=span_context.uid,
+            chat_id=span_context.sid,
+            sub="aitools",
+            caller=caller,
+            log_caller="ocr",
+            question=json.dumps(str(usr_input), ensure_ascii=False),
+        )
+        node_trace.start_time = int(round(time.time() * 1000))
+        kafka_service = get_kafka_producer_service()
 
         image_byte_arrays = []
         log.info("req_ase_ability_ocr request: %s", ase_ocr_llm_vo.json())
@@ -120,9 +114,7 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
             image_byte_arrays.append(
                 requests.get(ase_ocr_llm_vo.file_url, timeout=30).content
             )
-            client = OcrLLMClientMultithreading(
-                url="wss://cbm01.cn-huabei-1.xf-yun.com/v1/private/se75ocrbm"
-            )
+            client = OcrLLMClientMultithreading(url=os.getenv("OCR_LLM_WS_URL"))
             asyncio.run(
                 client.invoke(
                     req_source_data=OcrLLMReqSourceDataMultithreading(
@@ -134,9 +126,9 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
                             )
                         ),
                         credentials=Credentials(
-                            app_id=os.getenv("OCR_LLM_APP_ID"),
-                            api_key=os.getenv("OCR_LLM_API_KEY"),
-                            api_secret=os.getenv("OCR_LLM_API_SECRET"),
+                            app_id=os.getenv("AI_APP_ID"),
+                            api_key=os.getenv("AI_API_KEY"),
+                            api_secret=os.getenv("AI_API_SECRET"),
                         ),
                     )
                 )
@@ -146,12 +138,9 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
         except CustomException as e:
             response = ErrorCResponse(code=e.code, message=e.message)
             m.in_error_count(response.code)
-            # node_trace.answer = response.message
-            # node_trace.upload(
-            #     status=TraceStatus(code=response.code, message=response.message),
-            #     log_caller=tool_type,
-            #     span=span_context,
-            # )
+            node_trace.answer = response.message
+            node_trace.status = Status(code=response.code, message=response.message)
+            kafka_service.send("spark-agent-builder", node_trace.to_json())
             log.error("request: %s, error: %s", ase_ocr_llm_vo.json(), str(e))
 
             return response
@@ -159,34 +148,29 @@ def req_ase_ability_ocr(ase_ocr_llm_vo: OCRLLM):
             log.error("request: %s, error: %s", ase_ocr_llm_vo.json(), str(e))
             response = ErrorResponse(CodeEnum.OCR_FILE_HANDLING_ERROR)
             m.in_error_count(response.code)
-            # node_trace.answer = response.message
-            # node_trace.upload(
-            #     status=TraceStatus(code=response.code, message=response.message),
-            #     log_caller=tool_type,
-            #     span=span_context,
-            # )
+
+            node_trace.answer = response.message
+            node_trace.status = Status(code=response.code, message=response.message)
+            kafka_service.send("spark-agent-builder", node_trace.to_json())
 
             return response
 
         response = SuccessDataResponse(data=content)
         m.in_success_count()
-        # node_trace.answer = str(response.data)
-        # node_trace.upload(
-        #     status=TraceStatus(code=response.code, message=response.message),
-        #     log_caller=tool_type,
-        #     span=span_context,
-        # )
+
+        node_trace.answer = str(response.data)
+        node_trace.status = Status(code=response.code, message=response.message)
+        kafka_service.send("spark-agent-builder", node_trace.to_json())
 
         return response
 
 
 @app.post("/image_generate")
 def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
-    app_id = os.getenv("IMAGE_GENERATE_APP_ID")
+    app_id = os.getenv("AI_APP_ID")
     uid = str(uuid.uuid1())
     caller = ""
     tool_id = ""
-    tool_type = os.getenv(OFFICIAL_TOOL_KEY)
     span = Span(
         app_id=app_id,
         uid=uid,
@@ -198,29 +182,32 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
             {"usr_input": json.dumps(str(usr_input), ensure_ascii=False)}
         )
         span_context.set_attributes(attributes={"prompt": usr_input.prompt})
-        # node_trace = NodeTrace(
-        #     flow_id=tool_id,
-        #     sid=span_context.sid,
-        #     app_id=span_context.app_id,
-        #     uid=span_context.uid,
-        #     bot_id="/image_generate",
-        #     chat_id=span_context.sid,
-        #     sub="aitools",
-        #     caller=caller,
-        #     log_caller=tool_type,
-        #     question=json.dumps(str(usr_input), ensure_ascii=False),
-        # )
-        # node_trace.record_start()
+
+        node_trace = NodeTraceLog(
+            service_id=tool_id,
+            sid=span_context.sid,
+            app_id=span_context.app_id,
+            uid=span_context.uid,
+            chat_id=span_context.sid,
+            sub="aitools",
+            caller=caller,
+            log_caller="image_generate",
+            question=json.dumps(str(usr_input), ensure_ascii=False),
+        )
+        node_trace.start_time = int(round(time.time() * 1000))
+        kafka_service = get_kafka_producer_service()
 
         try:
             from plugin.aitools.service.ase_sdk.__base.entities.req_data import ReqData
-            from plugin.aitools.service.ase_sdk.ability.common.client import CommonClient
-            from plugin.aitools.service.ase_sdk.ability.common.entities.req_data import (
+            from plugin.aitools.service.ase_sdk.common.client import (
+                CommonClient,
+            )
+            from plugin.aitools.service.ase_sdk.common.entities.req_data import (
                 CommonReqSourceData,
             )
 
             client = CommonClient(
-                url="http://spark-api.cn-huabei-1.xf-yun.com/v2.1/tti",
+                url=os.getenv("IMAGE_GENERATE_URL"),
                 method="POST",
                 stream=False,
             )
@@ -229,15 +216,15 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
             client.invoke(
                 req_source_data=CommonReqSourceData(
                     credentials=Credentials(
-                        app_id=os.getenv("IMAGE_GENERATE_APP_ID"),
-                        api_key=os.getenv("IMAGE_GENERATE_API_KEY"),
-                        api_secret=os.getenv("IMAGE_GENERATE_API_SECRET"),
+                        app_id=os.getenv("AI_APP_ID"),
+                        api_key=os.getenv("AI_API_KEY"),
+                        api_secret=os.getenv("AI_API_SECRET"),
                         auth_in_params=True,
                     ),
                     req_data=ReqData(
                         body={
                             "header": {
-                                "app_id": os.getenv("IMAGE_GENERATE_APP_ID"),
+                                "app_id": os.getenv("AI_APP_ID"),
                             },
                             "parameter": {
                                 "chat": {
@@ -276,14 +263,8 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
             payload = content_dict[0].get("payload", {})
             text = payload.get("choices", {}).get("text", [{}])[0].get("content", "")
 
-            oss_client = OSSClient(
-                endpoint=os.getenv("OSS_ENDPOINT"),
-                access_key_id=os.getenv("OSS_ACCESS_KEY_ID"),
-                access_key_secret=os.getenv("OSS_ACCESS_KEY_SECRET"),
-                bucket_name=os.getenv("OSS_BUCKET_NAME"),
-                ttl=int(os.getenv("OSS_TTL")),
-            )
-            image_url = oss_client.invoke(
+            oss_service = get_oss_service()
+            image_url = oss_service.upload_file(
                 str(uuid.uuid4()) + ".jpg", base64.b64decode(text)
             )
             response = SuccessDataResponse(
@@ -291,24 +272,20 @@ def req_ase_ability_image_generate(image_generate_vo: ImageGenerate):
                 sid=sid,
             )
             m.in_success_count()
-            # node_trace.answer = json.dumps(response.data, ensure_ascii=False)
-            # node_trace.upload(
-            #     status=TraceStatus(code=response.code, message=response.message),
-            #     log_caller=tool_type,
-            #     span=span_context,
-            # )
+
+            node_trace.answer = json.dumps(response.data, ensure_ascii=False)
+            node_trace.status = Status(code=response.code, message=response.message)
+            kafka_service.send("spark-agent-builder", node_trace.to_json())
 
             return response
         except Exception as e:
             logging.error("request: %s, error: %s", image_generate_vo.json(), str(e))
             response = ErrorResponse(CodeEnum.IMAGE_GENERATE_ERROR)
             m.in_error_count(response.code)
-            # node_trace.answer = response.message
-            # node_trace.upload(
-            #     status=TraceStatus(code=response.code, message=response.message),
-            #     log_caller=tool_type,
-            #     span=span_context,
-            # )
+
+            node_trace.answer = response.message
+            node_trace.status = Status(code=response.code, message=response.message)
+            kafka_service.send("spark-agent-builder", node_trace.to_json())
 
             return response
 

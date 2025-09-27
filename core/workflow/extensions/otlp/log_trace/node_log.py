@@ -11,7 +11,6 @@ import uuid
 from typing import Any, Dict, Set
 
 from pydantic import BaseModel, Field
-
 from workflow.extensions.otlp.log_trace.base import Usage
 
 

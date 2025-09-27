@@ -44,7 +44,7 @@ MASDKUnknownError = XingchenUtilsMASDKException(9999, "未知异常")
 
 class MASDKErrors:
     @classmethod
-    def get_error(cls, code: int):
+    def get_error(cls, code: int) -> XingchenUtilsMASDKException:
         for err in [
             Successes,
             MASDKClosedError,

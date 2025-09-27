@@ -74,7 +74,7 @@ class PGSqlClient:
         url = self.config.url
         if url is None:
             raise CustomException(
-                CodeEnum.EngRunErr,
+                CodeEnum.ENG_RUN_ERROR,
                 err_msg="PGSQL_URL environment variable is not set",
             )
         # Prepare request payload and headers
@@ -123,7 +123,7 @@ class PGSqlClient:
                             )
                             request_span.add_error_event(msg)
                             raise CustomException(
-                                err_code=CodeEnum.PGSqlRequestError,
+                                err_code=CodeEnum.PG_SQL_REQUEST_ERROR,
                                 err_msg=f"{msg}",
                             )
                         return background_json
@@ -135,7 +135,7 @@ class PGSqlClient:
                 err = str(e)
                 request_span.add_error_event(err)
                 raise CustomException(
-                    err_code=CodeEnum.PGSqlRequestError,
+                    err_code=CodeEnum.PG_SQL_REQUEST_ERROR,
                     err_msg=f"Database POST request failed: {err}",
                     cause_error=f"Database POST request failed: {err}",
                 ) from e

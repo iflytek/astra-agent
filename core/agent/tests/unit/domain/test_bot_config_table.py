@@ -1,5 +1,5 @@
 """
-测试 domain.models.bot_config_table 模块
+test domain.models.bot_config_table 模块
 """
 
 from typing import Any, Dict
@@ -10,10 +10,10 @@ from domain.models.bot_config_table import TbBotConfig
 
 
 class TestTbBotConfig:
-    """测试 TbBotConfig 模型."""
+    """test TbBotConfig 模型."""
 
     def setup_method(self) -> None:
-        """测试方法初始化."""
+        """test方法初始化."""
         self.bot_config = TbBotConfig(  # pylint: disable=attribute-defined-outside-init
             app_id="test_app_id",
             bot_id="test_bot_id",
@@ -27,7 +27,7 @@ class TestTbBotConfig:
         )
 
     def test_model_initialization(self) -> None:
-        """测试模型初始化."""
+        """test模型初始化."""
         assert str(self.bot_config.app_id) == "test_app_id"
         assert str(self.bot_config.bot_id) == "test_bot_id"
         assert str(self.bot_config.knowledge_config) == str({"knowledge": "config"})
@@ -39,21 +39,21 @@ class TestTbBotConfig:
         assert str(self.bot_config.flow_ids) == str(["flow1", "flow2"])
 
     def test_default_values(self) -> None:
-        """测试默认值."""
+        """test default values."""
         config = TbBotConfig(app_id="default_test", bot_id="default_bot")
         assert str(config.app_id) == "default_test"
         assert str(config.bot_id) == "default_bot"
-        # 跳过配置检查，避免 SQLAlchemy Column 类型问题
-        # 跳过 None 检查，避免 SQLAlchemy Column 类型问题
+        # skip config check, avoid SQLAlchemy Column type issues
+        # skip None check, avoid SQLAlchemy Column type issues
 
     def test_str_representation(self) -> None:
-        """测试字符串表示."""
+        """test字符串表示."""
         str_repr = str(self.bot_config)
-        # SQLAlchemy 对象的字符串表示包含类名和内存地址
+        # SQLAlchemy object string representation includes class name and memory address
         assert "TbBotConfig" in str_repr
 
     def test_equality(self) -> None:
-        """测试相等性."""
+        """test equality."""
         config1 = TbBotConfig(
             app_id="test_app",
             bot_id="test_bot",
@@ -70,18 +70,20 @@ class TestTbBotConfig:
             knowledge_config={"test": "config"},
         )
 
-        # SQLAlchemy 对象默认使用对象标识比较，不是值比较
-        assert config1 is not config2  # 不同的对象实例
-        assert str(config1.app_id) == str(config2.app_id)  # 但字段值相同
+        # SQLAlchemy objects use identity comparison by default, not value comparison
+        assert config1 is not config2  # different object instances
+        assert str(config1.app_id) == str(
+            config2.app_id
+        )  # but field values are the same
         assert str(config1.app_id) != str(config3.app_id)
 
     def test_field_types(self) -> None:
-        """测试字段类型."""
-        # 跳过 Column 类型检查，避免 SQLAlchemy 类型问题
+        """test字段类型."""
+        # skip Column type check, avoid SQLAlchemy type issues
 
     def test_dict_conversion(self) -> None:
-        """测试字典转换."""
-        # SQLAlchemy 模型没有 dict() 方法，需要手动转换
+        """test字典转换."""
+        # SQLAlchemy model has no dict() method, need manual conversion
         config_dict = {
             "app_id": self.bot_config.app_id,
             "bot_id": self.bot_config.bot_id,
@@ -93,12 +95,12 @@ class TestTbBotConfig:
             "mcp_server_urls": self.bot_config.mcp_server_urls,
             "flow_ids": self.bot_config.flow_ids,
         }
-        # 跳过字典值比较，避免 SQLAlchemy Column 类型问题
+        # skip dictionary value comparison, avoid SQLAlchemy Column type issues
         assert isinstance(config_dict, dict)
 
     def test_json_conversion(self) -> None:
-        """测试JSON转换."""
-        # SQLAlchemy 模型没有 json() 方法，需要手动序列化
+        """testJSON转换."""
+        # SQLAlchemy model has no json() method, need manual serialization
         import json  # pylint: disable=import-outside-toplevel
 
         config_dict = {
@@ -113,8 +115,8 @@ class TestTbBotConfig:
         assert "test_bot_id" in json_str
 
     def test_copy_operations(self) -> None:
-        """测试复制操作."""
-        # SQLAlchemy 模型没有 copy() 方法，测试手动复制逻辑
+        """test复制操作."""
+        # SQLAlchemy model has no copy() method, test manual copy logic
         copied_config = TbBotConfig(
             app_id=self.bot_config.app_id,
             bot_id=self.bot_config.bot_id,
@@ -129,7 +131,7 @@ class TestTbBotConfig:
         assert str(copied_config.app_id) == str(self.bot_config.app_id)
         assert copied_config is not self.bot_config
 
-        # 测试update操作
+        # test update operation
         updated_config = TbBotConfig(
             app_id="updated_app_id",
             bot_id=self.bot_config.bot_id,
@@ -143,17 +145,19 @@ class TestTbBotConfig:
         )
         assert str(updated_config.app_id) == "updated_app_id"
         assert str(updated_config.tool_ids) == str(["updated_tool"])
-        assert str(updated_config.bot_id) == "test_bot_id"  # 未更新的字段保持原值
+        assert (
+            str(updated_config.bot_id) == "test_bot_id"
+        )  # unupdated fields retain original values
 
     def test_validation(self) -> None:
-        """测试验证."""
-        # 测试有效的配置
+        """test验证."""
+        # test valid configuration
         valid_config = TbBotConfig(app_id="valid_app", bot_id="valid_bot")
         assert str(valid_config.app_id) == "valid_app"
         assert str(valid_config.bot_id) == "valid_bot"
 
-        # SQLAlchemy 模型在创建时不进行自动验证，需要在数据库操作时验证
-        # 这里测试字段赋值是否正常
+        # SQLAlchemy model does not auto-validate on creation, needs validation during database operations
+        # here test if field assignment is normal
         empty_app_config = TbBotConfig(app_id="", bot_id="test_bot")
         assert str(empty_app_config.app_id) == ""
 
@@ -161,16 +165,16 @@ class TestTbBotConfig:
         assert str(empty_bot_config.bot_id) == ""
 
     def test_special_characters(self) -> None:
-        """测试特殊字符处理."""
+        """test特殊字符处理."""
         special_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="app-with_special.chars",
             bot_id="bot@example.com",
             knowledge_config={"special": "value with spaces & symbols!"},
         )
-        # 跳过特殊字符检查，避免 SQLAlchemy Column 类型问题
+        # skip special character check, avoid SQLAlchemy Column type issues
 
     def test_large_data_handling(self) -> None:
-        """测试大数据处理."""
+        """test大数据处理."""
         large_list = [f"item_{i}" for i in range(1000)]
         large_dict = {f"key_{i}": f"value_{i}" for i in range(100)}
 
@@ -181,10 +185,10 @@ class TestTbBotConfig:
             knowledge_config=large_dict,
         )
 
-        # 跳过大数据处理检查，避免 SQLAlchemy Column 类型问题
+        # skip large data processing check, avoid SQLAlchemy Column type issues
 
     def test_none_handling(self) -> None:
-        """测试None值处理."""
+        """testNone值处理."""
         none_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="none_test",
             bot_id="none_bot",
@@ -197,10 +201,10 @@ class TestTbBotConfig:
             flow_ids=None,
         )
 
-        # 跳过 None 值检查，避免 SQLAlchemy Column 类型问题
+        # skip None value check, avoid SQLAlchemy Column type issues
 
     def test_empty_collections(self) -> None:
-        """测试空集合处理."""
+        """test空集合处理."""
         empty_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="empty_test",
             bot_id="empty_bot",
@@ -213,20 +217,20 @@ class TestTbBotConfig:
             flow_ids=[],
         )
 
-        # 跳过空集合检查，避免 SQLAlchemy Column 类型问题
+        # skip empty collection check, avoid SQLAlchemy Column type issues
 
     def test_unicode_support(self) -> None:
-        """测试Unicode支持."""
+        """testUnicode支持."""
         unicode_config = TbBotConfig(  # pylint: disable=unused-variable
-            app_id="unicode_测试",
+            app_id="unicode_test",
             bot_id="机器人_🤖",
             knowledge_config={"中文": "值", "emoji": "🔥"},
         )
 
-        # 跳过 Unicode 检查，避免 SQLAlchemy Column 类型问题
+        # skip Unicode check, avoid SQLAlchemy Column type issues
 
     def test_nested_structures(self) -> None:
-        """测试嵌套结构."""
+        """test嵌套结构."""
         nested_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="nested_test",
             bot_id="nested_bot",
@@ -240,11 +244,11 @@ class TestTbBotConfig:
             },
         )
 
-        # 跳过嵌套结构检查，避免 SQLAlchemy Column 类型问题
+        # skip nested structure check, avoid SQLAlchemy Column type issues
 
     def test_configuration_serialization(self) -> None:
-        """测试配置序列化."""
-        # 创建复杂配置
+        """test配置序列化."""
+        # create complex configuration
         complex_config = TbBotConfig(
             app_id="serialization_test",
             bot_id="serialization_bot",
@@ -264,7 +268,7 @@ class TestTbBotConfig:
             flow_ids=["auth_flow", "data_flow"],
         )
 
-        # 序列化为JSON（手动实现）
+        # serialize to JSON (manual implementation)
         import json  # pylint: disable=import-outside-toplevel
 
         config_dict = {
@@ -282,19 +286,19 @@ class TestTbBotConfig:
         assert isinstance(json_data, str)
         assert "serialization_test" in json_data
 
-        # 从字典创建配置
+        # create configuration from dictionary
         reconstructed_config = TbBotConfig(  # pylint: disable=unused-variable
             **config_dict
         )
-        # 跳过重构检查，避免 SQLAlchemy Column 类型问题
+        # skip refactoring check, avoid SQLAlchemy Column type issues
 
     @pytest.mark.asyncio
     async def test_concurrent_operations(self) -> None:
-        """测试并发操作."""
+        """test并发操作."""
         # pylint: disable=import-outside-toplevel
         import asyncio
 
-        # 创建多个配置实例
+        # create multiple configuration instances
         configs = []
         for i in range(5):
             config = TbBotConfig(
@@ -310,10 +314,10 @@ class TestTbBotConfig:
             )
             configs.append(config)
 
-        # 并发操作测试
+        # concurrent operation test
         async def process_config(config: TbBotConfig) -> Dict[str, Any]:
             """处理配置的异步函数."""
-            # 模拟异步操作
+            # simulate async operation
             await asyncio.sleep(0.01)
             return {
                 "app_id": config.app_id,
@@ -327,23 +331,23 @@ class TestTbBotConfig:
                 "flow_ids": config.flow_ids,
             }
 
-        # 并发执行
+        # concurrent execution
         tasks = [process_config(config) for config in configs]
         results = await asyncio.gather(*tasks)
 
-        # 验证结果
+        # Verify results
         assert len(results) == 5
         for i, result in enumerate(results):  # pylint: disable=unused-variable
-            # 跳过并发结果检查，避免 SQLAlchemy Column 类型问题
+            # skip concurrent result check, avoid SQLAlchemy Column type issues
             pass
 
     def test_config_updates(self) -> None:
-        """测试配置更新."""
+        """test配置更新."""
         original_config = TbBotConfig(
             app_id="update_test", bot_id="update_bot", tool_ids=["original_tool"]
         )
 
-        # 更新单个字段（手动实现）
+        # update single field (manual implementation)
         updated_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="updated_app",
             bot_id=original_config.bot_id,
@@ -355,9 +359,9 @@ class TestTbBotConfig:
             mcp_server_urls=original_config.mcp_server_urls,
             flow_ids=original_config.flow_ids,
         )
-        # 跳过更新配置检查，避免 SQLAlchemy Column 类型问题
+        # skip update configuration check, avoid SQLAlchemy Column type issues
 
-        # 更新多个字段（手动实现）
+        # update multiple fields (manual implementation)
         multi_updated_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="multi_updated_app",
             bot_id=original_config.bot_id,
@@ -369,20 +373,20 @@ class TestTbBotConfig:
             mcp_server_urls=original_config.mcp_server_urls,
             flow_ids=original_config.flow_ids,
         )
-        # 跳过多字段更新检查，避免 SQLAlchemy Column 类型问题
+        # skip multi-field update check, avoid SQLAlchemy Column type issues
 
     def test_field_validation_edge_cases(self) -> None:
-        """测试字段验证边界情况."""
-        # 测试极长字符串
+        """test字段验证边界情况."""
+        # test extremely long string
         long_app_id = "a" * 1000
         long_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id=long_app_id, bot_id="test_bot"
         )
-        # 跳过长度检查，避免 SQLAlchemy Column 类型问题
+        # skip length check, avoid SQLAlchemy Column type issues
 
-        # 测试特殊字符组合
+        # test special character combinations
         special_chars_config = TbBotConfig(  # pylint: disable=unused-variable
             app_id="!@#$%^&*()_+-={}|[]\\:;<>?,./'\"",
             bot_id="~`1234567890",
         )
-        # 跳过特殊字符验证，避免 SQLAlchemy Column 类型问题
+        # skip special character validation, avoid SQLAlchemy Column type issues

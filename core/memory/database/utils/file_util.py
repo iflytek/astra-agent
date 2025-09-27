@@ -7,12 +7,13 @@ import os
 import random
 import string
 import time
+from typing import Optional
 from urllib.parse import urlparse
 
 import requests
 
 
-def generate_unique_filename(extension="txt"):
+def generate_unique_filename(extension: str = "txt") -> str:
     """
     Generate unique filename
     :param extension: File extension (default is 'txt')
@@ -25,7 +26,9 @@ def generate_unique_filename(extension="txt"):
     return f"{timestamp}_{random_str}.{extension}"
 
 
-def get_image_extension(image_url, response=None):
+def get_image_extension(
+    image_url: str, response: Optional[requests.Response] = None
+) -> str:
     """
     Get image extension from URL or HTTP response
     :param image_url: Image URL
@@ -42,12 +45,15 @@ def get_image_extension(image_url, response=None):
         content_type = response.headers.get("Content-Type")
         if content_type:
             extension = content_type.split("/")[-1]
-            extension = extension.replace("jpeg", "jpg")  # Handle jpeg and jpg unification
+            if extension:
+                extension = extension.replace(
+                    "jpeg", "jpg"
+                )  # Handle jpeg and jpg unification
 
-    return extension
+    return extension or "jpg"
 
 
-def url_to_base64(image_url, delete_file=True):
+def url_to_base64(image_url: str, delete_file: bool = True) -> str:
     """
     Convert image URL to Base64 encoding and delete local file after completion
     :param image_url: Image URL
@@ -81,13 +87,3 @@ def url_to_base64(image_url, delete_file=True):
         return encoded_string
     except requests.exceptions.RequestException as e:
         raise ValueError(f"Error downloading image: {str(e)}") from e
-
-
-# Example usage
-if __name__ == "__main__":
-    TEST_URL = (
-        "https://oss-beijing-m8.openstorage.cn"
-        "/SparkBotDev/xinchen/0f63b004-c11c-11ef-a8b9-7e4181828133.jpg"
-    )
-    base64_string = url_to_base64(TEST_URL)
-    print(base64_string)

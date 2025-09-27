@@ -5,32 +5,29 @@ for creating, cloning, dropping and modifying databases.
 
 import sqlalchemy
 import sqlalchemy.exc
+from common.otlp.trace.span import Span
+from common.service import get_otlp_metric_service, get_otlp_span_service
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from sqlalchemy import text
-from sqlmodel.ext.asyncio.session import AsyncSession
-from starlette.responses import JSONResponse
-
 from memory.database.api.schemas.clone_db_types import CloneDBInput
 from memory.database.api.schemas.create_db_types import CreateDBInput
 from memory.database.api.schemas.drop_db_types import DropDBInput
 from memory.database.api.schemas.modify_db_desc_types import ModifyDBDescInput
 from memory.database.api.v1.common import check_database_exists_by_did_uid
-from memory.database.domain.entity.database_meta import (del_database_meta_by_did,
-                                        get_id_by_did_uid,
-                                        get_uid_by_did_space_id,
-                                        get_uid_by_space_id,
-                                        update_database_meta_by_did_uid)
+from memory.database.domain.entity.database_meta import (
+    del_database_meta_by_did, get_id_by_did_uid, get_uid_by_did_space_id,
+    get_uid_by_space_id, update_database_meta_by_did_uid)
 from memory.database.domain.entity.schema_meta import (del_schema_meta_by_did,
-                                      get_schema_name_by_did)
+                                                       get_schema_name_by_did)
 from memory.database.domain.entity.views.http_resp import format_response
 from memory.database.domain.models.database_meta import DatabaseMeta
 from memory.database.domain.models.schema_meta import SchemaMeta
 from memory.database.exceptions.error_code import CodeEnum
-from common.service import get_otlp_span_service, get_otlp_metric_service
-from common.otlp.trace.span import Span
 from memory.database.repository.middleware.getters import get_session
 from memory.database.utils.snowfake import get_id
+from pydantic import BaseModel
+from sqlalchemy import text
+from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.responses import JSONResponse
 
 clone_db_router = APIRouter(tags=["CLONE_DB"])
 create_db_router = APIRouter(tags=["CREATE_DB"])
@@ -38,7 +35,7 @@ drop_db_router = APIRouter(tags=["DROP_DB"])
 modify_db_description_router = APIRouter(tags=["MODIFY_DB_DESC"])
 
 
-def generate_copy_table_structures_sql(source_schema: str, target_schema: str):
+def generate_copy_table_structures_sql(source_schema: str, target_schema: str) -> str:
     """Generate SQL for copying table structures from source to target schema."""
     copy_table_structures_sql = f"""
         DO $$
@@ -62,7 +59,7 @@ def generate_copy_table_structures_sql(source_schema: str, target_schema: str):
     return copy_table_structures_sql
 
 
-def generate_copy_data_sql(source_schema: str, target_schema: str):
+def generate_copy_data_sql(source_schema: str, target_schema: str) -> str:
     """Generate SQL for copying data from source to target schema."""
     copy_data_sql = f"""
         DO $$
@@ -85,17 +82,14 @@ def generate_copy_data_sql(source_schema: str, target_schema: str):
     return copy_data_sql
 
 
-@clone_db_router.post(
-    "/clone_database",
-    response_class=JSONResponse
-)
-async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_session)):
+@clone_db_router.post("/clone_database", response_class=JSONResponse)
+async def clone_db(
+    clone_input: CloneDBInput, db: AsyncSession = Depends(get_session)
+) -> JSONResponse:
     """Clone an existing database with all its schemas and data."""
     database_id = clone_input.database_id
     uid = clone_input.uid
     new_database_name = clone_input.new_database_name
-    # m = Meter(func="clone_database")
-    # span = Span(uid=uid)
     metric_service = get_otlp_metric_service()
     m = metric_service.get_meter()(func="clone_database")
     span_service = get_otlp_span_service()
@@ -119,10 +113,10 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
             db, database_id, uid, span_context, m
         )
         if error_resp:
-            return error_resp
+            return error_resp  # type: ignore[no-any-return]
 
         try:
-            old_database_meta = await db.execute(
+            old_database_meta = await db.execute(  # type: ignore[call-overload]
                 text(
                     """
                     SELECT uid, name, description FROM database_meta
@@ -131,7 +125,7 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
                 ),
                 {"database_id": database_id},
             )
-            old_database_meta = old_database_meta.first()
+            old_database_meta = old_database_meta.first()  # type: ignore[assignment]
             old_prod_test_schema_meta = await get_schema_name_by_did(db, database_id)
             uid, old_name, old_description = old_database_meta
             span_context.add_info_events({"old_database_uid": uid})
@@ -141,10 +135,10 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
                 uid=uid, database_name=new_database_name, description=old_description
             )
             new_database_info = await exec_generate_schema(create_db_input, span, db)
-            await db.exec(
+            await db.exec(  # type: ignore[call-overload]
                 text(f"CREATE SCHEMA IF NOT EXISTS {new_database_info.prod_schema}")
             )
-            await db.exec(
+            await db.exec(  # type: ignore[call-overload]
                 text(f"CREATE SCHEMA IF NOT EXISTS {new_database_info.test_schema}")
             )
             for schema in old_prod_test_schema_meta:
@@ -158,11 +152,11 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
                 copy_data_sql = generate_copy_data_sql(
                     source_schema=schema[0], target_schema=target_schema
                 )
-                await db.execute(text(copy_table_structures_sql))
-                await db.execute(text(copy_data_sql))
+                await db.execute(text(copy_table_structures_sql))  # type: ignore[call-overload]
+                await db.execute(text(copy_data_sql))  # type: ignore[call-overload]
             await db.commit()
             m.in_success_count(lables={"uid": uid})
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.Successes.code,
                 message=CodeEnum.Successes.msg,
                 data={"database_id": new_database_info.database_id},
@@ -176,7 +170,7 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
                 lables={"uid": uid},
                 span=span_context,
             )
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.DatabaseExecutionError.code,
                 message=f"Database consistency error, {e}",
                 sid=span_context.sid,
@@ -187,7 +181,7 @@ async def clone_db(clone_input: CloneDBInput, db: AsyncSession = Depends(get_ses
                 CodeEnum.HttpError.code, lables={"uid": uid}, span=span_context
             )
             span_context.record_exception(e)
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.HttpError.code, message=str(e), sid=span_context.sid
             )
 
@@ -218,8 +212,8 @@ async def exec_generate_schema(
         span_context.add_info_event(f"prod_schema: {prod_schema}")
         span_context.add_info_event(f"dev_schema: {dev_schema}")
 
-        await db.exec(text(f'CREATE SCHEMA IF NOT EXISTS "{prod_schema}"'))
-        await db.exec(text(f'CREATE SCHEMA IF NOT EXISTS "{dev_schema}"'))
+        await db.exec(text(f'CREATE SCHEMA IF NOT EXISTS "{prod_schema}"'))  # type: ignore[call-overload]
+        await db.exec(text(f'CREATE SCHEMA IF NOT EXISTS "{dev_schema}"'))  # type: ignore[call-overload]
 
         database_info = DatabaseMeta(
             id=database_id,
@@ -247,18 +241,12 @@ async def exec_generate_schema(
         raise e
 
 
-@create_db_router.post(
-    "/create_database",
-    response_class=JSONResponse
-)
+@create_db_router.post("/create_database", response_class=JSONResponse)
 async def create_db(
-        create_input: CreateDBInput,
-        db: AsyncSession = Depends(get_session)
-):
+    create_input: CreateDBInput, db: AsyncSession = Depends(get_session)
+) -> JSONResponse:
     """Create a new database with production and test schemas."""
     uid = create_input.uid
-    # span = Span(uid=uid)
-    # m = Meter(func="create_database")
     metric_service = get_otlp_metric_service()
     m = metric_service.get_meter()(func="create_database")
     span_service = get_otlp_span_service()
@@ -282,7 +270,7 @@ async def create_db(
         try:
             database_info = await exec_generate_schema(create_input, span_context, db)
             m.in_success_count(lables={"uid": uid})
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.Successes.code,
                 message=CodeEnum.Successes.msg,
                 data={"database_id": database_info.database_id},
@@ -296,9 +284,10 @@ async def create_db(
                 span=span_context,
             )
             span_context.record_exception(e)
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.DatabaseExecutionError.code,
-                message="Database consistency error, created database name cannot be duplicated",
+                message="Database consistency error, "
+                "created database name cannot be duplicated",
                 sid=span_context.sid,
             )
         except Exception as e:  # pylint: disable=broad-except
@@ -307,7 +296,7 @@ async def create_db(
                 CodeEnum.CreatDBError.code, lables={"uid": uid}, span=span_context
             )
             span_context.record_exception(e)
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.CreatDBError.code,
                 message=str(e.__cause__),
                 sid=span_context.sid,
@@ -315,12 +304,12 @@ async def create_db(
 
 
 @drop_db_router.post("/drop_database", response_class=JSONResponse)
-async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_session)):
+async def drop_db(
+    drop_input: DropDBInput, db: AsyncSession = Depends(get_session)
+) -> JSONResponse:
     """Drop an existing database and all its schemas."""
     database_id = drop_input.database_id
     uid = drop_input.uid
-    # span = Span(uid=uid)
-    # m = Meter(func="drop_database")
     metric_service = get_otlp_metric_service()
     m = metric_service.get_meter()(func="drop_database")
     span_service = get_otlp_span_service()
@@ -346,7 +335,7 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
                     span=span_context,
                 )
                 span_context.add_error_event(f"space_id: {space_id} does not exist")
-                return format_response(
+                return format_response(  # type: ignore[no-any-return]
                     code=CodeEnum.SpaceIDNotExistError.code,
                     message=f"Team space space_id: {space_id} does not exist",
                     sid=span_context.sid,
@@ -359,7 +348,7 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
             db, database_id, uid, span_context, m
         )
         if error_resp:
-            return error_resp
+            return error_resp  # type: ignore[no-any-return]
 
         try:
             await del_database_meta_by_did(db, database_id)
@@ -370,7 +359,7 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
             m.in_error_count(
                 CodeEnum.DeleteDBError.code, lables={"uid": uid}, span=span_context
             )
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 code=CodeEnum.DeleteDBError.code,
                 message=f"Failed to delete database, {str(e.__cause__)}",
                 sid=span_context.sid,
@@ -378,14 +367,10 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
 
         try:
             for schema in schema_list:
-                await db.exec(
-                    text(
-                        f'DROP SCHEMA IF EXISTS "{schema[0]}" CASCADE;'
-                    )
-                )
+                await db.exec(text(f'DROP SCHEMA IF EXISTS "{schema[0]}" CASCADE;'))  # type: ignore[call-overload]
             await db.commit()
             m.in_success_count(lables={"uid": uid})
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.Successes.code,
                 message=CodeEnum.Successes.msg,
                 sid=span_context.sid,
@@ -396,7 +381,7 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
             m.in_error_count(
                 CodeEnum.DeleteDBError.code, lables={"uid": uid}, span=span_context
             )
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 code=CodeEnum.DeleteDBError.code,
                 message=f"{str(e.__cause__)}",
                 sid=span_context.sid,
@@ -408,13 +393,11 @@ async def drop_db(drop_input: DropDBInput, db: AsyncSession = Depends(get_sessio
 )
 async def modify_db_description(
     modify_input: ModifyDBDescInput, db: AsyncSession = Depends(get_session)
-):
+) -> JSONResponse:
     """Modify the description of an existing database."""
     database_id = modify_input.database_id
     uid = modify_input.uid
     description = modify_input.description
-    # span = Span(uid=uid)
-    # m = Meter(func="modify_db_description")
     metric_service = get_otlp_metric_service()
     m = metric_service.get_meter()(func="modify_db_description")
     span_service = get_otlp_span_service()
@@ -448,7 +431,7 @@ async def modify_db_description(
                         span=span_context,
                     )
                     span_context.add_error_event(f"space_id: {space_id} does not exist")
-                    return format_response(
+                    return format_response(  # type: ignore[no-any-return]
                         code=CodeEnum.SpaceIDNotExistError.code,
                         message=f"Team space space_id: {space_id} does not exist",
                         sid=span_context.sid,
@@ -464,10 +447,13 @@ async def modify_db_description(
                     lables={"uid": uid},
                     span=span_context,
                 )
-                span_context.add_error_event(f"User: {uid} does not have database: {database_id}")
-                return format_response(
+                span_context.add_error_event(
+                    f"User: {uid} does not have database: {database_id}"
+                )
+                return format_response(  # type: ignore[no-any-return]
                     code=CodeEnum.DatabaseNotExistError.code,
-                    message=f"uid: {uid} or database_id: {database_id} error, please verify",
+                    message=f"uid: {uid} or database_id: {database_id} error, "
+                    "please verify",
                     sid=span_context.sid,
                 )
             await update_database_meta_by_did_uid(
@@ -475,7 +461,7 @@ async def modify_db_description(
             )
             await db.commit()
             m.in_success_count(lables={"uid": uid})
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 CodeEnum.Successes.code,
                 message=CodeEnum.Successes.msg,
                 sid=span_context.sid,
@@ -488,7 +474,7 @@ async def modify_db_description(
                 lables={"uid": uid},
                 span=span_context,
             )
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 code=CodeEnum.ModifyDBDescriptionError.code,
                 message=f"{str(e.__cause__)}",
                 sid=span_context.sid,

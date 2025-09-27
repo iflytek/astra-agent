@@ -1,74 +1,106 @@
-"""RPA 服务的主应用模块。
-本模块定义了 FastAPI 应用的主入口，并包含了环境变量加载、
-配置检查、日志设置以及 Uvicorn 服务器的启动逻辑。"""
+"""Main application module for RPA service.
+This module defines the main entry point of the FastAPI application and includes
+environment variable loading, configuration checking, logging setup, and Uvicorn
+server startup logic."""
 
-import json
 import os
-from importlib import import_module
-from pathlib import Path
 
 import uvicorn
-from dotenv import load_dotenv
+from common.initialize.initialize import initialize_services
+from common.settings.polaris import ConfigFilter, Polaris
 from fastapi import FastAPI
-
-from api.router import router
-from consts import const
-from exceptions.config_exceptions import ConfigNotFoundException, EnvNotFoundException
-from utils.log.logger import set_log
+from plugin.rpa.api.router import router
+from plugin.rpa.consts import const
+from plugin.rpa.exceptions.config_exceptions import EnvNotFoundException
+from plugin.rpa.utils.log.logger import set_log
 
 
 class RPAServer:
-    """RPA 服务的主类，负责加载环境变量、检查配置、设置日志并启动 Uvicorn 服务器。"""
+    """Main class for RPA service.
+
+    Responsible for loading environment variables, checking configuration,
+    setting up logging, and starting the Uvicorn server.
+    """
 
     def start(self) -> None:
-        """启动 RPA 服务。"""
-        self.load_env()
+        """Start the RPA service."""
+        self.setup_server()
         self.check_env()
         self.set_config()
         self.start_uvicorn()
 
     @staticmethod
-    def load_env() -> None:
+    def setup_server() -> None:
+        """Initialize service suite"""
+        need_init_services = [
+            "settings_service",
+            "log_service",
+            "otlp_sid_service",
+            "otlp_span_service",
+            "otlp_metric_service",
+            "kafka_producer_service",
+        ]
+        initialize_services(services=need_init_services)
+
+    @staticmethod
+    def load_polaris() -> None:
         """
-        如果存在本地的 .env 文件，则从该文件加载环境变量。
-
-        Returns:
-            bool: 如果环境变量成功加载则返回 True，否则返回 False
-            （例如，文件未找到或发生错误）。
+        Load remote configuration and override environment variables
         """
-        env_file = Path(__file__).resolve().parent.parent / "config.env"
+        use_polaris = os.getenv("USE_POLARIS", "false").lower()
+        print(f"🔧 Config: USE_POLARIS :{use_polaris}")
+        if use_polaris == "false":
+            return
 
-        if not env_file.exists():
-            print(f"\033[91mNo local config file found at: {env_file}\033[0m")
-            raise ConfigNotFoundException(str(env_file))
+        base_url = os.getenv("POLARIS_URL")
+        project_name = os.getenv("PROJECT_NAME", "hy-spark-agent-builder")
+        cluster_group = os.getenv("POLARIS_CLUSTER", "")
+        service_name = os.getenv("SERVICE_NAME", "rpa-server")
+        version = os.getenv("VERSION", "1.0.0")
+        config_file = os.getenv("CONFIG_FILE", "config.env")
+        config_filter = ConfigFilter(
+            project_name=project_name,
+            cluster_group=cluster_group,
+            service_name=service_name,
+            version=version,
+            config_file=config_file,
+        )
+        username = os.getenv("POLARIS_USERNAME")
+        password = os.getenv("POLARIS_PASSWORD")
 
-        load_dotenv(env_file, override=True)
-        print(f"\033[94mUsing local config file: {env_file}\033[0m")
+        # Ensure required parameters are not None
+        if not base_url or not username or not password or not cluster_group:
+            return  # Skip polaris config if required params are missing
+
+        polaris = Polaris(base_url=base_url, username=username, password=password)
+        try:
+            _ = polaris.pull(
+                config_filter=config_filter,
+                retry_count=3,
+                retry_interval=5,
+                set_env=True,
+            )
+        except (ConnectionError, TimeoutError, ValueError) as e:
+            print(
+                f"⚠️ Polaris configuration loading failed, "
+                f"continuing with local configuration: {e}"
+            )
 
     @staticmethod
     def check_env() -> None:
         """
-        检查所有必需的环境变量是否已设置。
-        如果有任何必需的环境变量未设置，则抛出异常。
+        Check if all required environment variables are set.
+        Raise an exception if any required environment variables are not set.
         """
-        required_keys = [
-            const.LOG_LEVEL_KEY,
-            const.LOG_PATH_KEY,
-            const.UVICORN_APP_KEY,
-            const.UVICORN_HOST_KEY,
-            const.UVICORN_PORT_KEY,
-            const.UVICORN_WORKERS_KEY,
-            const.UVICORN_RELOAD_KEY,
-            const.UVICORN_WS_PING_INTERVAL_KEY,
-            const.UVICORN_WS_PING_TIMEOUT_KEY,
-            const.RPA_TIMEOUT_KEY,
-            const.RPA_PING_INTERVAL_KEY,
-            const.RPA_TASK_QUERY_INTERVAL_KEY,
-            const.RPA_TASK_CREATE_URL_KEY,
-            const.RPA_TASK_QUERY_URL_KEY,
-        ]
+        required_keys = const.base_keys
+        if os.getenv(const.OTLP_ENABLE_KEY, "0") == "1":
+            required_keys += const.otlp_keys
 
-        missing_keys = [key for key in required_keys if os.getenv(key) is None]
+        missing_keys = [
+            key
+            for key in required_keys
+            if (os.getenv(key, None) is None or os.getenv(key, None) == "")
+        ]
 
         if missing_keys:
             print(
@@ -81,50 +113,40 @@ class RPAServer:
 
     @staticmethod
     def set_config() -> None:
-        """设置日志配置。"""
+        """Set up logging configuration."""
         set_log(os.getenv(const.LOG_LEVEL_KEY), os.getenv(const.LOG_PATH_KEY))
 
     @staticmethod
     def start_uvicorn() -> None:
-        """启动 Uvicorn 服务器的静态方法。
+        """Static method to start the Uvicorn server.
 
-        从环境变量中读取配置，并启动 Uvicorn 服务器。
+        Read configuration from environment variables and start the Uvicorn server.
         """
-        app_path = os.getenv(const.UVICORN_APP_KEY)
-        if app_path:
-            module_path, app_name = app_path.split(":")
-            module = import_module(module_path)
-            app = getattr(module, app_name)
-        else:
-            raise ValueError("Environment variable for UVICORN_APP_KEY is not set.")
         # assert task_create_url is not None
         uvicorn_config = uvicorn.Config(
-            app=app,
-            host=os.getenv(const.UVICORN_HOST_KEY, "0.0.0.0"),
-            port=int(os.getenv(const.UVICORN_PORT_KEY, "19999")),
-            workers=int(os.getenv(const.UVICORN_WORKERS_KEY, "20")),
-            reload=json.loads(os.getenv(const.UVICORN_RELOAD_KEY, "false")),
-            ws_ping_interval=float(
-                json.loads(os.getenv(const.UVICORN_WS_PING_INTERVAL_KEY, "20.0"))
-            ),
-            ws_ping_timeout=float(
-                json.loads(os.getenv(const.UVICORN_WS_PING_TIMEOUT_KEY, "20.0"))
-            ),
-            factory=True,
+            app=rpa_server_app(),
+            host="0.0.0.0",
+            port=int(os.getenv(const.SERVICE_PORT_KEY, "19999")),
+            workers=20,
+            reload=False,
             # log_config=None
         )
         uvicorn_server = uvicorn.Server(uvicorn_config)
         uvicorn_server.run()
 
 
-def xingchen_rap_server_app() -> FastAPI:
+def rpa_server_app() -> FastAPI:
     """
-    description: 创建并返回一个 FastAPI 应用实例。
-    该应用实例包含了所有通过路由器注册的 API 路由。
-    该函数用于 Uvicorn 服务器的应用工厂。
-    :return: FastAPI 应用实例
+    description: Create and return a FastAPI application instance.
+    This application instance contains all API routes registered through the router.
+    This function is used as an application factory for the Uvicorn server.
+    :return: FastAPI application instance
     """
 
     app = FastAPI()
     app.include_router(router)
     return app
+
+
+if __name__ == "__main__":
+    RPAServer().start()

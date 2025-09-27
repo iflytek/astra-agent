@@ -2,8 +2,10 @@
 CBG-RAG strategy implementation module
 Implements RAG (Retrieval-Augmented Generation) functionality based on Spark LLM
 """
+
 import base64
-from typing import Any, Dict, List, Optional, TypedDict
+import json
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 from urllib.parse import unquote
 
 from knowledge.domain.entity.rag_do import ChunkInfo, FileInfo
@@ -15,6 +17,7 @@ from knowledge.utils.verification import check_not_empty
 
 class QueryParams(TypedDict):
     """Query parameters type definition"""
+
     doc_ids: Optional[List[str]]
     repo_ids: Optional[List[str]]
     top_k: Optional[int]
@@ -24,6 +27,7 @@ class QueryParams(TypedDict):
 
 class SplitParams(TypedDict):
     """Split parameters type definition"""
+
     length_range: List[int]
     overlap: int
     resource_type: int
@@ -36,13 +40,13 @@ class CBGRAGStrategy(RAGStrategy):
     """CBG-RAG strategy implementation."""
 
     async def query(
-            self,
-            query: str,
-            doc_ids: Optional[List[str]] = None,
-            repo_ids: Optional[List[str]] = None,
-            top_k: Optional[int] = None,
-            threshold: Optional[float] = 0,
-            **kwargs: Any
+        self,
+        query: str,
+        doc_ids: Optional[List[str]] = None,
+        repo_ids: Optional[List[str]] = None,
+        top_k: Optional[int] = None,
+        threshold: Optional[float] = 0,
+        **kwargs: Any
     ) -> Dict[str, Any]:
         """
         Execute RAG query
@@ -68,57 +72,99 @@ class CBGRAGStrategy(RAGStrategy):
         results = []
         if check_not_empty(query_results):
             for result in query_results:
-                if result.get("score", 0) < threshold:
-                    continue
+                # Handle both string and dict results
+                if isinstance(result, str):
+                    try:
+                        result = json.loads(result)
+                    except json.JSONDecodeError:
+                        continue
 
-                chunk_context = []
-                chunk_img_reference = {}
-                sorted_objects = []
-                chunk_info = result.get("chunk")
-
-                if check_not_empty(chunk_info):
-                    chunk_context.append(chunk_info)
-
-                    if check_not_empty(chunk_info.get("imgReference")):
-                        chunk_img_reference.update(chunk_info.get("imgReference"))
-
-                    if check_not_empty(result.get("overlap", [])):
-                        chunk_context.extend(result.get("overlap", []))
-                        sorted_objects = sorted(
-                            chunk_context, key=lambda x: x.get("dataIndex", 0)
-                        )
-
-                    full_context = "".join(
-                        obj.get("content", "") for obj in sorted_objects
-                    )
-
-                    for obj in sorted_objects:
-                        if check_not_empty(obj.get("imgReference")):
-                            chunk_img_reference.update(obj.get("imgReference"))
-
-                    results.append(
-                        {
-                            "score": result.get("score", ""),
-                            "docId": chunk_info.get("fileId", ""),
-                            "chunkId": chunk_info.get("id", ""),
-                            "fileName": unquote(
-                                str(result.get("fileName", "")), encoding="utf-8"
-                            ),
-                            "content": chunk_info.get("content", ""),
-                            "context": (
-                                full_context
-                                if full_context != ""
-                                else chunk_info.get("content", "")
-                            ),
-                            "references": chunk_img_reference,
-                        }
-                    )
+                processed_result = self._process_query_result(result, threshold or 0.0)
+                if processed_result:
+                    results.append(processed_result)
 
         return {
             "query": query,
-            "count": len(query_results) if query_results else 0,
+            "count": len(results),
             "results": results,
         }
+
+    def _process_query_result(
+        self, result: Dict[str, Any], threshold: float
+    ) -> Optional[Dict[str, Any]]:
+        """Process individual query result"""
+        if not isinstance(result, dict):
+            return None
+
+        if result.get("score", 0) < threshold:
+            return None
+
+        chunk_info = result.get("chunk")
+        if not (check_not_empty(chunk_info) and isinstance(chunk_info, dict)):
+            return None
+
+        chunk_context, chunk_img_reference = self._process_chunk_context(
+            chunk_info, result
+        )
+
+        return {
+            "score": result.get("score"),
+            "docId": chunk_info.get("fileId", ""),
+            "chunkId": chunk_info.get("id", ""),
+            "fileName": unquote(str(result.get("fileName", "")), encoding="utf-8"),
+            "content": chunk_info.get("content", ""),
+            "context": chunk_context,
+            "references": chunk_img_reference,
+        }
+
+    def _process_chunk_context(
+        self, chunk_info: Dict[str, Any], result: Dict[str, Any]
+    ) -> Tuple[str, Dict[str, Any]]:
+        """Process chunk context and references"""
+        chunk_context = [chunk_info]
+        chunk_img_reference: Dict[str, Any] = {}
+
+        # Handle imgReference from main chunk
+        img_ref = chunk_info.get("imgReference")
+        if check_not_empty(img_ref) and isinstance(img_ref, dict):
+            chunk_img_reference.update(img_ref)
+
+        # Handle overlap chunks
+        overlap_chunks = result.get("overlap", [])
+        if check_not_empty(overlap_chunks):
+            chunk_context.extend(overlap_chunks)
+
+        # Sort objects by dataIndex
+        sorted_objects = (
+            sorted(chunk_context, key=lambda x: x.get("dataIndex", 0))
+            if len(chunk_context) > 1
+            else []
+        )
+
+        # Build full context text
+        full_context = self._build_full_context(sorted_objects, chunk_info)
+
+        # Collect references from all chunks
+        self._collect_references(sorted_objects or chunk_context, chunk_img_reference)
+
+        return full_context, chunk_img_reference
+
+    def _build_full_context(
+        self, sorted_objects: List[Dict[str, Any]], chunk_info: Dict[str, Any]
+    ) -> str:
+        """Build full context text from sorted objects"""
+        if sorted_objects:
+            return "".join(obj.get("content", "") for obj in sorted_objects)
+        return chunk_info.get("content", "")
+
+    def _collect_references(
+        self, objects: List[Dict[str, Any]], chunk_img_reference: Dict[str, Any]
+    ) -> None:
+        """Collect image references from all chunk objects"""
+        for obj in objects:
+            obj_img_ref = obj.get("imgReference") if isinstance(obj, dict) else None
+            if check_not_empty(obj_img_ref) and isinstance(obj_img_ref, dict):
+                chunk_img_reference.update(obj_img_ref)
 
     async def split(
         self,
@@ -146,7 +192,7 @@ class CBGRAGStrategy(RAGStrategy):
             List of split chunks
         """
         data = []
-        wiki_split_extends = {}
+        wiki_split_extends: Dict[str, Any] = {}
 
         if check_not_empty(separator):
             split_chars = []
@@ -216,7 +262,12 @@ class CBGRAGStrategy(RAGStrategy):
         return await xinghuo.dataset_addchunk(chunks=data_chunks, **kwargs)
 
     async def chunks_update(
-        self, docId: str, group: str, uid: str, chunks: List[Dict[str, Any]], **kwargs: Any
+        self,
+        docId: str,
+        group: str,
+        uid: str,
+        chunks: List[Dict[str, Any]],
+        **kwargs: Any
     ) -> Any:
         """
         Update chunks
@@ -234,7 +285,9 @@ class CBGRAGStrategy(RAGStrategy):
         for chunk in chunks:
             return await xinghuo.dataset_updchunk(chunk, **kwargs)
 
-    async def chunks_delete(self, docId: str, chunkIds: List[str], **kwargs: Any) -> Any:
+    async def chunks_delete(
+        self, docId: str, chunkIds: List[str], **kwargs: Any
+    ) -> Any:
         """
         Delete chunks
 
@@ -254,7 +307,7 @@ class CBGRAGStrategy(RAGStrategy):
 
         return await xinghuo.dataset_delchunk(chunk_ids=chunkIds, **kwargs)
 
-    async def query_doc(self, docId: str, **kwargs: Any) -> List[ChunkInfo]:
+    async def query_doc(self, docId: str, **kwargs: Any) -> List[dict]:
         """
         Query all chunks of a document
 
@@ -265,7 +318,7 @@ class CBGRAGStrategy(RAGStrategy):
         Returns:
             List of chunk information
         """
-        result = []
+        result: List[dict] = []
         datas = await xinghuo.get_chunks(file_id=docId, **kwargs)
 
         for data in datas:
@@ -274,21 +327,17 @@ class CBGRAGStrategy(RAGStrategy):
 
             if isinstance(references, dict):
                 for key, value in references.items():
-                    content_text = content_text.replace(
-                        "{" + key + "}", "![Image name](" + value + ")"
-                    )
+                    content_text = content_text.replace("{" + key + "}", "")
 
             result.append(
                 ChunkInfo(
-                    docId=docId,
-                    chunkId=data.get("dataIndex", ""),
-                    content=content_text
+                    docId=docId, chunkId=data.get("dataIndex", ""), content=content_text
                 ).__dict__
             )
-        sorted_by_age = sorted(result, key=lambda x: x['chunkId'])
+        sorted_by_age = sorted(result, key=lambda x: x["chunkId"])
         return sorted_by_age
 
-    async def query_doc_name(self, docId: str, **kwargs: Any) -> Optional[FileInfo]:
+    async def query_doc_name(self, docId: str, **kwargs: Any) -> Optional[dict]:
         """
         Query document name information
 
@@ -311,4 +360,4 @@ class CBGRAGStrategy(RAGStrategy):
             fileName=file_name,
             fileStatus=datas.get("fileStatus", ""),
             fileQuantity=datas.get("quantity", 0),
-        )
+        ).__dict__

@@ -29,8 +29,14 @@ def load_env_file(env_file: str) -> None:
             # Parse environment variables
             if "=" in line:
                 key, value = line.split("=", 1)
-                os.environ[key.strip()] = value.strip()
-                print(f"  ✅ {key.strip()}={value.strip()}")
+                key = key.strip()
+                value = value.strip()
+
+                if key in os.environ:
+                    print(f"  🔄 {key}={os.environ[key]} (using existing env var)")
+                else:
+                    os.environ[key] = value
+                    print(f"  ✅ {key}={value} (loaded from config)")
             else:
                 print(f"  ⚠️  Line {line_num} format error: {line}")
 
@@ -58,8 +64,8 @@ def start_service() -> None:
         "polaris_cluster",
         "polaris_url",
         "polaris_username",
-        "run_environ",
-        "use_polaris",
+        "RUN_ENVIRON",
+        "USE_POLARIS",
     ]
 
     print("📋 Environment configuration:")

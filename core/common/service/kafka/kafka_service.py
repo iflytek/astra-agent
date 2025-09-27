@@ -1,13 +1,14 @@
 import os
+from typing import Any, Optional
 
-from confluent_kafka import Producer
+from confluent_kafka import Producer  # type: ignore[import-untyped]
 from loguru import logger
 
 from common.service.base import Service, ServiceType
 
 
 class KafkaProducerService(Service):
-    name = ServiceType.KAFKA_PRODUCER_SERVICE
+    name = ServiceType.KAFKA_PRODUCER_SERVICE  # type: ignore[report-untyped-call]
 
     def __init__(self, config: dict):
         """
@@ -21,9 +22,9 @@ class KafkaProducerService(Service):
         self,
         topic: str,
         value: str,
-        callback=None,
+        callback: Optional[Any] = None,
         timeout: int = int(os.getenv("KAFKA_TIMEOUT", 10)),
-    ):
+    ) -> None:
         """
         发送 Kafka 消息
         :param topic: Kafka topic
@@ -40,7 +41,7 @@ class KafkaProducerService(Service):
             logger.error(f"Kafka message send failed: {e}")
             raise e
 
-    def _delivery_report(self, err, msg):
+    def _delivery_report(self, err: Any, msg: Any) -> None:
         """
         消息发送回调函数
         :param err:

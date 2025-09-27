@@ -14,5 +14,6 @@ class CloneDBInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         uid: User ID (required, 1-64 chars, no Chinese or special characters)
         new_database_name: Name for the new cloned database (required)
     """
+
     # new_database_name: Required
     new_database_name: str

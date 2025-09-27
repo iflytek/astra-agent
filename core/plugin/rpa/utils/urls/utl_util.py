@@ -1,14 +1,14 @@
-"""URL 工具模块，提供 URL 验证功能。"""
+"""URL utility module providing URL validation functionality."""
 
 from typing import Optional
 from urllib.parse import urlparse
 
 
 def is_valid_url(url: Optional[str]) -> bool:
-    """验证给定的字符串是否为有效的 URL。"""
+    """Validate whether the given string is a valid URL."""
     try:
         result = urlparse(url)
-        # 必须包含 scheme（协议）和 netloc（域名或 IP）
+        # Must include scheme (protocol) and netloc (domain or IP)
         return all([result.scheme, result.netloc])
     except (ValueError, AttributeError):
         return False

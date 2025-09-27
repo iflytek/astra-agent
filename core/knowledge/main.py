@@ -6,37 +6,38 @@ This module is responsible for:
 2. Creating and configuring FastAPI application
 3. Setting up global exception handling
 4. Starting UVicorn server
-
-@author: your-name
-@version: 1.0.0
-@created: 2024-01-01
 """
 
 import json
 import logging
 import os
 import sys
+
 import uvicorn
+from common.initialize.initialize import initialize_services
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
+
 from knowledge.api.v1.api import rag_router
-from common.initialize.initialize import initialize_services
 from knowledge.consts.error_code import CodeEnum
 from knowledge.domain.response import ErrorResponse
 
 
 def initialize_extensions() -> None:
-    need_init_services = ["settings_service", "log_service", "otlp_sid_service", "otlp_span_service",
-                          "otlp_metric_service"]
+    need_init_services = [
+        "settings_service",
+        "log_service",
+        "otlp_sid_service",
+        "otlp_span_service",
+        "otlp_metric_service",
+    ]
     initialize_services(services=need_init_services)
 
 
 def create_app() -> FastAPI:
-    os.environ["CONFIG_ENV_PATH"] = (
-        "./knowledge/config.env"
-    )
+    os.environ["CONFIG_ENV_PATH"] = "./knowledge/config.env"
     initialize_extensions()
     logging.info(""" KNOWLEDGE SERVER START """)
 
@@ -45,7 +46,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def global_validation_exception_handler(
-            _request: Request, exc: RequestValidationError
+        _request: Request, exc: RequestValidationError
     ) -> JSONResponse:
         """
         Global RequestValidationError handler, returns unified format
@@ -86,6 +87,7 @@ def create_app() -> FastAPI:
     async def shutdown() -> None:
         try:
             from knowledge.infra.ragflow import cleanup_session
+
             await cleanup_session()
         except Exception as e:
             logger.warning(f"Failed to cleanup RAGFlow session: {e}")

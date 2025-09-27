@@ -8,7 +8,6 @@ from common.audit_system.base import FrameAuditResult, InputFrameAudit, OutputFr
 from common.audit_system.enums import Status
 from common.audit_system.strategy.base_strategy import AuditStrategy
 
-# 使用TYPE_CHECKING避免循环导入
 if TYPE_CHECKING:
     from common.otlp.trace.span import Span
 
@@ -21,7 +20,9 @@ class AuditOrchestrator:
     def __init__(self, audit_strategy: AuditStrategy):
         self.audit_strategy = audit_strategy
 
-    async def process_output(self, output_frame: OutputFrameAudit, span: "Span"):
+    async def process_output(
+        self, output_frame: OutputFrameAudit, span: "Span"
+    ) -> None:
         """
         处理输出内容的审核逻辑。
         :param output_frame:
@@ -36,7 +37,6 @@ class AuditOrchestrator:
         ) as context_span:
             context_span.add_info_event(f"送审帧内容：{output_frame.dict()}")
 
-            # 内容如果为空值，则直接返回
             if (
                 output_frame.content == ""
                 and output_frame.status != Status.STOP
@@ -57,7 +57,7 @@ class AuditOrchestrator:
 
             return await self.audit_strategy.output_review(output_frame, context_span)
 
-    async def process_input(self, input_frame: InputFrameAudit, span: "Span"):
+    async def process_input(self, input_frame: InputFrameAudit, span: "Span") -> None:
         """
         处理输出内容的审核逻辑。
         :param input_frame:

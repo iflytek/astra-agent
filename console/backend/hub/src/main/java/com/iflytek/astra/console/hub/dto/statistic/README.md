@@ -1,1 +1,0 @@
-# Statistical Analysis Data Transfer Objects

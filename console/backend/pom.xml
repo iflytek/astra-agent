@@ -3,12 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.iflytek.astra.console</groupId>
+    <groupId>com.iflytek.astron.console</groupId>
     <artifactId>parent</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
-    <name>astra-console-parent</name>
-    <description>Astra Console Parent Project</description>
+    <name>astron-console-parent</name>
+    <description>Astron Console Parent Project</description>
 
     <modules>
         <module>commons</module>
@@ -71,17 +71,17 @@
         <dependencies>
             <!-- sub-modules -->
             <dependency>
-                <groupId>com.iflytek.astra.console</groupId>
+                <groupId>com.iflytek.astron.console</groupId>
                 <artifactId>hub</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.iflytek.astra.console</groupId>
+                <groupId>com.iflytek.astron.console</groupId>
                 <artifactId>commons</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.iflytek.astra.console</groupId>
+                <groupId>com.iflytek.astron.console</groupId>
                 <artifactId>toolkit</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -202,7 +202,7 @@
                 <configuration>
                     <java>
                         <eclipse>
-                            <version>4.23</version>
+                            <version>4.29</version>
                             <file>${maven.multiModuleProjectDirectory}/config/eclipse-formatter.xml</file>
                         </eclipse>
                         <removeUnusedImports/>

@@ -1,10 +1,18 @@
 """Base module providing SQLModel serialization functionality with orjson support."""
 
+from typing import Any, Callable, Optional
+
 import orjson
 from sqlmodel import SQLModel
 
 
-def orjson_dumps(v, *, default=None, sort_keys=False, indent_2=True):
+def orjson_dumps(
+    v: Any,
+    *,
+    default: Optional[Callable[[Any], Any]] = None,
+    sort_keys: bool = False,
+    indent_2: bool = True
+) -> str:
     """Serialize Python object to JSON string using orjson.
 
     Args:
@@ -24,7 +32,9 @@ def orjson_dumps(v, *, default=None, sort_keys=False, indent_2=True):
             option |= orjson.OPT_INDENT_2  # pylint: disable=no-member
     if default is None:
         return orjson.dumps(v, option=option).decode()  # pylint: disable=no-member
-    return orjson.dumps(v, default=default, option=option).decode()  # pylint: disable=no-member
+    return orjson.dumps(  # pylint: disable=no-member
+        v, default=default, option=option
+    ).decode()  # pylint: disable=no-member
 
 
 class SQLModelSerializable(SQLModel):
@@ -35,9 +45,10 @@ class SQLModelSerializable(SQLModel):
 
     class Config:  # pylint: disable=too-few-public-methods
         """Configuration for SQLModel serialization behavior."""
+
         from_attributes = True
 
-    def json(self, **kwargs):
+    def json(self, **kwargs: Any) -> str:
         """Serialize the model instance to JSON string.
 
         Args:
@@ -49,7 +60,7 @@ class SQLModelSerializable(SQLModel):
         return orjson_dumps(self.dict(**kwargs))
 
     @classmethod
-    def parse_raw(cls, b, **kwargs):  # pylint: disable=unused-argument
+    def parse_raw(cls, b: bytes, **kwargs: Any) -> "SQLModelSerializable":  # type: ignore[override]  # pylint: disable=unused-argument
         """Parse raw JSON data into model instance.
 
         Args:

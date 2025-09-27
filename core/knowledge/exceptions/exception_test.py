@@ -6,13 +6,17 @@ This module contains comprehensive unit tests for all custom exception classes,
 testing initialization, inheritance, string representation, and error handling scenarios.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from knowledge.consts.error_code import CodeEnum
 from knowledge.exceptions.exception import (
-    BaseCustomException, ProtocolParamException, ServiceException,
-    ThirdPartyException, CustomException
+    BaseCustomException,
+    CustomException,
+    ProtocolParamException,
+    ServiceException,
+    ThirdPartyException,
 )
 
 
@@ -37,7 +41,9 @@ class TestBaseCustomException:
         mock_enum.code = 10002
         mock_enum.msg = "Base message"
 
-        exception = BaseCustomException(code_enum=mock_enum, detail_msg="Additional details")
+        exception = BaseCustomException(
+            code_enum=mock_enum, detail_msg="Additional details"
+        )
 
         assert exception.code == 10002
         assert exception.message == "Base message(Additional details)"
@@ -52,7 +58,9 @@ class TestBaseCustomException:
         exception = BaseCustomException(code_enum=mock_enum, detail_msg="")
 
         assert exception.code == 10003
-        assert exception.message == "Base message"  # Empty detail_msg should not be included
+        assert (
+            exception.message == "Base message"
+        )  # Empty detail_msg should not be included
 
     def test_init_with_none_detail_msg(self) -> None:
         """Test initialization with None detail message."""
@@ -139,11 +147,13 @@ class TestBaseCustomException:
         """Test with real CodeEnum values."""
         exception = BaseCustomException(
             code_enum=CodeEnum.ParameterCheckException,
-            detail_msg="Invalid parameter value"
+            detail_msg="Invalid parameter value",
         )
 
         assert exception.code == CodeEnum.ParameterCheckException.code
-        expected_msg = f"{CodeEnum.ParameterCheckException.msg}(Invalid parameter value)"
+        expected_msg = (
+            f"{CodeEnum.ParameterCheckException.msg}(Invalid parameter value)"
+        )
         assert exception.message == expected_msg
 
 
@@ -266,8 +276,7 @@ class TestThirdPartyException:
     def test_init_with_custom_code_enum(self) -> None:
         """Test initialization with custom CodeEnum."""
         exception = ThirdPartyException(
-            msg="Custom third party error",
-            e=CodeEnum.AIUI_RAGError
+            msg="Custom third party error", e=CodeEnum.AIUI_RAGError
         )
 
         assert exception.code == CodeEnum.AIUI_RAGError.code
@@ -325,8 +334,7 @@ class TestCustomException:
     def test_init_with_code_enum_and_message(self) -> None:
         """Test initialization with CodeEnum and message."""
         exception = CustomException(
-            e=CodeEnum.FileSplitFailed,
-            msg="File format not supported"
+            e=CodeEnum.FileSplitFailed, msg="File format not supported"
         )
 
         assert exception.code == CodeEnum.FileSplitFailed.code
@@ -366,8 +374,7 @@ class TestCustomException:
         """Test complete exception handling flow."""
         with pytest.raises(CustomException) as exc_info:
             raise CustomException(
-                e=CodeEnum.FileSplitFailed,
-                msg="Unable to process PDF file"
+                e=CodeEnum.FileSplitFailed, msg="Unable to process PDF file"
             )
 
         caught_exception = exc_info.value
@@ -389,7 +396,7 @@ class TestExceptionIntegration:
             ProtocolParamException("Protocol error"),
             ServiceException("Service error"),
             ThirdPartyException("Third party error"),
-            CustomException(CodeEnum.ServiceException, "Custom error")
+            CustomException(CodeEnum.ServiceException, "Custom error"),
         ]
 
         for exception in exceptions:
@@ -398,8 +405,8 @@ class TestExceptionIntegration:
             assert isinstance(exception, Exception)
 
             # All should have required attributes
-            assert hasattr(exception, 'code')
-            assert hasattr(exception, 'message')
+            assert hasattr(exception, "code")
+            assert hasattr(exception, "message")
             assert isinstance(exception.code, int)
             assert isinstance(exception.message, str)
 
@@ -423,7 +430,7 @@ class TestExceptionIntegration:
             ProtocolParamException("Protocol error"),
             ServiceException("Service error"),
             ThirdPartyException("Third party error", CodeEnum.AIUI_RAGError),
-            CustomException(CodeEnum.ChunkQueryFailed, "Query failed")
+            CustomException(CodeEnum.ChunkQueryFailed, "Query failed"),
         ]
 
         for exception in exceptions:
@@ -445,7 +452,7 @@ class TestExceptionIntegration:
             ProtocolParamException("Protocol error"),
             ServiceException("Service error"),
             ThirdPartyException("Third party error"),
-            CustomException(CodeEnum.ServiceException, "Custom error")
+            CustomException(CodeEnum.ServiceException, "Custom error"),
         ]
 
         for exception in exceptions:
@@ -473,7 +480,7 @@ class TestExceptionIntegration:
             "Multi-line\nmessage\nwith\nbreaks",
             "Unicode message: test message 🎉",
             "",  # Empty string
-            None  # None value
+            None,  # None value
         ]
 
         for msg in test_messages:

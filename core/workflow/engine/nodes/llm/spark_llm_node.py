@@ -1,10 +1,8 @@
 import json
 import os
 import re
-import time
-from typing import Any, Dict
+from typing import Any
 
-from workflow.consts.model_provider import ModelProviderEnum
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
 from workflow.engine.entities.history import History
@@ -15,8 +13,7 @@ from workflow.engine.nodes.entities.node_run_result import (
     WorkflowNodeExecutionStatus,
 )
 from workflow.engine.nodes.llm.prompt_ai_personal import system_template
-from workflow.engine.nodes.util.prompt import process_prompt, replace_variables
-from workflow.engine.nodes.util.string_parse import get_need_find_var_name
+from workflow.engine.nodes.util.prompt import PromptUtils, process_prompt
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
@@ -73,37 +70,6 @@ class SparkLLMNode(BaseLLMNode):
     including prompt processing, history management, and response formatting.
     """
 
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the complete configuration dictionary for this LLM node.
-
-        :return: Dictionary containing all node configuration parameters
-        """
-        return {
-            "model": self.model,
-            "url": self.url,
-            "domain": self.domain,
-            "temperature": self.temperature,
-            "appId": self.appId,
-            "apiKey": self.apiKey,
-            "apiSecret": self.apiSecret,
-            "maxTokens": self.maxTokens,
-            "uid": self.uid,
-            "template": self.template,
-            "topK": self.topK,
-            "patch_id": self.patch_id,
-            "respFormat": self.respFormat,
-            "enableChatHistory": self.enableChatHistory,
-            "enableChatHistoryV2": self.enableChatHistoryV2,
-            "re_match_pattern": self.re_match_pattern,
-            "systemTemplate": self.systemTemplate,
-            "source": (
-                ModelProviderEnum.XINGHUO.value
-                if not hasattr(self, "source")
-                else self.source
-            ),
-        }
-
     def resp_format_text_parser(self, res: str, think_contents: str) -> dict:
         """
         Parse text format response from LLM.
@@ -154,25 +120,6 @@ class SparkLLMNode(BaseLLMNode):
             return {}
         return res_json
 
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented).
-
-        :param variable_pool: Variable pool containing workflow variables
-        :param span: Tracing span for monitoring
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments
-        :return: Node execution result
-        :raises: NotImplementedError - This method is not implemented
-        """
-        raise
-
     async def async_execute(
         self,
         variable_pool: VariablePool,
@@ -194,7 +141,6 @@ class SparkLLMNode(BaseLLMNode):
         """
         callbacks: ChatCallBacks = kwargs.get("callbacks", None)
         msg_or_end_node_deps = kwargs.get("msg_or_end_node_deps", {})
-        start_time = time.time()
         try:
             inputs = {}
             inputs.update(
@@ -238,11 +184,11 @@ class SparkLLMNode(BaseLLMNode):
                 image_url = inputs.get("SYSTEM_IMAGE", "")
 
             # End-to-end history management
-            if self.enableChatHistoryV2 and self.enableChatHistoryV2.get("isEnabled"):
+            if self.enableChatHistoryV2.is_enabled:
                 # Disable old history mechanism
                 history_chat = None
                 # History parameters configuration: max_token, rounds
-                rounds = self.enableChatHistoryV2.get("rounds", 1)
+                rounds = self.enableChatHistoryV2.rounds
                 max_token = self.maxTokens
                 history_v2 = (
                     History(
@@ -319,7 +265,6 @@ class SparkLLMNode(BaseLLMNode):
                 inputs=inputs,
                 raw_output=res,
                 outputs=order_outputs,
-                time_cost=str(round(time.time() - start_time, 3)),
                 token_cost=GenerateUsage(
                     completion_tokens=token_usage.get("completion_tokens", 0),
                     prompt_tokens=token_usage.get("prompt_tokens", 0),
@@ -334,8 +279,7 @@ class SparkLLMNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err.message}",
-                error_code=err.code,
+                error=err,
             )
         except Exception as err:
             span.record_exception(err)
@@ -344,8 +288,10 @@ class SparkLLMNode(BaseLLMNode):
                 alias_name=self.alias_name,
                 node_type=self.node_type,
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{err}",
-                error_code=CodeEnum.LLMNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.LLM_NODE_EXECUTION_ERROR,
+                    cause_error=err,
+                ),
             )
 
     def get_full_prompt(
@@ -359,14 +305,11 @@ class SparkLLMNode(BaseLLMNode):
         :param variable_pool: Variable pool containing available variables
         :return: Fully processed prompt with variable substitutions
         """
-        need_find_var_name = get_need_find_var_name(
-            node_id=self.node_id,
-            variable_pool=variable_pool,
-            prompt_template=prompt_template,
-            span_context=span_context,
+        available_placeholders = PromptUtils.get_available_placeholders(
+            self.node_id, prompt_template, variable_pool, span_context
         )
         replacements = {}
-        for var_name in need_find_var_name:
+        for var_name in available_placeholders:
             var_name_list = re.split(r"[\[.\]]", var_name)
             if var_name_list[0].strip() in self.input_identifier:
                 replacements.update(
@@ -389,235 +332,7 @@ class SparkLLMNode(BaseLLMNode):
                 value = " "
             replacements_str[key] = value
         # Replace variables in prompt template
-        prompt_template = replace_variables(prompt_template, replacements_str)
+        prompt_template = PromptUtils.replace_variables(
+            prompt_template, replacements_str
+        )
         return prompt_template
-
-
-# if __name__ == "__main__":
-#     # SparkLLMNode.schema_validate(node_body={})
-#     data_info = \
-#         {
-#             "id": "spark-lm::db379de3-dc37-4bf6-a47f-103a1375a64f",
-#             "data": {
-#                 "nodeMeta": {
-#                     "nodeType": "基础节点",
-#                     "aliasName": "大模型节点"
-#                 },
-#                 "inputs": [
-#                     {
-#                         "name": "inputIdentifier",
-#                         "schema": {
-#                             "type": "string",
-#                             "value": {
-#                                 "type": "ref",
-#                                 "content": {
-#                                     "nodeID": "spark-llm::71887049-29c7-4495-95a0-7b0c837f203a",
-#                                     "name": "llm_result"
-#                                 }
-#                             }
-#                         }
-#                     },
-#                     {
-#                         "name": "url",
-#                         "schema": {
-#                             "type": "string",
-#                             "value": {
-#                                 "type": "literal",
-#                                 "content": "https://xinghuo.xfyun.cn"
-#                             }
-#                         }
-#                     }
-#                 ],
-#                 "outputs": [
-#                     {
-#                         "name": "outputIdentifier",
-#                         "schema": {
-#                             "type": "string"
-#                         }
-#                     },
-#                     {
-#                         "name": "key0",
-#                         "schema": {
-#                             "type": "string"
-#                         }
-#                     },
-#                     {
-#                         "name": "key1",
-#                         "schema": {
-#                             "type": "string",
-#                             "items": {
-#                                 "type": "string"
-#                             }
-#                         }
-#                     }
-#                 ],
-#                 "nodeParam": {
-#                     "model": "spark",
-#                     "url": "",
-#                     "domain": "generalv3",
-#                     "temperature": 0.5,
-#                     "appId": "4eea9****",
-#                     "apiKey": "",
-#                     "apiSecret": "",
-#                     "maxTokens": 1024,
-#                     "uid": "103a1375a64f",
-#                     "enableChatHistoryV2": {
-#                         "isEnable": True,
-#                         "rounds":10
-#                     },
-#                     "template": "你是一个人工客服，下面是用户问题\n{inputIdentifier} \n 需要处理的用户地址 {url}"
-#                 }
-#             }
-#         }
-#     data_schema = \
-#         {
-#             "$schema": "http://json-schema.org/draft-07/schema#",
-#             "type": "object",
-#             "properties": {
-#                 "id": {
-#                     "type": "string",
-#                     "pattern": "^spark-llm::[0-9a-zA-Z-]+"
-#                 },
-#                 "data": {
-#                     "type": "object",
-#                     "properties": {
-#                         "nodeMeta": {
-#                             "type": "object",
-#                             "properties": {
-#                                 "nodeType": {
-#                                     "type": "string",
-#                                     "minLength": 1
-#                                 },
-#                                 "aliasName": {
-#                                     "type": "string",
-#                                     "minLength": 1
-#                                 }
-#                             },
-#                             "required": ["nodeType", "aliasName"]
-#                         },
-#                         "inputs": {
-#                             "type": "array",
-#                             "minItems": 0,
-#                             "items": {
-#                                 "type": "object",
-#                                 "required": ["name", "schema"],
-#                                 "properties": {
-#                                     "name": {
-#                                         "type": "string",
-#                                         "minLength": 1
-#                                     },
-#                                     "schema": {
-#                                         "type": "object",
-#                                         "required": ["type", "value"],
-#                                         "properties": {
-#                                             "type": {
-#                                                 "type": "string",
-#                                                 "enum": ["string", "boolean", "integer"]
-#                                             },
-#                                             "value": {
-#                                                 "type": "object",
-#                                                 "properties": {
-#                                                     "type": {
-#                                                         "type": "string",
-#                                                         "enum": ["ref", "literal"]
-#                                                     },
-#                                                     "content": {
-#                                                         "anyOf": [
-#                                                             {
-#                                                                 "type": "object",
-#                                                                 "required": ["nodeID", "name"],
-#                                                                 "properties": {
-#                                                                     "nodeID": {
-#                                                                         "type": "string",
-#                                                                         "minLength": 1
-#                                                                     },
-#                                                                     "name": {
-#                                                                         "type": "string",
-#                                                                         "minLength": 1
-#                                                                     }
-#                                                                 }
-#                                                             },
-#                                                             {
-#                                                                 "type": "string",
-#                                                                 "minLength": 1
-#                                                             }
-#                                                         ]
-#                                                     }
-#                                                 }
-#                                             }
-#                                         }
-#                                     }
-#                                 }
-#                             }
-#                         },
-#                         "outputs": {
-#                             "type": "array",
-#                             "minItems": 0,
-#                             "items": {
-#                                 "type": "object",
-#                                 "required": ["name", "schema"],
-#                                 "properties": {
-#                                     "name": {
-#                                         "type": "string",
-#                                         "minLength": 1
-#                                     },
-#                                     "schema": {
-#                                         "type": "object",
-#                                         "required": ["type"],
-#                                         "properties": {
-#                                             "type": {
-#                                                 "type": "string",
-#                                                 "enum": ["string", "boolean", "integer"]
-#                                             }
-#                                         }
-#                                     }
-#                                 }
-#                             }
-#                         },
-#                         "nodeParam": {
-#                             "type": "object",
-#                             "properties": {
-#                                 "model": {
-#                                     "type": "string"
-#                                 },
-#                                 "url": {
-#                                     "type": "string"
-#                                 },
-#                                 "domain": {
-#                                     "type": "string"
-#                                 },
-#                                 "temperature": {
-#                                     "type": "number"
-#                                 },
-#                                 "appId": {
-#                                     "type": "string"
-#                                 },
-#                                 "apiKey": {
-#                                     "type": "string"
-#                                 },
-#                                 "apiSecret": {
-#                                     "type": "string"
-#                                 },
-#                                 "maxTokens": {
-#                                     "type": "integer"
-#                                 },
-#                                 "uid": {
-#                                     "type": "string"
-#                                 },
-#                                 "template": {
-#                                     "type": "string"
-#                                 }
-#                             }
-#                         }
-#                     }
-#                 }
-#             }
-#         }
-#     import jsonschema
-#     validator = jsonschema.Draft7Validator(data_schema)
-#     errs = list(
-#         validator.iter_errors(data_info)
-#     )
-#     print(errs)
-# SparkLLMNode(**data_info)
-# data_info

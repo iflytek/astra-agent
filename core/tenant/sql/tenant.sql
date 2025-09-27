@@ -25,7 +25,7 @@ CREATE TABLE `tb_app` (
   PRIMARY KEY (`app_id`),
   KEY `idx_registration_time` (`registration_time`),
   KEY `idx_dev_id` (`dev_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='应用主表'；
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='应用主表';
 
 INSERT INTO `tenant`.`tb_app` (`update_time`, `registration_time`, `app_id`, `app_name`, `dev_id`, `channel_id`, `source`, `is_disable`, `app_desc`, `is_delete`, `extend`)
     VALUES ('2025-09-20 00:00:00', '2025-09-20 00:00:00', '680ab54f', '星辰租户', 1, '0', 'admin', 0, '星辰租户', 0, '');
@@ -46,7 +46,7 @@ CREATE TABLE `tb_auth` (
   PRIMARY KEY (`app_id`,`api_key`),
   KEY `idx_registration_time` (`registration_time`),
   KEY `idx_api_key` (`api_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='应用关联的鉴权表'；
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='应用关联的鉴权表';
 
 INSERT INTO `tenant`.`tb_auth` (`update_time`, `registration_time`, `app_id`, `api_key`, `api_secret`, `source`, `is_delete`, `extend`)
     VALUES ('2025-09-20 00:00:00', '2025-09-20 00:00:00', '680ab54f', '7b709739e8da44536127a333c7603a83', 'NjhmY2NmM2NkZDE4MDFlNmM5ZjcyZjMy', 0, 0, '');

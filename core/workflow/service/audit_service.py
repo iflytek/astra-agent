@@ -1,13 +1,13 @@
 import asyncio
 import json
 import logging
-import traceback
 import uuid
 from asyncio import Task
 from typing import Any, Awaitable, Callable
 
 from workflow.cache import event_registry
 from workflow.cache.event_registry import Event, EventRegistry
+from workflow.consts.engine.chat_status import ChatStatus
 from workflow.engine.callbacks.openai_types_sse import LLMGenerate, WorkflowStep
 from workflow.exception.e import CustomException, CustomExceptionCM
 from workflow.exception.errors.err_code import CodeEnum
@@ -48,7 +48,8 @@ def parse_frame_audit(response: LLMGenerate) -> OutputFrameAudit:
         if (
             response.workflow_step
             and response.workflow_step.node
-            and response.workflow_step.node.finish_reason == "stop"
+            and response.workflow_step.node.finish_reason
+            == ChatStatus.FINISH_REASON.value
         ):
             none_need_audit = True
     return OutputFrameAudit(
@@ -192,16 +193,16 @@ async def _common_response_audit(
             await asyncio.sleep(0)
         except asyncio.TimeoutError as e:
             # Handle timeout errors by creating audit result with error
-            ce = CustomException(CodeEnum.OpenApiStreamQueueTimeoutError, cause_error=e)
+            ce = CustomException(
+                CodeEnum.OPEN_API_STREAM_QUEUE_TIMEOUT_ERROR, cause_error=e
+            )
             await audit_strategy.context.output_queue.put(
                 FrameAuditResult(content="", status=Status.STOP, error=ce)
             )
         except Exception as e:
             # Handle other exceptions by wrapping in CustomException if needed
             if not isinstance(e, CustomException):
-                e = CustomException(
-                    CodeEnum.AuditError, cause_error=traceback.format_exc()
-                )
+                e = CustomException(CodeEnum.AUDIT_ERROR, cause_error=e)
             await audit_strategy.context.output_queue.put(
                 FrameAuditResult(content="", status=Status.STOP, error=e)
             )

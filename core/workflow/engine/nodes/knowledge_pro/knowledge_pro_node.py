@@ -8,12 +8,11 @@ operations using various knowledge repositories and LLM providers.
 import asyncio
 import json
 import os
-import time
-from typing import Any, Dict
+from typing import Any, List, Literal
 
 import aiohttp
 from aiohttp import ClientTimeout
-
+from pydantic import Field
 from workflow.engine.entities.node_entities import NodeType
 from workflow.engine.entities.variable_pool import VariablePool
 from workflow.engine.nodes.base_node import BaseNode
@@ -38,51 +37,29 @@ class KnowledgeProNode(BaseNode):
     """
 
     # LLM configuration parameters
-    model: str  # LLM model identifier
-    url: str  # Base URL for LLM API endpoint
-    domain: str  # Domain specification for the model
-    appId: str  # Application ID for authentication
-    apiKey: str  # API key for authentication
-    apiSecret: str  # API secret for authentication
-    temperature: float  # Temperature parameter for response generation (0.0-1.0)
-    maxTokens: int  # Maximum number of tokens in response
-    topK: int  # Top-K parameter for response generation (1-6)
-    uid: str = ""  # User identifier (optional)
+    model: str = Field(..., min_length=1)  # LLM model identifier
+    url: str = Field(..., min_length=1)  # Base URL for LLM API endpoint
+    domain: str = Field(..., min_length=1)  # Domain specification for the model
+    appId: str = Field(..., min_length=1)  # Application ID for authentication
+    apiKey: str = Field(..., min_length=1)  # API key for authentication
+    apiSecret: str = Field(..., min_length=1)  # API secret for authentication
+    temperature: float = Field(
+        ..., gt=0.0, le=1.0
+    )  # Temperature parameter for response generation (0.0-1.0)
+    maxTokens: int = Field(..., ge=1)  # Maximum number of tokens in response
+    topK: int = Field(..., ge=1, le=6)  # Top-K parameter for response generation (1-6)
+    uid: str = Field(default="")  # User identifier (optional)
 
     # RAG configuration parameters
-    ragType: int  # RAG type (1: AGENTIC_RAG, 2: LONG_RAG)
-    repoIds: list  # List of repository IDs to query
-    docIds: list = []  # List of document IDs (required for CBG_RAG)
-    repoType: int  # Repository type (1: AIUI_RAG2, 2: CBG_RAG)
-    repoTopK: int  # Number of top documents to retrieve (1-5)
-    answerRole: str = ""  # Role specification for answer generation
-    score: float = 0.1  # Score threshold for document relevance
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the complete node configuration as a dictionary.
-
-        :return: Dictionary containing all node configuration parameters
-        """
-        return {
-            "model": self.model,
-            "url": self.url,
-            "domain": self.domain,
-            "appId": self.appId,
-            "apiKey": self.apiKey,
-            "apiSecret": self.apiSecret,
-            "temperature": self.temperature,
-            "maxTokens": self.maxTokens,
-            "topK": self.topK,
-            "uid": self.uid,
-            "ragType": self.ragType,
-            "repoIds": self.repoIds,
-            "docIds": self.docIds,
-            "repoType": self.repoType,
-            "repoTopK": self.repoTopK,
-            "answerRole": self.answerRole,
-            "score": self.score,
-        }
+    ragType: Literal[1, 2] = Field(...)  # RAG type (1: AGENTIC_RAG, 2: LONG_RAG)
+    repoIds: List[str] = Field(..., min_length=1)  # List of repository IDs to query
+    docIds: List[str] = Field(
+        ..., default_factory=list
+    )  # List of document IDs (required for CBG_RAG)
+    repoType: Literal[1, 2] = Field(...)  # Repository type (1: AIUI_RAG2, 2: CBG_RAG)
+    repoTopK: int = Field(..., ge=1, le=5)  # Number of top documents to retrieve (1-5)
+    answerRole: str = Field(default="")  # Role specification for answer generation
+    score: float = Field(default=0.1)  # Score threshold for document relevance
 
     @property
     def run_s(self) -> WorkflowNodeExecutionStatus:
@@ -113,7 +90,7 @@ class KnowledgeProNode(BaseNode):
         """
         if self.repoType == RepoTypeEnum.CBG_RAG.value and self.docIds == []:
             raise CustomException(
-                err_code=CodeEnum.KnowledgeParamError, err_msg="docIds is empty"
+                err_code=CodeEnum.KNOWLEDGE_PARAM_ERROR, err_msg="docIds is empty"
             )
 
     async def execute(
@@ -131,7 +108,6 @@ class KnowledgeProNode(BaseNode):
         :param kwargs: Additional keyword arguments including msg_or_end_node_deps
         :return: NodeRunResult containing execution status and outputs
         """
-        start_time = time.time()
         msg_or_end_node_deps = kwargs.get("msg_or_end_node_deps", {})
         status = self.run_s
         # Collection of knowledge base content frames
@@ -203,7 +179,7 @@ class KnowledgeProNode(BaseNode):
                                 self.get_stream_done_content(),
                             )
                             raise CustomException(
-                                err_code=CodeEnum.KnowledgeRequestError,
+                                err_code=CodeEnum.KNOWLEDGE_REQUEST_ERROR,
                                 err_msg=msg.get("message", ""),
                                 cause_error=json.dumps(msg, ensure_ascii=False),
                             )
@@ -233,7 +209,7 @@ class KnowledgeProNode(BaseNode):
         except asyncio.TimeoutError:
             # Handle timeout errors during API request
             log_err = CustomException(
-                err_code=CodeEnum.KnowledgeNodeExecutionError,
+                err_code=CodeEnum.KNOWLEDGE_NODE_EXECUTION_ERROR,
                 err_msg=f"Knowledge Pro node response timeout ({interval_timeout}s)",
                 cause_error=f"Knowledge Pro node response timeout ({interval_timeout}s)",
             )
@@ -242,8 +218,7 @@ class KnowledgeProNode(BaseNode):
             span.record_exception(log_err)
             return NodeRunResult(
                 status=status,
-                error=log_err.message,
-                error_code=log_err.code,
+                error=log_err,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -255,8 +230,7 @@ class KnowledgeProNode(BaseNode):
             span.record_exception(err)
             return NodeRunResult(
                 status=status,
-                error=err.message,
-                error_code=err.code,
+                error=err,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -267,8 +241,10 @@ class KnowledgeProNode(BaseNode):
             status = self.run_f
             return NodeRunResult(
                 status=status,
-                error=f"{str(e)}",
-                error_code=CodeEnum.KnowledgeNodeExecutionError.code,
+                error=CustomException(
+                    CodeEnum.KNOWLEDGE_NODE_EXECUTION_ERROR,
+                    cause_error=e,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -282,30 +258,7 @@ class KnowledgeProNode(BaseNode):
             node_id=self.node_id,
             alias_name=self.alias_name,
             node_type=self.node_type,
-            time_cost=str(round(time.time() - start_time, 3)),
         )
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented).
-
-        This method is not supported for Knowledge Pro node as it requires
-        asynchronous operations for streaming responses.
-
-        :param variable_pool: Pool of variables for the workflow execution
-        :param span: Tracing span for observability
-        :param event_log_node_trace: Optional node log trace
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution status and outputs
-        :raises NotImplementedError: Always raised as sync execution is not supported
-        """
-        raise NotImplementedError
 
     async def async_execute(
         self,

@@ -6,7 +6,7 @@ from common.service.base import ServiceFactory, ServiceType
 from common.service.otlp.span.span_service import OtlpSpanService
 
 
-def init_otlp_span():
+def init_otlp_span() -> None:
 
     # global global_otlp_trace_args
 
@@ -14,8 +14,8 @@ def init_otlp_span():
         return
 
     global_otlp_trace_args.otlp_endpoint = os.getenv("OTLP_ENDPOINT", "")
-    global_otlp_trace_args.otlp_service_name = os.getenv("OTLP_SERVICE_NAME", "")
-    global_otlp_trace_args.otlp_dc = os.getenv("OTLP_DC", "")
+    global_otlp_trace_args.otlp_service_name = os.getenv("SERVICE_NAME", "")
+    global_otlp_trace_args.otlp_dc = os.getenv("SERVICE_LOCATION", "")
 
     global_otlp_trace_args.trace_timeout = int(os.getenv("OTLP_TRACE_TIMEOUT", "3000"))
     global_otlp_trace_args.trace_max_queue_size = int(
@@ -44,9 +44,9 @@ def init_otlp_span():
 class OtlpSpanFactory(ServiceFactory):
     name = ServiceType.OTLP_SPAN_SERVICE
 
-    def __init__(self):
-        super().__init__(OtlpSpanService)
+    def __init__(self) -> None:
+        super().__init__(OtlpSpanService)  # type: ignore[arg-type]
 
-    def create(self):
-        init_otlp_span()
-        return OtlpSpanService()
+    def create(self, *args: tuple, **kwargs: dict) -> OtlpSpanService:
+        init_otlp_span()  # type: ignore[report-unused-awaitable]
+        return OtlpSpanService()  # type: ignore[return-value]

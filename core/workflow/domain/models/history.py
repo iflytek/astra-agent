@@ -10,7 +10,6 @@ from typing import Optional
 
 from sqlalchemy import BigInteger, Column
 from sqlmodel import Field  # type: ignore
-
 from workflow.domain.models.base import SQLModelSerializable
 
 

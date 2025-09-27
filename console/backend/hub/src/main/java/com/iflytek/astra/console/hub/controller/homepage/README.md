@@ -1,1 +1,0 @@
-# Homepage and Square API

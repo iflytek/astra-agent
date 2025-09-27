@@ -7,9 +7,8 @@ from database tables.
 
 from typing import Literal
 
-from pydantic import Field
-
 from memory.database.api.schemas.common_types import DidUidCommon
+from pydantic import Field
 
 
 class ExportDataInput(DidUidCommon):  # pylint: disable=too-few-public-methods
@@ -22,6 +21,7 @@ class ExportDataInput(DidUidCommon):  # pylint: disable=too-few-public-methods
         table_name (str): Name of the table to export data from (required)
         env (Literal["prod", "test"]): Environment (required, either 'prod' or 'test')
     """
+
     # app_id: Required, cannot contain Chinese and special characters
     app_id: str = Field(
         ...,
@@ -31,4 +31,6 @@ class ExportDataInput(DidUidCommon):  # pylint: disable=too-few-public-methods
     # table_name: Required
     table_name: str
     # env: Required, can only be prod or test
-    env: Literal["prod", "test"] = Field(..., description="Required, can only be prod or test")
+    env: Literal["prod", "test"] = Field(
+        ..., description="Required, can only be prod or test"
+    )

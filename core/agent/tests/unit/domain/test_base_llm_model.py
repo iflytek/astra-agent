@@ -1,4 +1,4 @@
-"""基础LLM模型单元测试模块."""
+"""基础LLM模型单元test模块."""
 
 import asyncio
 from typing import Any, AsyncIterator, Dict, List
@@ -10,68 +10,62 @@ from domain.models.base import BaseLLMModel
 
 
 class TestBaseLLMModel:
-    """BaseLLMModel测试类."""
+    """BaseLLMModeltest类."""
 
     def setup_method(self) -> None:
-        """测试方法初始化."""
-        # 创建mock AsyncOpenAI客户端
+        """test方法初始化."""
+        # create mock AsyncOpenAI client
         self.mock_llm = AsyncMock()  # pylint: disable=attribute-defined-outside-init
         self.model_name = "test_model"  # pylint: disable=attribute-defined-outside-init
 
-        # 使用model_construct绕过Pydantic验证
+        # use model_construct to bypass Pydantic validation
         self.model = BaseLLMModel.model_construct(  # pylint: disable=attribute-defined-outside-init
             name=self.model_name, llm=self.mock_llm
         )
 
     def test_model_initialization(self) -> None:
-        """测试模型初始化."""
+        """test模型初始化."""
         assert self.model.name == self.model_name
         assert self.model.llm == self.mock_llm
 
     def test_model_config(self) -> None:
-        """测试模型配置."""
-        # 验证配置允许任意类型
-        # 验证模型配置存在
+        """test模型配置."""
+        # verify config allows arbitrary types
+        # verify model config exists
         assert hasattr(BaseLLMModel, "model_config")
 
     @pytest.mark.asyncio
     async def test_create_completion_success(self) -> None:
-        """测试成功创建completion."""
+        """test成功创建completion."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
         expected_response = Mock()
 
-        # Mock OpenAI客户端调用
+        # Mock OpenAI client call
         self.mock_llm.chat.completions.create = AsyncMock(
             return_value=expected_response
         )
 
-        with patch("domain.models.base.agent_config") as mock_config:
-            mock_config.default_llm_timeout = 60
-            mock_config.default_llm_max_token = 10000
+        result = await self.model.create_completion(test_messages, test_stream)
 
-            result = await self.model.create_completion(test_messages, test_stream)
+        # Verify results
+        assert result == expected_response
 
-            # 验证结果
-            assert result == expected_response
-
-            # 验证调用参数
-            self.mock_llm.chat.completions.create.assert_called_once_with(
-                messages=test_messages,
-                stream=test_stream,
-                model=self.model_name,
-                timeout=60,
-                max_tokens=10000,
-            )
+        # verify call parameters
+        self.mock_llm.chat.completions.create.assert_called_once_with(
+            messages=test_messages,
+            stream=test_stream,
+            model=self.model_name,
+        )
 
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_stream_success_without_span(self, mock_create: AsyncMock) -> None:
-        """测试无span的流式处理成功."""
+        """test无span的流式处理成功."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
 
-        # Mock chunk数据
+        # Mock chunk data
         mock_chunk1 = Mock()
         mock_chunk1.model_dump.return_value = {"code": 0, "content": "chunk1"}
         mock_chunk1.model_dump_json.return_value = '{"content": "chunk1"}'
@@ -80,7 +74,7 @@ class TestBaseLLMModel:
         mock_chunk2.model_dump.return_value = {"code": 0, "content": "chunk2"}
         mock_chunk2.model_dump_json.return_value = '{"content": "chunk2"}'
 
-        # Mock异步迭代器
+        # Mock async iterator
         async def mock_response_iterator() -> AsyncIterator[Mock]:
             yield mock_chunk1
             yield mock_chunk2
@@ -90,12 +84,12 @@ class TestBaseLLMModel:
 
         mock_create.return_value = mock_response_iterator()
 
-        # 收集流式结果
+        # collect streaming results
         results = []
         async for chunk in self.model.stream(test_messages, test_stream, None):
             results.append(chunk)
 
-        # 验证结果
+        # Verify results
         assert len(results) == 2
         assert results[0] == mock_chunk1
         assert results[1] == mock_chunk2
@@ -103,7 +97,7 @@ class TestBaseLLMModel:
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_stream_success_with_span(self, mock_create: AsyncMock) -> None:
-        """测试带span的流式处理成功."""
+        """test带span的流式处理成功."""
         test_messages = [
             {"role": "user", "content": "test user message"},
             {"role": "assistant", "content": "test assistant message"},
@@ -114,7 +108,7 @@ class TestBaseLLMModel:
         mock_span = Mock()
         mock_span.add_info_events = Mock()
 
-        # Mock chunk数据
+        # Mock chunk data
         mock_chunk = Mock()
         mock_chunk.model_dump.return_value = {"code": 0, "content": "chunk"}
         mock_chunk.model_dump_json.return_value = '{"content": "chunk"}'
@@ -124,17 +118,17 @@ class TestBaseLLMModel:
 
         mock_create.return_value = mock_response_iterator()
 
-        # 执行流式处理
+        # execute streaming processing
         results = []
         async for chunk in self.model.stream(test_messages, test_stream, mock_span):
             results.append(chunk)
 
-        # 验证span调用
+        # verify span calls
         assert (
             mock_span.add_info_events.call_count >= 4
         )  # messages + model + stream + chunk
 
-        # 验证具体的span调用
+        # verify specific span calls
         calls = mock_span.add_info_events.call_args_list
         message_calls = [
             call for call in calls if "user" in str(call) or "assistant" in str(call)
@@ -147,11 +141,11 @@ class TestBaseLLMModel:
     async def test_stream_error_chunk_handling(
         self, mock_create: AsyncMock, mock_error_handler: Mock
     ) -> None:
-        """测试错误chunk处理."""
+        """test错误chunk处理."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
 
-        # Mock错误chunk
+        # Mock error chunk
         mock_error_chunk = Mock()
         mock_error_chunk.model_dump.return_value = {
             "code": 500,
@@ -163,18 +157,18 @@ class TestBaseLLMModel:
 
         mock_create.return_value = mock_response_iterator()
 
-        # 执行并验证错误处理
+        # execute and verify error handling
         results = []
         async for chunk in self.model.stream(test_messages, test_stream, None):
             results.append(chunk)
 
-            # 验证错误处理器被调用
+            # verify error handler is called
             mock_error_handler.assert_called_once_with(500, "Internal server error")
 
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_stream_api_timeout_error(self, mock_create: AsyncMock) -> None:
-        """测试API超时错误处理."""
+        """testAPI超时错误处理."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
 
@@ -184,11 +178,11 @@ class TestBaseLLMModel:
         # pylint: disable=import-outside-toplevel
         from exceptions.plugin_exc import PluginExc
 
-        # 创建一个mock请求对象
+        # create a mock request object
         mock_request = Mock()
         mock_create.side_effect = APITimeoutError(mock_request)
 
-        # 验证异常处理
+        # verify exception handling
         with pytest.raises(PluginExc, match="请求服务超时"):
             results = []
             async for chunk in self.model.stream(test_messages, test_stream, None):
@@ -200,7 +194,7 @@ class TestBaseLLMModel:
     async def test_stream_api_error_handling(
         self, mock_create: AsyncMock, mock_error_handler: Mock
     ) -> None:
-        """测试API错误处理."""
+        """testAPI错误处理."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
         mock_span = Mock()
@@ -209,7 +203,7 @@ class TestBaseLLMModel:
         # pylint: disable=import-outside-toplevel
         from openai import APIError
 
-        # Mock API错误
+        # Mock API error
         api_error = APIError(
             message="API Error", request=Mock(), body={"error": "Bad request"}
         )
@@ -217,15 +211,15 @@ class TestBaseLLMModel:
 
         mock_create.side_effect = api_error
 
-        # 执行并验证错误处理
+        # execute and verify error handling
         results = []
         async for chunk in self.model.stream(test_messages, test_stream, mock_span):
             results.append(chunk)
 
-        # 验证span记录错误信息
+        # verify span records error information
         assert mock_span.add_info_events.call_count >= 4
 
-        # 验证错误处理器被调用
+        # verify error handler is called
         mock_error_handler.assert_called_once_with("400", "API Error")
 
     @pytest.mark.asyncio
@@ -234,7 +228,7 @@ class TestBaseLLMModel:
     async def test_stream_value_error_handling(
         self, mock_create: AsyncMock, mock_error_handler: Mock
     ) -> None:
-        """测试值错误处理."""
+        """test值错误处理."""
         test_messages = [{"role": "user", "content": "test message"}]
         test_stream = True
         mock_span = Mock()
@@ -242,31 +236,31 @@ class TestBaseLLMModel:
 
         mock_create.side_effect = ValueError("Invalid value")
 
-        # 执行并验证错误处理
+        # execute and verify error handling
         results = []
         async for chunk in self.model.stream(test_messages, test_stream, mock_span):
             results.append(chunk)
 
-        # 验证span记录错误信息
+        # verify span records error information
         assert mock_span.add_info_events.call_count >= 3
 
-        # 验证错误处理器被调用
+        # verify error handler is called
         mock_error_handler.assert_called_once_with("-1", "Invalid value")
 
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_stream_concurrent_access(self, mock_create: AsyncMock) -> None:
-        """测试并发访问流式处理."""
+        """test并发访问流式处理."""
         test_messages = [{"role": "user", "content": "test message"}]
 
-        # Mock chunk数据
+        # Mock chunk data
         mock_chunk = Mock()
         mock_chunk.model_dump.return_value = {"code": 0, "content": "chunk"}
         mock_chunk.model_dump_json.return_value = '{"content": "chunk"}'
 
         def mock_response_iterator_factory() -> AsyncIterator[Mock]:
             async def mock_response_iterator() -> AsyncIterator[Mock]:
-                await asyncio.sleep(0.01)  # 模拟延迟
+                await asyncio.sleep(0.01)  # simulate delay
                 yield mock_chunk
 
             return mock_response_iterator()
@@ -275,7 +269,7 @@ class TestBaseLLMModel:
             lambda *_args, **_kwargs: mock_response_iterator_factory()
         )
 
-        # 创建并发任务
+        # create concurrent tasks
         tasks = []
         for _ in range(3):
             task = asyncio.create_task(
@@ -283,10 +277,10 @@ class TestBaseLLMModel:
             )
             tasks.append(task)
 
-        # 等待所有任务完成
+        # wait for all tasks to complete
         results = await asyncio.gather(*tasks)
 
-        # 验证所有任务都成功
+        # verify all tasks succeeded
         for result_list in results:
             assert len(result_list) == 1
             assert result_list[0] == mock_chunk
@@ -294,7 +288,7 @@ class TestBaseLLMModel:
     async def _collect_stream_results(
         self, messages: List[Dict[str, Any]], stream: bool
     ) -> List[Any]:
-        """辅助方法：收集流式结果."""
+        """辅助方法：collect streaming results."""
         results = []
         async for chunk in self.model.stream(messages, stream, None):
             results.append(chunk)
@@ -303,16 +297,16 @@ class TestBaseLLMModel:
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_unicode_message_handling(self, mock_create: AsyncMock) -> None:
-        """测试Unicode消息处理."""
+        """testUnicode消息处理."""
         unicode_messages = [
-            {"role": "user", "content": "测试中文消息🚀"},
+            {"role": "user", "content": "test中文消息🚀"},
             {"role": "assistant", "content": "中文回复✅"},
         ]
         test_stream = True
         mock_span = Mock()
         mock_span.add_info_events = Mock()
 
-        # Mock chunk数据
+        # Mock chunk data
         mock_chunk = Mock()
         mock_chunk.model_dump.return_value = {"code": 0, "content": "中文响应"}
         mock_chunk.model_dump_json.return_value = '{"content": "中文响应"}'
@@ -322,53 +316,53 @@ class TestBaseLLMModel:
 
         mock_create.return_value = mock_response_iterator()
 
-        # 执行流式处理
+        # execute streaming processing
         results = []
         async for chunk in self.model.stream(unicode_messages, test_stream, mock_span):
             results.append(chunk)
 
-        # 验证Unicode内容正确处理
+        # verify Unicode content is handled correctly
         assert len(results) == 1
         assert results[0] == mock_chunk
 
-        # 验证span记录了Unicode内容
+        # verify span recorded Unicode content
         calls = mock_span.add_info_events.call_args_list
         unicode_calls = [
-            call for call in calls if any("测试中文" in str(arg) for arg in call.args)
+            call for call in calls if any("test中文" in str(arg) for arg in call.args)
         ]
         assert len(unicode_calls) > 0
 
     @pytest.mark.asyncio
     @patch("domain.models.base.BaseLLMModel.create_completion", new_callable=AsyncMock)
     async def test_empty_messages_handling(self, mock_create: AsyncMock) -> None:
-        """测试空消息列表处理."""
+        """test空消息列表处理."""
         empty_messages: List[Dict[str, Any]] = []
         test_stream = True
 
         async def mock_empty_response() -> AsyncIterator[Any]:
-            # 空的异步生成器，用于模拟无响应情况
+            # empty async generator for simulating no response scenario
             return
             yield  # pylint: disable=unreachable
 
         mock_create.return_value = mock_empty_response()
 
-        # 执行流式处理
+        # execute streaming processing
         results = []
         async for chunk in self.model.stream(empty_messages, test_stream, None):
             results.append(chunk)
 
-        # 验证空消息处理
+        # verify empty message handling
         assert len(results) == 0
 
     def test_model_attribute_access(self) -> None:
-        """测试模型属性访问."""
-        # 测试名称访问
+        """test模型属性访问."""
+        # test name access
         assert self.model.name == self.model_name
 
-        # 测试LLM客户端访问
+        # test LLM client access
         assert self.model.llm == self.mock_llm
 
-        # 测试属性设置
+        # test attribute setting
         new_name = "new_model_name"
         self.model.name = new_name
         assert self.model.name == new_name

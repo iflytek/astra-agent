@@ -8,6 +8,7 @@ import hashlib
 import hmac
 import io
 import json
+import os
 import ssl
 import xml.etree.ElementTree as ET
 from datetime import datetime
@@ -372,7 +373,7 @@ class ISEClient:
         self.app_id = app_id
         self.api_key = api_key
         self.api_secret = api_secret
-        self.base_url = "wss://ise-api.xfyun.cn/v2/open-ise"
+        self.base_url = os.getenv("ISE_URL")
         self.evaluation_complete = False
 
     async def evaluate_audio(
@@ -547,7 +548,7 @@ class ISEClient:
                     frame_size = 1280  # 每帧1280字节，与官方示例保持一致
 
                     for i in range(0, len(audio_data), frame_size):
-                        chunk = audio_data[i: i + frame_size]
+                        chunk = audio_data[i : i + frame_size]
                         is_last_frame = i + frame_size >= len(audio_data)
 
                         if is_last_frame:

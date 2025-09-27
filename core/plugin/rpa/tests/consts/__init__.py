@@ -1,1 +1,1 @@
-"""Consts测试模块。"""
+"""Constants test module."""

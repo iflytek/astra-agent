@@ -5,20 +5,21 @@ call_tool API endpoint. It provides an example of calling the generate-mind-map
 tool with sample data to create mind maps for project planning purposes.
 """
 
-import requests
 import json
+
+import requests
 
 URL = "http://localhost:18888/api/v1/mcp/call_tool"  # localhost url
 # URL = "http://10.1.87.65:18888/api/v1/mcp/call_tool" # dev url
-# URL = "http://pre-agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url internal access
-# URL = "http://agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pro url internal access
+# URL = "http://pre-agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url access
+# URL = "http://agentbuilder.aipaasapi.cn/api/v1/mcp/call_tool"  # pre url access
 
 calc_payload = json.dumps(
     {
         "mcp_server_id": "",
         "mcp_server_url": "http://xingchen-api.xf-yun.com/mcp/7369188804684468224/sse",
         "tool_name": "工具名",
-        "tool_args": {"name":"nihao"}
+        "tool_args": {"name": "nihao"},
     }
 )
 

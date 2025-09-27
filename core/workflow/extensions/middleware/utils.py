@@ -24,6 +24,7 @@ class ServiceType(str, Enum):
     KAFKA_PRODUCER_SERVICE = "kafka_producer_service"
     OSS_SERVICE = "oss_service"
     MASDK_SERVICE = "masdk_service"
+    OTLP_SERVICE = "otlp_service"
 
 
 def get_factories_and_deps() -> List[Tuple[Any, List[ServiceType]]]:
@@ -40,8 +41,8 @@ def get_factories_and_deps() -> List[Tuple[Any, List[ServiceType]]]:
     from workflow.extensions.middleware.database import factory as database_factory
     from workflow.extensions.middleware.kafka import factory as kafka_producer_factory
     from workflow.extensions.middleware.log import factory as log_factory
-    from workflow.extensions.middleware.masdk import factory as masdk_factory
     from workflow.extensions.middleware.oss import factory as oss_factory
+    from workflow.extensions.middleware.otlp import factory as otlp_factory
 
     return [
         (
@@ -60,9 +61,6 @@ def get_factories_and_deps() -> List[Tuple[Any, List[ServiceType]]]:
             oss_factory.OSSServiceFactory(),
             [ServiceType.OSS_SERVICE],
         ),
-        (
-            masdk_factory.MASDKServiceFactory(),
-            [ServiceType.MASDK_SERVICE],
-        ),
         (log_factory.LogServiceFactory(), [ServiceType.LOG_SERVICE]),
+        (otlp_factory.OTLPServiceFactory(), [ServiceType.OTLP_SERVICE]),
     ]

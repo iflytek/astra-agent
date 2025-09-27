@@ -4,19 +4,18 @@ import io
 from typing import Dict, List, Tuple
 
 import pandas as pd
+from common.otlp.trace.span import Span
+from common.service import get_otlp_metric_service, get_otlp_span_service
 from fastapi import APIRouter, Depends, File, Form, UploadFile
-from sqlalchemy import text
-from sqlmodel.ext.asyncio.session import AsyncSession
-from starlette.responses import JSONResponse
-
 from memory.database.api.schemas.upload_data_types import UploadDataInput
 from memory.database.domain.entity.views.http_resp import format_response
 from memory.database.exceptions.e import CustomException
 from memory.database.exceptions.error_code import CodeEnum
-from common.service import get_otlp_span_service, get_otlp_metric_service
-from common.otlp.trace.span import Span
 from memory.database.repository.middleware.getters import get_session
 from memory.database.utils.snowfake import get_id
+from sqlalchemy import text
+from sqlmodel.ext.asyncio.session import AsyncSession
+from starlette.responses import JSONResponse
 
 upload_data_router = APIRouter(tags=["UPLOAD_DATA"])
 
@@ -25,7 +24,7 @@ INSERT_EXTRA_COLUMNS = ["id", "uid"]
 
 
 async def parse_upload_file(
-        file: UploadFile
+    file: UploadFile,
 ) -> Tuple[List[str], List[Dict], List[int]]:
     """
     Parse the uploaded file and return columns, records and line numbers.
@@ -44,7 +43,7 @@ async def parse_upload_file(
     """
     content = await file.read()
 
-    if not file.filename.endswith(SUPPORT_DATA_FILE_TYPES):
+    if not file.filename or not file.filename.endswith(SUPPORT_DATA_FILE_TYPES):
         raise CustomException(
             CodeEnum.UploadFileTypeError.code,
             message="Data file type only supports csv, xls or xlsx",
@@ -56,10 +55,10 @@ async def parse_upload_file(
             df = pd.read_csv(io.BytesIO(content))
         elif ext in ["xls", "xlsx"]:
             df = pd.read_excel(io.BytesIO(content))
-    except Exception as parse_error: # pylint: disable=broad-except
+    except Exception as parse_error:  # pylint: disable=broad-except
         raise CustomException(
             CodeEnum.ParseFileError.code,
-            message=f"File parsing failed: {str(parse_error)}"
+            message=f"File parsing failed: {str(parse_error)}",
         ) from parse_error
 
     if df.empty:
@@ -73,13 +72,13 @@ async def parse_upload_file(
 
 
 async def insert_in_batches(
-        db: AsyncSession,
-        table_name: str,
-        records: List[Dict],
-        line_numbers: List[int],
-        uid: str,
-        batch_size: int = 500,
-        span_context: Span = None,
+    db: AsyncSession,
+    table_name: str,
+    records: List[Dict],
+    line_numbers: List[int],
+    uid: str,
+    batch_size: int = 500,
+    span_context: Span = None,
 ) -> Tuple[List[int], List[Dict]]:
     """
     Insert records into database table in batches.
@@ -115,16 +114,16 @@ async def insert_in_batches(
     failed_rows = []
 
     for i in range(0, len(records), batch_size):
-        batch = records[i:i + batch_size]
-        batch_lines = line_numbers[i:i + batch_size]
+        batch = records[i : i + batch_size]
+        batch_lines = line_numbers[i : i + batch_size]
 
         for item, line_no in zip(batch, batch_lines):
             try:
                 row_id = get_id()
                 item.update({"id": row_id, "uid": uid})
-                await db.execute(sql, item)
+                await db.execute(sql, item)  # type: ignore[call-overload]
                 success_rows.append(row_id)
-            except Exception as insert_error: # pylint: disable=broad-except
+            except Exception as insert_error:  # pylint: disable=broad-except
                 failed_rows.append({"line": line_no, "error": str(insert_error)})
 
     return success_rows, failed_rows
@@ -132,14 +131,16 @@ async def insert_in_batches(
 
 @upload_data_router.post("/upload_data", response_class=JSONResponse)
 async def upload_data(
-        app_id: str = Form(...),
-        database_id: int = Form(...),
-        uid: str = Form(...),
-        table_name: str = Form(...),
-        env: str = Form(...),
-        file: UploadFile = File(..., description="Upload data file, supports csv or xlsx format"),
-        db: AsyncSession = Depends(get_session),
-):
+    app_id: str = Form(...),
+    database_id: int = Form(...),
+    uid: str = Form(...),
+    table_name: str = Form(...),
+    env: str = Form(...),
+    file: UploadFile = File(
+        ..., description="Upload data file, supports csv or xlsx format"
+    ),
+    db: AsyncSession = Depends(get_session),
+) -> JSONResponse:
     """
     Upload data from file to specified database table.
 
@@ -155,15 +156,14 @@ async def upload_data(
     Returns:
         JSON response with upload results
     """
-    # span = Span(uid=uid)
     metric_service = get_otlp_metric_service()
     m = metric_service.get_meter()(func="upload_data")
     span_service = get_otlp_span_service()
     span = span_service.get_span()(uid=uid)
     with span.start(
-            func_name="upload_data",
-            add_source_function_name=True,
-            attributes={"uid": uid, "database_id": database_id},
+        func_name="upload_data",
+        add_source_function_name=True,
+        attributes={"uid": uid, "database_id": database_id},
     ) as span_context:
         try:
             need_check = UploadDataInput(
@@ -178,20 +178,21 @@ async def upload_data(
             schema = f"{env}_{uid}_{database_id}"
             span_context.add_info_event(f"schema: {schema}")
             try:
-                await db.execute(text(f'SET search_path TO "{schema}"'))
-            except Exception as schema_error: # pylint: disable=broad-except
+                await db.execute(text(f'SET search_path TO "{schema}"'))  # type: ignore[call-overload]
+            except Exception as schema_error:  # pylint: disable=broad-except
                 span_context.record_exception(schema_error)
                 raise CustomException(
-                    CodeEnum.NoSchemaError,
-                    err_msg=f"Invalid schema: {schema}"
+                    CodeEnum.NoSchemaError, err_msg=f"Invalid schema: {schema}"
                 ) from schema_error
 
-            sql = text("""
+            sql = text(
+                """
                 SELECT column_name
                 FROM information_schema.columns
                 WHERE table_name = :table_name AND table_schema = :table_schema
-            """)
-            result = await db.execute(
+            """
+            )
+            result = await db.execute(  # type: ignore[call-overload]
                 sql, {"table_name": table_name, "table_schema": schema}
             )
             table_columns = [row[0] for row in result.fetchall()]
@@ -205,7 +206,8 @@ async def upload_data(
             if diff:
                 raise CustomException(
                     CodeEnum.UploadFileTypeError,
-                    err_msg="Upload data column names do not match target table, please check",
+                    err_msg="Upload data column names do not match target table, "
+                    "please check",
                 )
 
             success_rows, failed_rows = await insert_in_batches(
@@ -217,35 +219,33 @@ async def upload_data(
 
             try:
                 await db.commit()
-            except Exception as commit_error: # pylint: disable=broad-except
+            except Exception as commit_error:  # pylint: disable=broad-except
                 await db.rollback()
                 raise CustomException(
                     CodeEnum.DatabaseExecutionError,
-                    err_msg=f"Execution failed: {str(commit_error)}"
+                    err_msg=f"Execution failed: {str(commit_error)}",
                 ) from commit_error
 
             m.in_success_count(lables={"uid": uid})
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 0,
                 message="success",
                 data={"success_rows": success_rows, "failed_rows": failed_rows},
             )
         except CustomException as custom_error:
             m.in_error_count(custom_error.code, lables={"uid": uid}, span=span_context)
-            return format_response(
+            return format_response(  # type: ignore[no-any-return]
                 code=custom_error.code,
                 message=custom_error.message,
-                sid=span_context.sid
+                sid=span_context.sid,
             )
-        except Exception as unexpected_error: # pylint: disable=broad-except
+        except Exception as unexpected_error:  # pylint: disable=broad-except
             span_context.record_exception(unexpected_error)
             m.in_error_count(
                 code=-1,
                 lables={"uid": uid},
                 span=span_context,
             )
-            return format_response(
-                code="-1",
-                message="Upload data failed",
-                sid=span_context.sid
+            return format_response(  # type: ignore[no-any-return]
+                code="-1", message="Upload data failed", sid=span_context.sid
             )

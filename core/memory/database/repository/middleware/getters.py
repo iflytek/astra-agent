@@ -4,11 +4,10 @@ Database session management module for async database operations.
 
 from typing import AsyncGenerator
 
-from sqlmodel.ext.asyncio.session import AsyncSession
-
 from memory.database.domain.entity.schema import set_search_path_by_schema
 from memory.database.repository.middleware.manager import service_manager
 from memory.database.repository.middleware.mid_utils import ServiceType
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:

@@ -31,8 +31,8 @@ class ImageUnderstandingClient:
     def create_url(self):
         now = datetime.now()
         date = format_date_time(mktime(now.timetuple()))
-        signature_origin = f"host: {urlparse(self.imageunderstanding_url).netloc}\n\
-        date: {date}\nGET {urlparse(self.imageunderstanding_url).path} HTTP/1.1"
+        signature_origin = f"host: {urlparse(self.imageunderstanding_url).netloc}\n"\
+        f"date: {date}\nGET {urlparse(self.imageunderstanding_url).path} HTTP/1.1"
         signature_sha = hmac.new(
             self.api_secret.encode("utf-8"),
             signature_origin.encode("utf-8"),
@@ -109,7 +109,7 @@ class ImageUnderstandingClient:
             "header": {"app_id": self.app_id},
             "parameter": {
                 "chat": {
-                    "domain": "image",
+                    "domain": "imagev3",
                     "temperature": 0.5,
                     "top_k": 4,
                     "max_tokens": 8192,
@@ -142,4 +142,3 @@ class ImageUnderstandingClient:
         )
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
         return self.answer, self.sid, self.error_message
-    

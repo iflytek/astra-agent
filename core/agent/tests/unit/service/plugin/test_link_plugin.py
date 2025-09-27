@@ -347,7 +347,7 @@ class TestLinkPluginRunner:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.run_link_url = "http://test-url"
+                mock_config.RUN_LINK_URL = "http://test-url"
 
                 # Act
                 result = await link_runner.run(action_input, mock_span)
@@ -389,7 +389,7 @@ class TestLinkPluginRunner:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.run_link_url = "http://test-url"
+                mock_config.RUN_LINK_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(RunToolExc)) as exc_info:
@@ -421,7 +421,7 @@ class TestLinkPluginRunner:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.run_link_url = "http://test-url"
+                mock_config.RUN_LINK_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(RunToolExc)) as exc_info:
@@ -509,7 +509,7 @@ class TestLinkPluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.versions_link_url = "http://test-url"
+                mock_config.VERSIONS_LINK_URL = "http://test-url"
 
                 # Act
                 result = await link_factory.tool_schema_list(mock_span)
@@ -573,7 +573,7 @@ class TestLinkPluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.versions_link_url = "http://test-url"
+                mock_config.VERSIONS_LINK_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(GetToolSchemaExc)) as exc_info:
@@ -611,7 +611,7 @@ class TestLinkPluginFactory:
 
         with patch("aiohttp.ClientSession", return_value=session_context):
             with patch("service.plugin.link.agent_config") as mock_config:
-                mock_config.versions_link_url = "http://test-url"
+                mock_config.VERSIONS_LINK_URL = "http://test-url"
 
                 # Act & Assert
                 with pytest.raises(type(GetToolSchemaExc)) as exc_info:

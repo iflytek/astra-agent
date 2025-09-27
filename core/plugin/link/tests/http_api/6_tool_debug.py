@@ -1,7 +1,8 @@
 """Tool debug test script using numbered prefix for test execution order."""
 
-import requests
 import json
+
+import requests
 
 HOST_LOC = "http://localhost:18888"
 HOST_DEV = "http://10.1.87.65:18888"
@@ -14,7 +15,7 @@ URL = f"{HOST_LOC}{PATH}"
 
 headers = {"Content-Type": "application/json"}
 
-openapi_schema = '''
+openapi_schema = """
 {
     "info": {
         "title": "agentBuilder工具集",
@@ -38,7 +39,7 @@ openapi_schema = '''
         }
     ]
 }
-'''
+"""
 
 payload = json.dumps(
     {

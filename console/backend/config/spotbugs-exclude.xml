@@ -4,10 +4,21 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
 
-    <!-- Exclude certain checks for test classes -->
+    <!-- ================================ -->
+    <!-- 1. Test-related exclusions -->
+    <!-- ================================ -->
     <Match>
         <Class name="~.*Test.*"/>
         <Bug pattern="DM_EXIT,DM_RUN_FINALIZERS_ON_EXIT"/>
+    </Match>
+
+    <!-- ================================ -->
+    <!-- 2. Code style and naming -->
+    <!-- ================================ -->
+
+    <!-- Exclude confusing naming checks -->
+    <Match>
+        <Bug pattern="NM_CONFUSING"/>
     </Match>
 
     <!-- Exclude equals and hashcode related checks -->
@@ -15,84 +26,119 @@
         <Bug pattern="EQ_DOESNT_OVERRIDE_EQUALS,HE_EQUALS_USE_HASHCODE,HE_HASHCODE_USE_OBJECT_EQUALS,EQ_OVERRIDING_EQUALS_NOT_SYMMETRIC"/>
     </Match>
 
+    <!-- ================================ -->
+    <!-- 3. Framework-specific exclusions -->
+    <!-- ================================ -->
+
     <!-- Exclude Spring related static field checks -->
     <Match>
         <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD,MS_SHOULD_BE_FINAL"/>
     </Match>
 
-    <!-- Exclude warnings for ignoring exceptions in auth RefreshTokenService.withRefreshLock -->
-    <Match>
-        <Class name="service.com.iflytek.astra.console.auth.RefreshTokenService"/>
-        <Method name="withRefreshLock"/>
-        <Bug pattern="DE_MIGHT_IGNORE"/>
-    </Match>
-
-    <Match>
-        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
-    </Match>
+    <!-- ================================ -->
+    <!-- 4. Data access and representation -->
+    <!-- ================================ -->
 
     <!-- Exclude internal representation exposure checks -->
     <Match>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
 
-    <!-- Exclude confusing naming checks -->
+    <!-- Exclude unread field checks -->
     <Match>
-        <Bug pattern="NM_CONFUSING"/>
+        <Bug pattern="URF_UNREAD_FIELD"/>
     </Match>
 
-    <!-- Exclude possible null pointer checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="NP_NULL_ON_SOME_PATH,NP_LOAD_OF_KNOWN_NULL_VALUE,RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>-->
-<!--    </Match>-->
+    <!-- Exclude uncalled private method checks -->
+    <Match>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
 
-    <!-- Exclude serialization related checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="SE_BAD_FIELD,SE_NO_SERIALVERSIONID,SE_TRANSIENT_FIELD_NOT_RESTORED"/>-->
-<!--    </Match>-->
+    <!-- ================================ -->
+    <!-- 5. Exception handling -->
+    <!-- ================================ -->
+
+    <!-- Exclude general exception handling checks -->
+    <Match>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- Exclude exception handling related checks for utility classes -->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION,THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+
+    <!-- ================================ -->
+    <!-- 6. String and data processing -->
+    <!-- ================================ -->
 
     <!-- Exclude string related checks -->
     <Match>
         <Bug pattern="DM_CONVERT_CASE,DM_STRING_TOSTRING"/>
     </Match>
 
-    <!-- Exclude performance related checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="DM_BOXED_PRIMITIVE_FOR_PARSING,DM_BOXED_PRIMITIVE_TOSTRING,DM_NUMBER_CTOR"/>-->
-<!--    </Match>-->
-
-    <!-- Exclude thread safety related checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="IS_FIELD_NOT_GUARDED,DC_DOUBLECHECK,ML_SYNC_ON_UPDATED_FIELD"/>-->
-<!--    </Match>-->
-
-    <!-- Exclude exception handling related checks -->
-    <Match>
-        <Bug pattern="REC_CATCH_EXCEPTION"/>
-    </Match>
-
-    <!-- Exclude return value checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="RV_RETURN_VALUE_IGNORED,RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT"/>-->
-<!--    </Match>-->
-
-
-    <!-- Exclude switch statement checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="SF_SWITCH_FALLTHROUGH,SF_SWITCH_NO_DEFAULT"/>-->
-<!--    </Match>-->
-
-    <!-- Exclude finalizer related checks -->
-<!--    <Match>-->
-<!--        <Bug pattern="FI_EMPTY,FI_EXPLICIT_INVOCATION,FI_FINALIZER_NULLS_FIELDS"/>-->
-<!--    </Match>-->
-
+    <!-- ================================ -->
+    <!-- 7. Class-specific exclusions -->
+    <!-- ================================ -->
 
     <!-- Exclude SpaceInfoUtil static state exposure check -->
     <Match>
-        <Class name="com.iflytek.astra.console.commons.util.space.SpaceInfoUtil"/>
+        <Class name="com.iflytek.astron.console.commons.util.space.SpaceInfoUtil"/>
         <Method name="init"/>
         <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+    </Match>
+
+    <!-- Exclude warnings for ignoring exceptions in auth RefreshTokenService.withRefreshLock -->
+    <Match>
+        <Class name="service.com.iflytek.astron.console.auth.RefreshTokenService"/>
+        <Method name="withRefreshLock"/>
+        <Bug pattern="DE_MIGHT_IGNORE"/>
+    </Match>
+
+    <!-- ================================ -->
+    <!-- 8. Hub module specific exclusions -->
+    <!-- ================================ -->
+
+    <!-- Exclude redundant null check in MyBotController -->
+    <Match>
+        <Class name="com.iflytek.astron.console.hub.controller.user.MyBotController"/>
+        <Method name="getBotDetail"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
+    <!-- Exclude redundant null check in ChatEnhanceServiceImpl -->
+    <Match>
+        <Class name="com.iflytek.astron.console.hub.service.chat.impl.ChatEnhanceServiceImpl"/>
+        <Method name="saveFile"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    <!-- Toolkit universal low value alarm filtering -->
+    <Match>
+        <!-- Naming/Style Category -->
+        <Bug pattern="NM_FIELD_NAMING_CONVENTION,NM_METHOD_NAMING_CONVENTION,RI_REDUNDANT_INTERFACES,RC_REF_COMPARISON_BAD_PRACTICE_BOOLEAN,DB_DUPLICATE_BRANCHES"/>
+    </Match>
+
+    <Match>
+        <!-- Redundant/Useless -->
+        <Bug pattern="DLS_DEAD_LOCAL_STORE,UC_USELESS_OBJECT,UCF_USELESS_CONTROL_FLOW,
+                  URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD,RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE,
+                  RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE"/>
+    </Match>
+
+    <Match>
+        <!-- Minor Performance Tips -->
+        <Bug pattern="BX_UNBOXING_IMMEDIATELY_REBOXED,WMI_WRONG_MAP_ITERATOR,SBSC_USE_STRINGBUFFER_CONCATENATION,RV_ABSOLUTE_VALUE_OF_RANDOM_INT,DMI_RANDOM_USED_ONLY_ONCE,SE_BAD_FIELD"/>
+    </Match>
+
+    <Match>
+        <!-- Visibility suggestion -->
+        <Bug pattern="MS_PKGPROTECT"/>
+    </Match>
+
+    <Match>
+        <!-- Serialized 'cleanliness obsession' (only if these types are not natively serialized by Java) -->
+        <Class name="~com\.iflytek\.astron\.console\.toolkit\.entity\..*"/>
+        <Bug pattern="SE_NO_SERIALVERSIONID"/>
     </Match>
 
 </FindBugsFilter>

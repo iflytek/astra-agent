@@ -1,9 +1,9 @@
 """
-Chat Completions API功能测试 V2
+Chat Completions API功能test V2
 
-测试 /agent/v1/chat/completions 接口的各种场景，包括：
+test /agent/v1/chat/completions 接口的各种场景，包括：
 - 基础聊天功能
-- 流式和非流式响应
+- 流式和non-streaming response
 - 错误处理
 - 参数验证
 
@@ -13,7 +13,7 @@ Chat Completions API功能测试 V2
    - 不支持system角色消息
    - messages必须以user结尾，且user/assistant交替
    - bot_id长度至少1个字符
-3. 测试使用固定参数：
+3. test使用固定参数：
    - x-consumer-username: cb7386a7
    - bot_id: 14a9bbbcf0254f9b94562e6705d3a13f
    - uid: 12
@@ -28,7 +28,7 @@ import httpx
 
 
 class ChatCompletionsTestClient:
-    """Chat Completions API测试客户端"""
+    """Chat Completions APItest客户端"""
 
     def __init__(self, base_url: str = "http://localhost:17870"):
         self.base_url = base_url
@@ -52,11 +52,13 @@ class ChatCompletionsTestClient:
         self, messages: List[Dict[str, str]], **kwargs: Any
     ) -> httpx.Response:
         """发送Chat Completions请求"""
-        # 提取参数
-        uid = kwargs.get("uid", "12")  # 固定用户ID
+        # extract parameters
+        uid = kwargs.get("uid", "12")  # fixed user ID
         stream = kwargs.get("stream", False)
         meta_data = kwargs.get("meta_data")
-        bot_id = kwargs.get("bot_id", "14a9bbbcf0254f9b94562e6705d3a13f")  # 固定bot_id
+        bot_id = kwargs.get(
+            "bot_id", "14a9bbbcf0254f9b94562e6705d3a13f"
+        )  # fixed bot_id
         headers = kwargs.get("headers")
 
         if meta_data is None:
@@ -78,67 +80,67 @@ class ChatCompletionsTestClient:
 
 
 class TestChatCompletionsV2:
-    """Chat Completions API测试套件 V2"""
+    """Chat Completions APItest套件 V2"""
 
     client: ChatCompletionsTestClient
 
     @classmethod
     def setup_class(cls) -> None:
-        """测试类初始化"""
+        """test类初始化"""
         cls.client = ChatCompletionsTestClient()
 
     def test_basic_chat_completion(self) -> None:
-        """测试基础聊天完成功能"""
+        """test基础聊天完成功能"""
         messages = [{"role": "user", "content": "Hello, how are you?"}]
 
         response = self.client.send_request(messages)
 
-        # 验证HTTP状态码
+        # verify HTTP status code
         assert (
             response.status_code == 200
         ), f"期望HTTP状态码200，实际: {response.status_code}"
 
-        # 验证响应头
+        # verify response headers
         assert "application/json" in response.headers.get("content-type", "").lower()
 
-        # 解析业务状态码
+        # parse business status code
         business_code, business_message, _ = self.client.parse_response(response)
         print(f"Business code: {business_code}, message: {business_message}")
 
-        # 记录完整响应用于分析
+        # record complete response for analysis
         if business_code != 0:
             print(f"⚠️ 业务状态码: {business_code}, 消息: {business_message}")
             _, _, data = self.client.parse_response(response)
             print(f"完整响应: {json.dumps(data, ensure_ascii=False, indent=2)}")
 
     def test_chat_with_valid_bot_id(self) -> None:
-        """测试使用有效bot_id的聊天请求"""
+        """test使用有效bot_id的聊天请求"""
         messages = [{"role": "user", "content": "请介绍一下Python编程语言"}]
 
-        response = self.client.send_request(messages)  # 使用默认的固定bot_id
+        response = self.client.send_request(messages)  # use default fixed bot_id
 
         assert response.status_code == 200
 
         business_code, business_message, _ = self.client.parse_response(response)
         print(
-            f"有效Bot ID测试 - Business code: "
+            f"有效Bot IDtest - Business code: "
             f"{business_code}, message: {business_message}"
         )
 
     def test_chat_with_uid(self) -> None:
-        """测试带用户ID的聊天请求"""
-        messages = [{"role": "user", "content": "测试用户ID功能"}]
+        """test带用户ID的聊天请求"""
+        messages = [{"role": "user", "content": "test用户ID功能"}]
 
-        response = self.client.send_request(messages)  # 使用默认的固定uid
+        response = self.client.send_request(messages)  # use default fixed uid
 
         assert response.status_code == 200
 
         business_code, business_message, _ = self.client.parse_response(response)
-        print(f"UID测试 - Business code: {business_code}, message: {business_message}")
+        print(f"UIDtest - Business code: {business_code}, message: {business_message}")
 
     def test_chat_with_conversation_history(self) -> None:
-        """测试符合规则的多轮对话"""
-        # 根据base_inputs.py，必须是user/assistant交替，且以user结尾
+        """test符合规则的多轮对话"""
+        # according to base_inputs.py, must be user/assistant alternating and end with user
         messages = [
             {"role": "user", "content": "我想学习Python编程"},
             {"role": "assistant", "content": "很好！Python是一门很棒的编程语言。"},
@@ -151,12 +153,12 @@ class TestChatCompletionsV2:
 
         business_code, business_message, _ = self.client.parse_response(response)
         print(
-            f"多轮对话测试 - Business code: "
+            f"多轮对话test - Business code: "
             f"{business_code}, message: {business_message}"
         )
 
     def test_stream_chat_completion(self) -> None:
-        """测试流式聊天完成"""
+        """test流式聊天完成"""
         messages = [{"role": "user", "content": "请详细解释什么是人工智能"}]
 
         response = self.client.send_request(messages, stream=True)
@@ -165,32 +167,32 @@ class TestChatCompletionsV2:
 
         business_code, business_message, _ = self.client.parse_response(response)
         print(
-            f"流式响应测试 - Business code: "
+            f"流式响应test - Business code: "
             f"{business_code}, message: {business_message}"
         )
 
     def test_empty_bot_id_validation(self) -> None:
-        """测试空bot_id验证 - 应该失败"""
-        messages = [{"role": "user", "content": "测试空bot_id"}]
+        """test空bot_id验证 - 应该失败"""
+        messages = [{"role": "user", "content": "test空bot_id"}]
 
         response = self.client.send_request(messages, bot_id="")
 
-        assert response.status_code == 200  # HTTP状态码仍为200
+        assert response.status_code == 200  # HTTP status code still 200
 
         business_code, business_message, _ = self.client.parse_response(response)
         print(
-            f"空bot_id验证测试 - Business code: "
+            f"空bot_id验证test - Business code: "
             f"{business_code}, message: {business_message}"
         )
 
-        # 根据你提供的示例，空bot_id应该返回40002错误
+        # according to your example, empty bot_id should return 40002 error
         if business_code == 40002:
             print("✅ 空bot_id验证正常工作")
         else:
             print(f"⚠️ 期望错误码40002，实际: {business_code}")
 
     def test_system_message_validation(self) -> None:
-        """测试system消息验证 - 根据base_inputs.py应该失败"""
+        """testsystem消息验证 - 根据base_inputs.py应该失败"""
         messages = [
             {"role": "system", "content": "你是一个友好的AI助手"},
             {"role": "user", "content": "今天天气怎么样？"},
@@ -198,104 +200,107 @@ class TestChatCompletionsV2:
 
         response = self.client.send_request(messages)
 
-        # 根据base_inputs.py，system角色应该被拒绝，可能返回422状态码
-        print(f"System消息测试 - HTTP状态码: {response.status_code}")
+        # according to base_inputs.py, system role should be rejected, may return 422 status code
+        print(f"System消息test - HTTP状态码: {response.status_code}")
 
         if response.status_code == 422:
             print("✅ System消息验证正常工作 - 返回422")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"System消息测试 - Business code: "
+                f"System消息test - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_empty_message_validation(self) -> None:
-        """测试空消息验证"""
+        """test空消息验证"""
         messages: List[Dict[str, str]] = []
 
         response = self.client.send_request(messages)
 
-        print(f"空消息测试 - HTTP状态码: {response.status_code}")
+        print(f"空消息test - HTTP状态码: {response.status_code}")
 
         if response.status_code == 422:
             print("✅ 空消息验证正常工作 - 返回422")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"空消息测试 - Business code: "
+                f"空消息test - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_invalid_message_order(self) -> None:
-        """测试无效的消息顺序 - 不是user/assistant交替"""
+        """test无效的消息顺序 - 不是user/assistant交替"""
         messages = [
             {"role": "user", "content": "第一条消息"},
-            {"role": "user", "content": "连续两条user消息"},  # 违反交替规则
+            {
+                "role": "user",
+                "content": "consecutive user messages",
+            },  # violates alternating rule
         ]
 
         response = self.client.send_request(messages)
 
-        print(f"无效消息顺序测试 - HTTP状态码: {response.status_code}")
+        print(f"无效消息顺序test - HTTP状态码: {response.status_code}")
 
         if response.status_code == 422:
             print("✅ 消息顺序验证正常工作 - 返回422")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"无效消息顺序测试 - Business code: "
+                f"无效消息顺序test - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_uid_length_validation(self) -> None:
-        """测试UID长度验证"""
-        messages = [{"role": "user", "content": "测试超长UID"}]
+        """testUID长度验证"""
+        messages = [{"role": "user", "content": "test超长UID"}]
 
-        # 创建超过32字符的UID
+        # create UID exceeding 32 characters
         long_uid = "a" * 33
 
         response = self.client.send_request(messages, uid=long_uid)
 
-        print(f"UID长度验证测试 - HTTP状态码: {response.status_code}")
+        print(f"UID长度验证test - HTTP状态码: {response.status_code}")
 
         if response.status_code == 422:
             print("✅ UID长度验证正常工作 - 返回422")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"UID长度验证测试 - Business code: "
+                f"UID长度验证test - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_missing_required_header(self) -> None:
-        """测试缺少必需的header"""
-        messages = [{"role": "user", "content": "测试缺少header"}]
+        """test缺少必需的header"""
+        messages = [{"role": "user", "content": "test缺少header"}]
 
-        # 移除必需的x-consumer-username header
+        # remove required x-consumer-username header
         headers = {"Content-Type": "application/json"}
 
         response = self.client.send_request(messages, headers=headers)
 
-        print(f"缺少header测试 - HTTP状态码: {response.status_code}")
+        print(f"缺少headertest - HTTP状态码: {response.status_code}")
 
         if response.status_code in [400, 422]:
             print("✅ Header验证正常工作")
         else:
             business_code, business_message, _ = self.client.parse_response(response)
             print(
-                f"缺少header测试 - Business code: "
+                f"缺少headertest - Business code: "
                 f"{business_code}, message: {business_message}"
             )
 
     def test_concurrent_requests(self) -> None:
-        """测试并发请求"""
+        """test并发请求"""
 
         def send_single_request(thread_id: int) -> Tuple[int, int, float, int]:
             """发送单个请求并记录时间和业务状态"""
-            messages = [{"role": "user", "content": f"这是线程{thread_id}的测试消息"}]
+            messages = [{"role": "user", "content": f"这是线程{thread_id}的test消息"}]
 
             start_time = time.time()
-            response = self.client.send_request(messages)  # 使用默认的固定uid
+            response = self.client.send_request(messages)  # use default fixed uid
             end_time = time.time()
 
             business_code, _, _ = self.client.parse_response(response)
@@ -307,7 +312,7 @@ class TestChatCompletionsV2:
                 business_code,
             )
 
-        # 并发发送5个请求
+        # send 5 requests concurrently
         max_workers = 5
         results = []
 
@@ -331,7 +336,7 @@ class TestChatCompletionsV2:
                 except (ValueError, RuntimeError, TypeError) as exc:
                     print(f"线程请求失败: {exc}")
 
-        # 验证结果
+        # Verify results
         http_success_count = sum(
             1 for _, http_status, _, _ in results if http_status == 200
         )
@@ -344,21 +349,21 @@ class TestChatCompletionsV2:
             f"业务成功: {business_success_count}/{max_workers}"
         )
 
-        # 计算平均响应时间
+        # calculate average response time
         if results:
             avg_response_time = sum(time for _, _, time, _ in results) / len(results)
             print(f"平均响应时间: {avg_response_time:.2f}s")
 
 
 if __name__ == "__main__":
-    # 直接运行测试
+    # run tests directly
     test_instance = TestChatCompletionsV2()
     test_instance.setup_class()
 
-    print("🚀 开始Chat Completions API功能测试 V2...")
+    print("🚀 开始Chat Completions API功能test V2...")
     print("=" * 60)
 
-    # 测试用例列表
+    # test case list
     test_methods = [
         ("基础聊天完成", test_instance.test_basic_chat_completion),
         ("有效Bot ID", test_instance.test_chat_with_valid_bot_id),
@@ -379,17 +384,17 @@ if __name__ == "__main__":
 
     for test_name, test_method in test_methods:
         try:
-            print(f"\n🧪 {test_name}测试:")
+            print(f"\n🧪 {test_name}test:")
             test_method()
-            print(f"✅ {test_name}测试完成")
+            print(f"✅ {test_name}test完成")
             tests_passed += 1
         except (AssertionError, ValueError, RuntimeError) as e:
-            print(f"❌ {test_name}测试失败: {e}")
+            print(f"❌ {test_name}test失败: {e}")
             tests_failed += 1
 
     print("\n" + "=" * 60)
     print(
-        f"📊 测试完成！通过: {tests_passed}, "
+        f"📊 test完成！通过: {tests_passed}, "
         f"失败: {tests_failed}, 总计: {tests_passed + tests_failed}"
     )
     print("=" * 60)

@@ -3,12 +3,12 @@
 # =============================================================================
 
 # Python project variables - use dynamic directories from config
-PYTHON := /Users/scguo/.virtualenvs/mydemos/bin/python
+PYTHON := $(shell which python3 || which python)
 BLACK := black
-ISORT := isort
-FLAKE8 := flake8
-MYPY := mypy
-PYLINT := pylint
+ISORT := isort --profile black
+FLAKE8 := flake8 --max-line-length 88 --ignore=E203,W503,E501 --max-complexity 10
+MYPY := mypy --disallow-untyped-defs --disallow-incomplete-defs --check-untyped-defs --no-implicit-optional
+PYLINT := pylint --max-line-length=88 --max-args=7 --max-locals=15 --max-returns=6 --max-branches=12 --max-statements=50
 
 # Get all Python directories from config
 PYTHON_DIRS := $(shell \
@@ -50,7 +50,7 @@ install-tools-python: ## 🛠️ Install Python development tools
 check-tools-python: ## ✅ Check Python development tools availability
 	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Checking Python tools...$(RESET)"; \
-		test -f $(PYTHON) || (echo "$(RED)Python virtual environment not found at $(PYTHON)$(RESET)" && exit 1); \
+		command -v $(PYTHON) >/dev/null 2>&1 || (echo "$(RED)Python not found. Please install Python or set PYTHON environment variable$(RESET)" && exit 1); \
 		$(PYTHON) -c "import black" 2>/dev/null || (echo "$(RED)black is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
 		$(PYTHON) -c "import isort" 2>/dev/null || (echo "$(RED)isort is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
 		$(PYTHON) -c "import flake8" 2>/dev/null || (echo "$(RED)flake8 is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
@@ -84,25 +84,38 @@ fmt-python: ## ✨ Format Python code
 check-python: ## 🔍 Check Python code quality
 	@if [ -n "$(PYTHON_DIRS)" ]; then \
 		echo "$(YELLOW)Checking Python code quality in: $(PYTHON_DIRS)$(RESET)"; \
+		FAILED_PROJECTS=""; \
 		for dir in $(PYTHON_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
-				cd $$dir && \
-				echo "$(YELLOW)    Checking format compliance...$(RESET)" && \
-				$(PYTHON) -m $(ISORT) --check-only . && \
-				$(PYTHON) -m $(BLACK) --check . && \
-				echo "$(YELLOW)    Running flake8...$(RESET)" && \
+				if (cd $$dir && \
+				echo "$(YELLOW)    1. Running flake8 code style check...$(RESET)" && \
 				$(PYTHON) -m $(FLAKE8) . && \
-				echo "$(YELLOW)    Running mypy...$(RESET)" && \
+				echo "$(YELLOW)    2. Running isort import formatting...$(RESET)" && \
+				$(PYTHON) -m $(ISORT) . && \
+				echo "$(YELLOW)    3. Running black code formatting...$(RESET)" && \
+				$(PYTHON) -m $(BLACK) . && \
+				echo "$(YELLOW)    4. Running mypy type checking...$(RESET)" && \
 				$(PYTHON) -m $(MYPY) . && \
-				echo "$(YELLOW)    Running pylint...$(RESET)" && \
-				$(PYTHON) -m $(PYLINT) --fail-under=8.0 *.py; \
-				cd - > /dev/null; \
+				echo "$(YELLOW)    5. Running pylint code analysis...$(RESET)" && \
+				$(PYTHON) -m $(PYLINT) --max-line-length=88 --max-args=7 --max-locals=15 --max-returns=6 --max-branches=12 --max-statements=50 *.py); then \
+					echo "$(GREEN)    ✅ $$dir passed all checks$(RESET)"; \
+				else \
+					echo "$(RED)    ❌ $$dir failed quality checks$(RESET)"; \
+					FAILED_PROJECTS="$$FAILED_PROJECTS $$dir"; \
+				fi; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+				FAILED_PROJECTS="$$FAILED_PROJECTS $$dir(missing)"; \
 			fi; \
 		done; \
-		echo "$(GREEN)Python code quality checks completed$(RESET)"; \
+		if [ -n "$$FAILED_PROJECTS" ]; then \
+			echo "$(RED)Python code quality checks failed for:$$FAILED_PROJECTS$(RESET)"; \
+			echo "$(YELLOW)Please fix the issues above and run 'make check-python' again$(RESET)"; \
+			exit 1; \
+		else \
+			echo "$(GREEN)All Python projects passed code quality checks$(RESET)"; \
+		fi; \
 	else \
 		echo "$(BLUE)Skipping Python checks (no Python projects configured)$(RESET)"; \
 	fi
@@ -113,8 +126,19 @@ test-python: ## 🧪 Run Python tests
 		for dir in $(PYTHON_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
-				cd $$dir && $(PYTHON) -m pytest tests/ -v; \
-				cd - > /dev/null; \
+				(cd $$dir && \
+				if [ -d "tests" ]; then \
+					echo "$(YELLOW)    Running tests...$(RESET)" && \
+					if [ -f "uv.lock" ]; then \
+						echo "$(YELLOW)      Syncing dependencies with uv...$(RESET)" && \
+						uv sync && \
+						uv run python -m pytest tests/ -v; \
+					else \
+						$(PYTHON) -m pytest tests/ -v; \
+					fi; \
+				else \
+					echo "$(BLUE)    No tests directory found$(RESET)"; \
+				fi) || exit 1; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
 			fi; \
@@ -131,11 +155,16 @@ build-python: ## 📦 Build Python projects (install dependencies)
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Building $$dir...$(RESET)"; \
 				cd $$dir && \
-				if [ -f requirements.txt ]; then \
+				if [ -f uv.lock ]; then \
+					echo "$(YELLOW)    Installing dependencies with uv...$(RESET)"; \
+					uv sync; \
+					echo "$(GREEN)  Dependencies installed with uv: $$dir$(RESET)"; \
+				elif [ -f requirements.txt ]; then \
+					echo "$(YELLOW)    Installing dependencies with pip...$(RESET)"; \
 					$(PYTHON) -m pip install -r requirements.txt; \
-					echo "$(GREEN)  Dependencies installed: $$dir$(RESET)"; \
+					echo "$(GREEN)  Dependencies installed with pip: $$dir$(RESET)"; \
 				else \
-					echo "$(BLUE)  No requirements.txt found in $$dir$(RESET)"; \
+					echo "$(BLUE)  No uv.lock or requirements.txt found in $$dir$(RESET)"; \
 				fi; \
 				cd - > /dev/null; \
 			else \

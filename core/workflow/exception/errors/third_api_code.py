@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """
 Third-party API error code definitions.
 
@@ -30,6 +29,7 @@ Error Code Ranges by Service:
 These codes are systematically organized to facilitate error mapping and
 provide clear categorization for different types of external service failures.
 """
+
 from enum import Enum
 
 
@@ -52,103 +52,104 @@ class ThirdApiCodeEnum(Enum):
     to internal system error codes.
     """
 
-    Success = (0, "Success")
+    SUCCESS = (0, "Success")
 
     # Code execution errors
-    CodeExecutePodNotReadyError = (
+    CODE_EXECUTE_POD_NOT_READY_ERROR = (
         10405,
         "Pod is not ready yet, please try again later",
     )
-    CodeExecuteError = (1, "exec code error::exit status 1")
-
-    # Image generation errors
-    ImageGenerateMsgFormatError = (10003, "User message format error")
-    ImageGenerateSchemaError = (10004, "User data schema error")
-    ImageGenerateParamsError = (10005, "User parameter value error")
-    ImageGenerateSrvNotEnoughError = (10008, "Service capacity insufficient")
-    ImageGenerateInputAuditError = (10021, "Input audit failed")
-    ImageGenerateImageSensitivenessError = (
-        10022,
-        "Model generated image involves sensitive information, audit failed",
-    )
+    CODE_EXECUTE_ERROR = (1, "exec code error::exit status 1")
 
     # SparkLink related errors
-    SparkLinkAppInitErr = (30001, "Initialization failed")
-    SparkLinkCommonErr = (30100, "General error")
-    SparkLinkJsonProtocolParserErr = (30200, "JSON protocol parsing failed")
-    SparkLinkJsonSchemaValidateErr = (30201, "Protocol validation failed")
-    SparkLinkOpenapiSchemaValidateErr = (30300, "OpenAPI protocol parsing failed")
-    SparkLinkOpenapiSchemaBodyTypeNotSupportErr = (30301, "Body type not supported")
-    SparkLinkOpenapiSchemaServerNotExistErr = (30302, "Server does not exist")
-    SparkLinkOfficialThirdApiRequestFailedErr = (30400, "Official tool request failed")
-    SparkLinkThirdApiRequestFailedErr = (30403, "Third-party tool request failed")
-    SparkLinkToolNotExistErr = (30500, "Tool does not exist")
-    SparkLinkOperationIdNotExistErr = (30600, "Operation does not exist")
+    SPARK_LINK_APP_INIT_ERROR = (30001, "Initialization failed")
+    SPARK_LINK_COMMON_ERROR = (30100, "General error")
+    SPARK_LINK_JSON_PROTOCOL_PARSER_ERROR = (30200, "JSON protocol parsing failed")
+    SPARK_LINK_JSON_SCHEMA_VALIDATE_ERROR = (30201, "Protocol validation failed")
+    SPARK_LINK_OPENAPI_SCHEMA_VALIDATE_ERROR = (
+        30300,
+        "OpenAPI protocol parsing failed",
+    )
+    SPARK_LINK_OPENAPI_SCHEMA_BODY_TYPE_NOT_SUPPORT_ERROR = (
+        30301,
+        "Body type not supported",
+    )
+    SPARK_LINK_OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERROR = (30302, "Server does not exist")
+    SPARK_LINK_OFFICIAL_THIRD_API_REQUEST_FAILED_ERROR = (
+        30400,
+        "Official tool request failed",
+    )
+    SPARK_LINK_THIRD_API_REQUEST_FAILED_ERROR = (
+        30403,
+        "Third-party tool request failed",
+    )
+    SPARK_LINK_TOOL_NOT_EXIST_ERROR = (30500, "Tool does not exist")
+    SPARK_LINK_OPERATION_ID_NOT_EXIST_ERROR = (30600, "Operation does not exist")
 
     # Spark model errors
-    SparkWSError = (10000, "WebSocket upgrade error")
-    SparkWSReadError = (10001, "WebSocket read user message error")
-    SparkWSSendError = (10002, "WebSocket send message to user error")
-    SparkMessageFormatError = (10003, "User message format error")
-    SparkSchemaError = (10004, "User data schema error")
-    SparkParamError = (10005, "User parameter value error")
-    SparkConcurrencyError = (
+    SPARK_WS_ERROR = (10000, "WebSocket upgrade error")
+    SPARK_WS_READ_ERROR = (10001, "WebSocket read user message error")
+    SPARK_WS_SEND_ERROR = (10002, "WebSocket send message to user error")
+    SPARK_MESSAGE_FORMAT_ERROR = (10003, "User message format error")
+    SPARK_SCHEMA_ERROR = (10004, "User data schema error")
+    SPARK_PARAM_ERROR = (10005, "User parameter value error")
+    SPARK_CONCURRENCY_ERROR = (
         10006,
         "User concurrency error: current user is connected, same user cannot connect from multiple locations",
     )
-    SparkTrafficLimitError = (
+    SPARK_TRAFFIC_LIMIT_ERROR = (
         10007,
         "User traffic limit: service is processing user's current question, wait for completion before sending new request",
     )
-    SparkCapacityError = (10008, "Service capacity insufficient, contact staff")
-    SparkEngineConnectionError = (10009, "Engine connection establishment failed")
-    SparkEngineReceiveError = (10010, "Engine data receiving error")
-    SparkEngineSendError = (10011, "Engine data sending error")
-    SparkEngineInternalError = (10012, "Engine internal error")
-    SparkContentAuditError = (
+    SPARK_CAPACITY_ERROR = (10008, "Service capacity insufficient, contact staff")
+    SPARK_ENGINE_CONNECTION_ERROR = (10009, "Engine connection establishment failed")
+    SPARK_ENGINE_RECEIVE_ERROR = (10010, "Engine data receiving error")
+    SPARK_ENGINE_SEND_ERROR = (10011, "Engine data sending error")
+    SPARK_ENGINE_INTERNAL_ERROR = (10012, "Engine internal error")
+    SPARK_CONTENT_AUDIT_ERROR = (
         10013,
         "Input content audit failed, suspected violation, please adjust input content",
     )
-    SparkOutputAuditError = (
+    SPARK_OUTPUT_AUDIT_ERROR = (
         10014,
         "Output content involves sensitive information, audit failed, results cannot be displayed to user",
     )
-    SparkAppIdBlacklistError = (10015, "Appid is in blacklist")
-    SparkAppIdAuthError = (
+    SPARK_APP_ID_BLACKLIST_ERROR = (10015, "Appid is in blacklist")
+    SPARK_APP_ID_AUTH_ERROR = (
         10016,
         "Appid authorization error: feature not enabled, version not enabled, insufficient tokens, concurrency exceeds authorization",
     )
-    SparkClearHistoryError = (10017, "Clear history failed")
-    SparkViolationError = (
+    SPARK_CLEAR_HISTORY_ERROR = (10017, "Clear history failed")
+    SPARK_VIOLATION_ERROR = (
         10019,
         "Session content has violation tendency; suggest showing violation warning to user",
     )
-    SparkBusyError = (10110, "Service busy, please try again later")
-    SparkEngineParamsError = (
+    SPARK_BUSY_ERROR = (10110, "Service busy, please try again later")
+    SPARK_ENGINE_PARAMS_ERROR = (
         10163,
         "Engine request parameter error, engine schema check failed",
     )
-    SparkEngineNetworkError = (10222, "Engine network error")
-    SparkTokenLimitError = (
+    SPARK_ENGINE_NETWORK_ERROR = (10222, "Engine network error")
+    SPARK_TOKEN_LIMIT_ERROR = (
         10907,
         "Token count exceeds limit, conversation history + question text too long, need to simplify input",
     )
-    SparkAuthError = (
+    SPARK_AUTH_ERROR = (
         11200,
         "Authorization error: appId has no feature authorization or business volume exceeds limit",
     )
-    SparkDailyLimitError = (11201, "Authorization error: daily rate limit exceeded")
-    SparkSecondLimitError = (
+    SPARK_DAILY_LIMIT_ERROR = (11201, "Authorization error: daily rate limit exceeded")
+    SPARK_SECOND_LIMIT_ERROR = (
         11202,
         "Authorization error: second-level rate limit exceeded",
     )
-    SparkConcurrencyLimitError = (
+    SPARK_CONCURRENCY_LIMIT_ERROR = (
         11203,
         "Authorization error: concurrency limit exceeded",
     )
 
     # Audit related errors
-    AuditError = (999999, "Server internal error")
+    AUDIT_ERROR = (999999, "Server internal error")
 
     @property
     def code(self) -> int:

@@ -14,13 +14,13 @@ class SparkDeskRAGStrategy(RAGStrategy):
     """SparkDesk-RAG strategy implementation."""
 
     async def query(
-            self,
-            query: str,
-            doc_ids: Optional[List[str]] = None,
-            repo_ids: Optional[List[str]] = None,
-            top_k: Optional[int] = None,
-            threshold: Optional[float] = 0,
-            **kwargs: Any
+        self,
+        query: str,
+        doc_ids: Optional[List[str]] = None,
+        repo_ids: Optional[List[str]] = None,
+        top_k: Optional[int] = None,
+        threshold: Optional[float] = 0,
+        **kwargs: Any
     ) -> Dict[str, Any]:
         """
         Execute RAG query
@@ -95,7 +95,12 @@ class SparkDeskRAGStrategy(RAGStrategy):
         )
 
     async def chunks_update(
-        self, docId: str, group: str, uid: str, chunks: List[Dict[str, Any]], **kwargs: Any
+        self,
+        docId: str,
+        group: str,
+        uid: str,
+        chunks: List[Dict[str, Any]],
+        **kwargs: Any
     ) -> Any:
         """
         Update chunks
@@ -117,7 +122,9 @@ class SparkDeskRAGStrategy(RAGStrategy):
             "SparkDesk-RAG does not support chunks_update operation."
         )
 
-    async def chunks_delete(self, docId: str, chunkIds: List[str], **kwargs: Any) -> Any:
+    async def chunks_delete(
+        self, docId: str, chunkIds: List[str], **kwargs: Any
+    ) -> Any:
         """
         Delete chunks
 

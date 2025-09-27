@@ -40,45 +40,6 @@ class CodeConvert:
     """
 
     @staticmethod
-    def imageGeneratorCode(code: int) -> CodeEnum:
-        """
-        Convert image generation service error codes to internal error codes.
-
-        Maps various image generation service errors to standardized internal
-        error codes. This method handles errors from AI image generation services,
-        including format errors, schema validation failures, parameter issues,
-        service capacity problems, and content audit failures.
-
-        The method provides a comprehensive mapping that covers:
-        - Message format validation errors
-        - Data schema validation failures
-        - Parameter value validation issues
-        - Service capacity and availability problems
-        - Input and output content audit failures
-
-        If the provided code is not recognized, returns a generic image generation
-        error to ensure consistent error handling.
-
-        :param code: Third-party image generation service error code (integer)
-        :return: Corresponding internal error code enum for consistent handling
-        """
-        match code:
-            case ThirdApiCodeEnum.ImageGenerateMsgFormatError.code:
-                return CodeEnum.ImageGenerateMsgFormatError
-            case ThirdApiCodeEnum.ImageGenerateSchemaError.code:
-                return CodeEnum.ImageGenerateSchemaError
-            case ThirdApiCodeEnum.ImageGenerateParamsError.code:
-                return CodeEnum.ImageGenerateParamsError
-            case ThirdApiCodeEnum.ImageGenerateSrvNotEnoughError.code:
-                return CodeEnum.ImageGenerateSrvNotEnoughError
-            case ThirdApiCodeEnum.ImageGenerateInputAuditError.code:
-                return CodeEnum.ImageGenerateInputAuditError
-            case ThirdApiCodeEnum.ImageGenerateImageSensitivenessError.code:
-                return CodeEnum.ImageGenerateImageSensitivenessError
-            case _:
-                return CodeEnum.ImageGenerateError
-
-    @staticmethod
     def sparkLinkCode(code: int) -> CodeEnum:
         """
         Convert SparkLink tool service error codes to internal error codes.
@@ -103,30 +64,34 @@ class CodeConvert:
         :return: Corresponding internal error code enum for consistent handling
         """
         match code:
-            case ThirdApiCodeEnum.SparkLinkAppInitErr.code:
-                return CodeEnum.SparkLinkAppInitErr
-            case ThirdApiCodeEnum.SparkLinkCommonErr.code:
-                return CodeEnum.SparkLinkActionError
-            case ThirdApiCodeEnum.SparkLinkJsonProtocolParserErr.code:
-                return CodeEnum.SparkLinkJsonProtocolParserErr
-            case ThirdApiCodeEnum.SparkLinkJsonSchemaValidateErr.code:
-                return CodeEnum.SparkLinkJsonSchemaValidateErr
-            case ThirdApiCodeEnum.SparkLinkOpenapiSchemaValidateErr.code:
-                return CodeEnum.SparkLinkOpenapiSchemaValidateErr
-            case ThirdApiCodeEnum.SparkLinkOpenapiSchemaBodyTypeNotSupportErr.code:
-                return CodeEnum.SparkLinkOpenapiSchemaBodyTypeNotSupportErr
-            case ThirdApiCodeEnum.SparkLinkOpenapiSchemaServerNotExistErr.code:
-                return CodeEnum.SparkLinkOpenapiSchemaServerNotExistErr
-            case ThirdApiCodeEnum.SparkLinkOfficialThirdApiRequestFailedErr.code:
-                return CodeEnum.SparkLinkOfficialThirdApiRequestFailedErr
-            case ThirdApiCodeEnum.SparkLinkThirdApiRequestFailedErr.code:
-                return CodeEnum.SparkLinkThirdApiRequestFailedErr
-            case ThirdApiCodeEnum.SparkLinkToolNotExistErr.code:
-                return CodeEnum.SparkLinkToolNotExistErr
-            case ThirdApiCodeEnum.SparkLinkOperationIdNotExistErr.code:
-                return CodeEnum.SparkLinkOperationIdNotExistErr
+            case ThirdApiCodeEnum.SPARK_LINK_APP_INIT_ERROR.code:
+                return CodeEnum.SPARK_LINK_APP_INIT_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_COMMON_ERROR.code:
+                return CodeEnum.SPARK_LINK_ACTION_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_JSON_PROTOCOL_PARSER_ERROR.code:
+                return CodeEnum.SPARK_LINK_JSON_PROTOCOL_PARSER_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_JSON_SCHEMA_VALIDATE_ERROR.code:
+                return CodeEnum.SPARK_LINK_JSON_SCHEMA_VALIDATE_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_OPENAPI_SCHEMA_VALIDATE_ERROR.code:
+                return CodeEnum.SPARK_LINK_OPENAPI_SCHEMA_VALIDATE_ERROR
+            case (
+                ThirdApiCodeEnum.SPARK_LINK_OPENAPI_SCHEMA_BODY_TYPE_NOT_SUPPORT_ERROR.code
+            ):
+                return CodeEnum.SPARK_LINK_OPENAPI_SCHEMA_BODY_TYPE_NOT_SUPPORT_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERROR.code:
+                return CodeEnum.SPARK_LINK_OPENAPI_SCHEMA_SERVER_NOT_EXIST_ERROR
+            case (
+                ThirdApiCodeEnum.SPARK_LINK_OFFICIAL_THIRD_API_REQUEST_FAILED_ERROR.code
+            ):
+                return CodeEnum.SPARK_LINK_OFFICIAL_THIRD_API_REQUEST_FAILED_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_THIRD_API_REQUEST_FAILED_ERROR.code:
+                return CodeEnum.SPARK_LINK_THIRD_API_REQUEST_FAILED_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_TOOL_NOT_EXIST_ERROR.code:
+                return CodeEnum.SPARK_LINK_TOOL_NOT_EXIST_ERROR
+            case ThirdApiCodeEnum.SPARK_LINK_OPERATION_ID_NOT_EXIST_ERROR.code:
+                return CodeEnum.SPARK_LINK_OPERATION_ID_NOT_EXIST_ERROR
             case _:
-                return CodeEnum.SparkLinkActionError
+                return CodeEnum.SPARK_LINK_ACTION_ERROR
 
     @staticmethod
     def sparkCode(code: int) -> CodeEnum:
@@ -157,59 +122,59 @@ class CodeConvert:
         :return: Corresponding internal error code enum for consistent handling
         """
         match code:
-            case ThirdApiCodeEnum.SparkWSError.code:
-                return CodeEnum.SparkWSError
-            case ThirdApiCodeEnum.SparkWSReadError.code:
-                return CodeEnum.SparkWSReadError
-            case ThirdApiCodeEnum.SparkWSSendError.code:
-                return CodeEnum.SparkWSSendError
-            case ThirdApiCodeEnum.SparkMessageFormatError.code:
-                return CodeEnum.SparkMessageFormatError
-            case ThirdApiCodeEnum.SparkSchemaError.code:
-                return CodeEnum.SparkSchemaError
-            case ThirdApiCodeEnum.SparkParamError.code:
-                return CodeEnum.SparkParamError
-            case ThirdApiCodeEnum.SparkConcurrencyError.code:
-                return CodeEnum.SparkConcurrencyError
-            case ThirdApiCodeEnum.SparkTrafficLimitError.code:
-                return CodeEnum.SparkTrafficLimitError
-            case ThirdApiCodeEnum.SparkCapacityError.code:
-                return CodeEnum.SparkCapacityError
-            case ThirdApiCodeEnum.SparkEngineConnectionError.code:
-                return CodeEnum.SparkEngineConnectionError
-            case ThirdApiCodeEnum.SparkEngineReceiveError.code:
-                return CodeEnum.SparkEngineReceiveError
-            case ThirdApiCodeEnum.SparkEngineSendError.code:
-                return CodeEnum.SparkEngineSendError
-            case ThirdApiCodeEnum.SparkEngineInternalError.code:
-                return CodeEnum.SparkEngineInternalError
-            case ThirdApiCodeEnum.SparkContentAuditError.code:
-                return CodeEnum.SparkContentAuditError
-            case ThirdApiCodeEnum.SparkOutputAuditError.code:
-                return CodeEnum.SparkOutputAuditError
-            case ThirdApiCodeEnum.SparkAppIdBlacklistError.code:
-                return CodeEnum.SparkAppIdBlacklistError
-            case ThirdApiCodeEnum.SparkAppIdAuthError.code:
-                return CodeEnum.SparkAppIdAuthError
-            case ThirdApiCodeEnum.SparkClearHistoryError.code:
-                return CodeEnum.SparkClearHistoryError
-            case ThirdApiCodeEnum.SparkViolationError.code:
-                return CodeEnum.SparkViolationError
-            case ThirdApiCodeEnum.SparkBusyError.code:
-                return CodeEnum.SparkBusyError
-            case ThirdApiCodeEnum.SparkEngineParamsError.code:
-                return CodeEnum.SparkEngineParamsError
-            case ThirdApiCodeEnum.SparkEngineNetworkError.code:
-                return CodeEnum.SparkEngineNetworkError
-            case ThirdApiCodeEnum.SparkTokenLimitError.code:
-                return CodeEnum.SparkTokenLimitError
-            case ThirdApiCodeEnum.SparkAuthError.code:
-                return CodeEnum.SparkAuthError
-            case ThirdApiCodeEnum.SparkDailyLimitError.code:
-                return CodeEnum.SparkDailyLimitError
-            case ThirdApiCodeEnum.SparkSecondLimitError.code:
-                return CodeEnum.SparkSecondLimitError
-            case ThirdApiCodeEnum.SparkConcurrencyLimitError.code:
-                return CodeEnum.SparkConcurrencyLimitError
+            case ThirdApiCodeEnum.SPARK_WS_ERROR.code:
+                return CodeEnum.SPARK_WS_ERROR
+            case ThirdApiCodeEnum.SPARK_WS_READ_ERROR.code:
+                return CodeEnum.SPARK_WS_READ_ERROR
+            case ThirdApiCodeEnum.SPARK_WS_SEND_ERROR.code:
+                return CodeEnum.SPARK_WS_SEND_ERROR
+            case ThirdApiCodeEnum.SPARK_MESSAGE_FORMAT_ERROR.code:
+                return CodeEnum.SPARK_MESSAGE_FORMAT_ERROR
+            case ThirdApiCodeEnum.SPARK_SCHEMA_ERROR.code:
+                return CodeEnum.SPARK_SCHEMA_ERROR
+            case ThirdApiCodeEnum.SPARK_PARAM_ERROR.code:
+                return CodeEnum.SPARK_PARAM_ERROR
+            case ThirdApiCodeEnum.SPARK_CONCURRENCY_ERROR.code:
+                return CodeEnum.SPARK_CONCURRENCY_ERROR
+            case ThirdApiCodeEnum.SPARK_TRAFFIC_LIMIT_ERROR.code:
+                return CodeEnum.SPARK_TRAFFIC_LIMIT_ERROR
+            case ThirdApiCodeEnum.SPARK_CAPACITY_ERROR.code:
+                return CodeEnum.SPARK_CAPACITY_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_CONNECTION_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_CONNECTION_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_RECEIVE_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_RECEIVE_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_SEND_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_SEND_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_INTERNAL_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_INTERNAL_ERROR
+            case ThirdApiCodeEnum.SPARK_CONTENT_AUDIT_ERROR.code:
+                return CodeEnum.SPARK_CONTENT_AUDIT_ERROR
+            case ThirdApiCodeEnum.SPARK_OUTPUT_AUDIT_ERROR.code:
+                return CodeEnum.SPARK_OUTPUT_AUDIT_ERROR
+            case ThirdApiCodeEnum.SPARK_APP_ID_BLACKLIST_ERROR.code:
+                return CodeEnum.SPARK_APP_ID_BLACKLIST_ERROR
+            case ThirdApiCodeEnum.SPARK_APP_ID_AUTH_ERROR.code:
+                return CodeEnum.SPARK_APP_ID_AUTH_ERROR
+            case ThirdApiCodeEnum.SPARK_CLEAR_HISTORY_ERROR.code:
+                return CodeEnum.SPARK_CLEAR_HISTORY_ERROR
+            case ThirdApiCodeEnum.SPARK_VIOLATION_ERROR.code:
+                return CodeEnum.SPARK_VIOLATION_ERROR
+            case ThirdApiCodeEnum.SPARK_BUSY_ERROR.code:
+                return CodeEnum.SPARK_BUSY_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_PARAMS_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_PARAMS_ERROR
+            case ThirdApiCodeEnum.SPARK_ENGINE_NETWORK_ERROR.code:
+                return CodeEnum.SPARK_ENGINE_NETWORK_ERROR
+            case ThirdApiCodeEnum.SPARK_TOKEN_LIMIT_ERROR.code:
+                return CodeEnum.SPARK_TOKEN_LIMIT_ERROR
+            case ThirdApiCodeEnum.SPARK_AUTH_ERROR.code:
+                return CodeEnum.SPARK_AUTH_ERROR
+            case ThirdApiCodeEnum.SPARK_DAILY_LIMIT_ERROR.code:
+                return CodeEnum.SPARK_DAILY_LIMIT_ERROR
+            case ThirdApiCodeEnum.SPARK_SECOND_LIMIT_ERROR.code:
+                return CodeEnum.SPARK_SECOND_LIMIT_ERROR
+            case ThirdApiCodeEnum.SPARK_CONCURRENCY_LIMIT_ERROR.code:
+                return CodeEnum.SPARK_CONCURRENCY_LIMIT_ERROR
             case _:
-                return CodeEnum.SparkRequestError
+                return CodeEnum.SPARK_REQUEST_ERROR

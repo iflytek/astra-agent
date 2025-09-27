@@ -1,10 +1,11 @@
+import os
+
 from loguru import logger
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.metrics import get_meter_provider, set_meter_provider
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-
 from workflow.extensions.otlp.metric.consts import (
     SERVER_REQUEST_DESC,
     SERVER_REQUEST_TIME_DESC,
@@ -49,24 +50,31 @@ def init_metric(
 
     global counter, histogram, meter
 
-    assert endpoint is not None, "endpoint is None"
-    assert service_name is not None, "service_name is None"
+    if os.getenv("OTLP_ENABLE", "1") == "1":
+        assert endpoint is not None, "endpoint is None"
+        assert service_name is not None, "service_name is None"
+        # Create OTLP metric exporter with insecure connection
+        exporter = OTLPMetricExporter(
+            insecure=True,
+            endpoint=endpoint,
+            timeout=timeout,
+            max_export_batch_size=1000,
+        )
 
-    # Create OTLP metric exporter with insecure connection
-    exporter = OTLPMetricExporter(
-        insecure=True, endpoint=endpoint, timeout=timeout, max_export_batch_size=1000
-    )
-
-    # Create periodic metric reader for automatic export
-    metric_reader = PeriodicExportingMetricReader(
-        exporter,
-        export_interval_millis=export_interval_millis,
-        export_timeout_millis=export_timeout_millis,
-    )
+        # Create periodic metric reader for automatic export
+        metric_reader = PeriodicExportingMetricReader(
+            exporter,
+            export_interval_millis=export_interval_millis,
+            export_timeout_millis=export_timeout_millis,
+        )
+        metric_readers = [metric_reader]
+    else:
+        logger.info("Metrics reporting is disabled by environment variable")
+        metric_readers = []
 
     # Create resource with service name attribute
     resource = Resource(attributes={SERVICE_NAME: service_name})
-    provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
+    provider = MeterProvider(metric_readers=metric_readers, resource=resource)
 
     # Set global default MeterProvider
     set_meter_provider(provider)

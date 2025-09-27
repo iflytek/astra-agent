@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, List
 from common.audit_system.audit_api.base import AuditAPI
 from common.audit_system.base import AuditContext, InputFrameAudit, OutputFrameAudit
 
-# 使用TYPE_CHECKING避免循环导入
 if TYPE_CHECKING:
     from common.otlp.trace.span import Span
 
@@ -36,7 +35,7 @@ class AuditStrategy(ABC):
         self.audit_apis = audit_apis
 
     @abstractmethod
-    async def input_review(self, input_frame: InputFrameAudit, span: "Span"):
+    async def input_review(self, input_frame: InputFrameAudit, span: "Span") -> None:
         """
         输入内容审核逻辑，子类需要实现具体的审核逻辑。
         :param input_frame:
@@ -46,7 +45,7 @@ class AuditStrategy(ABC):
         raise NotImplementedError("Subclasses must implement this method")
 
     @abstractmethod
-    async def output_review(self, output_frame: OutputFrameAudit, span: "Span"):
+    async def output_review(self, output_frame: OutputFrameAudit, span: "Span") -> None:
         """
         输出内容审核逻辑，子类需要实现具体的审核逻辑。
         :param output_frame:

@@ -1,17 +1,19 @@
+# -*- coding: utf-8 -*-
 """
 Data model definition module
 Contains request model definitions for file splitting, chunking operations, and queries
 Uses Pydantic for data validation and serialization
 """
 
-from typing import Any, List, Optional
 from enum import Enum
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, conlist, field_validator
+from pydantic import BaseModel, Field, conlist
 
 
 class RAGType(str, Enum):
     """Define RAG type enumeration"""
+
     AIUI_RAG2 = "AIUI-RAG2"
     CBG_RAG = "CBG-RAG"
     SparkDesk_RAG = "SparkDesk-RAG"
@@ -34,13 +36,19 @@ class FileSplitReq(BaseModel):
     """
 
     file: str = Field(..., min_length=1, description="Required, minimum length 1")
-    resourceType: Optional[int] = Field(default=0, description="0-regular file; 1-URL webpage")
+    resourceType: Optional[int] = Field(
+        default=0, description="0-regular file; 1-URL webpage"
+    )
     ragType: RAGType = Field(..., description="RAG type")
-    lengthRange: Optional[List[int]] = Field(default=None, description="Split length range")
+    lengthRange: Optional[List[int]] = Field(
+        default=None, description="Split length range"
+    )
     overlap: Optional[int] = Field(default=None, description="Overlap length")
     separator: Optional[List[str]] = Field(default=None, description="Separator list")
     cutOff: Optional[List[str]] = Field(default=None, description="Cutoff marker list")
-    titleSplit: Optional[bool] = Field(default=False, description="Whether to split by title")
+    titleSplit: Optional[bool] = Field(
+        default=False, description="Whether to split by title"
+    )
 
 
 class ChunkSaveReq(BaseModel):
@@ -58,7 +66,9 @@ class ChunkSaveReq(BaseModel):
     docId: str = Field(..., min_length=1, description="Required, minimum length 1")
     group: str = Field(..., min_length=1, description="Required, minimum length 1")
     uid: Optional[str] = Field(default=None, description="User ID")
-    chunks: conlist(Any, min_length=1) = Field(..., description="Chunk list, must contain at least one element")
+    chunks: conlist(Any, min_length=1) = Field(
+        ..., description="Chunk list, must contain at least one element"
+    )
     ragType: RAGType = Field(..., description="RAG type")
 
 
@@ -77,7 +87,9 @@ class ChunkUpdateReq(BaseModel):
     docId: str = Field(..., min_length=1, description="Required, minimum length 1")
     group: str = Field(..., min_length=1, description="Required, minimum length 1")
     uid: Optional[str] = Field(default=None, description="User ID")
-    chunks: conlist(dict, min_length=1) = Field(..., description="Chunk dictionary list, must contain at least one element")
+    chunks: conlist(dict, min_length=1) = Field(
+        ..., description="Chunk dictionary list, must contain at least one element"
+    )
     ragType: RAGType = Field(..., description="RAG type")
 
 
@@ -108,47 +120,13 @@ class QueryMatch(BaseModel):
     """
 
     docIds: Optional[List[str]] = Field(default=None, description="Document ID list")
-    repoId: conlist(str, min_length=1) = Field(..., description="Knowledge base ID list, must contain at least one element")
+    repoId: conlist(str, min_length=1) = Field(
+        ..., description="Knowledge base ID list, must contain at least one element"
+    )
     threshold: float = Field(
         default=0, ge=0, le=1, description="Optional, default value 0, range 0~1"
     )
     flowId: Optional[str] = Field(default=None, description="Flow ID")
-
-    @field_validator("docIds")
-    def validate_doc_ids_unique(cls, value: List[str]) -> List[str]:
-        """
-        Validate if elements in document ID list are unique
-
-        Args:
-            value: Document ID list to be validated
-
-        Returns:
-            Validated document ID list
-
-        Raises:
-            ValueError: When duplicate elements exist in the list
-        """
-        if value is not None and len(value) != len(set(value)):
-            raise ValueError("Elements in docIds must be unique")
-        return value
-
-    @field_validator("repoId")
-    def validate_repo_id_unique(cls, value: List[str]) -> List[str]:
-        """
-        Validate if elements in knowledge base ID list are unique
-
-        Args:
-            value: Knowledge base ID list to be validated
-
-        Returns:
-            Validated knowledge base ID list
-
-        Raises:
-            ValueError: When duplicate elements exist in the list
-        """
-        if len(value) != len(set(value)):
-            raise ValueError("Elements in repoId must be unique")
-        return value
 
 
 class ChunkQueryReq(BaseModel):

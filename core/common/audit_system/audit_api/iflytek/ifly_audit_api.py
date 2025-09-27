@@ -6,9 +6,9 @@ import uuid
 from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode  # type: ignore[import-untyped]
 
-import aiohttp
+import aiohttp  # type: ignore[import-not-found]
 
 from common.audit_system.audit_api.base import AuditAPI, Stage
 from common.audit_system.base import ContextList
@@ -16,16 +16,12 @@ from common.exceptions.codes import c9021, c9022, c9023
 from common.exceptions.errs import AuditServiceException
 from common.otlp.trace.span import Span
 
-# 连接超时1s
 CONNECT_TIMEOUT = 1
 
-# 文本读超时6s
 TEXT_READ_TIMEOUT = 6
 
-# 图片读超时10s
 IMAGE_READ_TIMEOUT = 10
 
-# 重试次数
 RETRY_COUNT = 2
 
 
@@ -34,38 +30,29 @@ class ActionEnum:
     定义审核动作枚举类。
     """
 
-    # 审核结果正常，流程正常执行。
     NONE = "none"
 
-    # 增强提示，提供prompt优化信息，基于新的prompt来生成新的安全答复信息
     FORTIFY_PROMPT = "fortify_prompt"
 
-    # 重新回答，大模型输出的内容存在风险，基于新的prompt或者新的模型来生成新的安全答复信息。
     REANSWER = "reanswer"
 
-    # 安全大模型分流，将接口返回的安全大模型，作为目标大模型重新生成回答内容返回。
     SAFE_MODEL = "safe_model"
 
-    # 安全回复，将接口返回的默认回复作为回答内容上屏。(暂时不支持)
     SAFE_ANSWER = "safe_answer"
 
-    # 拒答不上屏，并终止多轮对话。
     DISCONTINUE = "discontinue"
 
-    # 红线必答，将接口返回的红线必答字段作为回答内容上屏，并终止多轮对话。(暂时不支持)
     REDLINE = "redline"
 
-    # 仅内容不上屏，当前大模型输出内容不上屏，后续流程继续。示例场景：模型输出的思考内容识别到风险，思考内容不上屏，答复流程正常执行。
     HIDE_CONTINUE = "hide_continue"
 
-    # 内容不引用，当前内容存在风险回答时不引用。
     NONREFERENCE = "nonreference"
 
 
 class IFlyAuditAPI(AuditAPI):
     audit_name = "IFlyAuditAPI"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.app_id = os.getenv("IFLYTEK_AUDIT_APP_ID", "")
         self.access_key_id = os.getenv("IFLYTEK_AUDIT_ACCESS_KEY_ID", "")
         self.access_key_secret = os.getenv("IFLYTEK_AUDIT_ACCESS_KEY_SECRET", "")
@@ -85,25 +72,18 @@ class IFlyAuditAPI(AuditAPI):
             raise ValueError(f"缺少必要环境变量: {', '.join(missing)}")
 
     def _signature(self, query_param: dict) -> str:
-        # 使用有序字典模拟 TreeMap（按 key 排序）
         sorted_params = OrderedDict(sorted(query_param.items()))
 
-        # 移除 signature 参数
         sorted_params.pop("signature", None)
 
-        # 构造 base string
         builder = []
         for key, value in sorted_params.items():
             if value is not None and value != "":
-                encoded_value = quote(
-                    value, safe=""
-                )  # 等同于 URLEncoder.encode(..., "UTF-8")
+                encoded_value = quote(value, safe="")
                 builder.append(f"{key}={encoded_value}")
 
         base_string = "&".join(builder)
-        # print(f"baseString：{base_string}")
 
-        # HMAC-SHA1 签名并 Base64 编码
         mac = hmac.new(
             self.access_key_secret.encode("utf-8"),
             base_string.encode("utf-8"),
@@ -211,8 +191,8 @@ class IFlyAuditAPI(AuditAPI):
         uid: str = "",
         template_id: str = "",
         context_list: List[ContextList] = [],
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
 
         payload: Dict[str, Any] = {
             "intention": "dialog",
@@ -230,7 +210,7 @@ class IFlyAuditAPI(AuditAPI):
             for ctx in context_list:
                 if ctx.resource_list:
                     payload_resource_list.append(
-                        res.dict() for res in ctx.resource_list
+                        res.dict() for res in ctx.resource_list  # type: ignore[attr-defined]
                     )
                 payload_context_list.append(ctx.dict())
 
@@ -257,8 +237,8 @@ class IFlyAuditAPI(AuditAPI):
         chat_sid: str,
         chat_app_id: str = "",
         uid: str = "",
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         payload = {
             "intention": "dialog",
             "stage": stage.value,
@@ -275,7 +255,7 @@ class IFlyAuditAPI(AuditAPI):
         if resp.get("data", {}).get("action") != ActionEnum.NONE:
             raise AuditServiceException(*c9023)(f"审核结果异常: {resp}")
 
-    async def input_media(self, text: str, **kwargs):
+    async def input_media(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对用户输入的文本、图片、视频、文档等进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:
@@ -286,7 +266,7 @@ class IFlyAuditAPI(AuditAPI):
 
         raise NotImplementedError("IFlyAuditAPI.input_media is not implemented yet")
 
-    async def output_media(self, text: str, **kwargs):
+    async def output_media(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对大模型输出的图片、视频、音频等进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:
@@ -296,7 +276,7 @@ class IFlyAuditAPI(AuditAPI):
         # path = f"/audit/v3/aichat/outputMedia"
         raise NotImplementedError("IFlyAuditAPI.output_media is not implemented yet")
 
-    async def know_ref(self, text: str, **kwargs):
+    async def know_ref(self, text: str, **kwargs: Any) -> None:
         """
         大模型内容安全场景中，对大模型答复过程中引用的网站、知识库等数据进行过滤、检测和识别，并根据安全策略进行相应的处理和响应。
         :param text:

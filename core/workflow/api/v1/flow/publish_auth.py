@@ -10,7 +10,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header
 from fastapi.responses import JSONResponse
 from sqlmodel import Session  # type: ignore
-
 from workflow.cache.flow import del_flow_by_flow_id_latest_version, del_flow_by_id
 from workflow.domain.entities.flow import AuthInput, PublishInput
 from workflow.domain.entities.response import response_error, response_success
@@ -66,10 +65,10 @@ def publish(
         except Exception as err:
             span_context.record_exception(err)
             db_session.rollback()
-            m.in_error_count(CodeEnum.FlowPublishErr.code, span=span_context)
+            m.in_error_count(CodeEnum.FLOW_PUBLISH_ERROR.code, span=span_context)
             return response_error(
-                code=CodeEnum.FlowPublishErr.code,
-                message=f"{CodeEnum.FlowPublishErr.msg}, Error details: {err}",
+                code=CodeEnum.FLOW_PUBLISH_ERROR.code,
+                message=f"{CodeEnum.FLOW_PUBLISH_ERROR.msg}, Error details: {err}",
                 sid=span_context.sid,
             )
         m.in_success_count()
@@ -112,10 +111,10 @@ def auth(
         except Exception as err:
             span_context.record_exception(err)
             db_session.rollback()
-            m.in_error_count(CodeEnum.AppFlowAuthBondErr.code, span=span_context)
+            m.in_error_count(CodeEnum.APP_FLOW_AUTH_BOND_ERROR.code, span=span_context)
             return response_error(
-                code=CodeEnum.AppFlowAuthBondErr.code,
-                message=f"{CodeEnum.AppFlowAuthBondErr.msg}, Error details: {err}",
+                code=CodeEnum.APP_FLOW_AUTH_BOND_ERROR.code,
+                message=f"{CodeEnum.APP_FLOW_AUTH_BOND_ERROR.msg}, Error details: {err}",
                 sid=span_context.sid,
             )
         m.in_success_count()

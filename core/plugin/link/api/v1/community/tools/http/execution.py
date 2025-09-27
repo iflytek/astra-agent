@@ -5,13 +5,16 @@ allowing users to run HTTP requests and debug tool functionality.
 """
 
 from fastapi import APIRouter, Body
-from api.schemas.community.tools.http.execution_schema import (
+from plugin.link.api.schemas.community.tools.http.execution_schema import (
     HttpRunRequest,
     HttpRunResponse,
     ToolDebugRequest,
     ToolDebugResponse,
 )
-from service.community.tools.http.execution_server import http_run, tool_debug
+from plugin.link.service.community.tools.http.execution_server import (
+    http_run,
+    tool_debug,
+)
 
 # HTTP tool execution router
 execution_router = APIRouter(tags=["http tool execution api"])

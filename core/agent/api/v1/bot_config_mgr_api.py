@@ -8,7 +8,7 @@ from fastapi import APIRouter, Query
 from api.schemas.bot_config import BotConfig
 from api.schemas.bot_config_mgr_response import GeneralResponse
 
-# 使用统一的 common 包导入模块
+# Use unified common package import module
 from common_imports import Span
 from exceptions.agent_exc import AgentExc, AgentInternalExc
 from exceptions.bot_config_exc import BotConfigMgrExc

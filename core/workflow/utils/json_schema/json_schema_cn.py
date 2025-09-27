@@ -8,7 +8,6 @@ Chinese error messages for better user experience in Chinese applications.
 import re
 from typing import Any, Iterator
 
-import jsonschema  # type: ignore[import-untyped]
 from jsonschema import Draft7Validator  # type: ignore[import-untyped]
 from jsonschema import ValidationError, validators
 
@@ -424,36 +423,3 @@ class CNValidator:
                 "schema_path": list(error.schema_path),
                 "message": error.message,
             }
-
-
-if __name__ == "__main__":
-    # Example usage of Chinese JSON Schema validator
-    schema = {
-        "type": "object",
-        "properties": {
-            "username": {
-                "type": "string",
-                "minLength": 3,
-                "pattern": "^[a-zA-Z0-9_]+$",
-            },
-            "age": {"type": "number", "minimum": 18},
-            "tags": {"type": "array", "minItems": 1, "contains": {"type": "string"}},
-        },
-        "required": ["username", "age"],
-    }
-
-    data = {"username": "a*", "age": 16, "tags": []}
-
-    print("================= Before Localization =================")
-    er_msgs = [
-        f"path: {er.json_path}, message: {er.message}"
-        for er in list(jsonschema.Draft7Validator(schema).iter_errors(data))
-    ]
-    print("\n".join(er_msgs))
-
-    print("================= After Localization =================")
-    validator = CNValidator(schema)
-    errors = validator.validate(data)
-
-    for err in errors:
-        print(f"字段路径: {err['schema_path']}, 错误: {err['message']}")

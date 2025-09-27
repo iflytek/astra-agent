@@ -40,20 +40,20 @@ class OpenAPIRunnerBuilder(BaseApiBuilder):
             chat_runner = await self.build_chat_runner(
                 RunnerParams(
                     model=summary_model,
-                    chat_history=self.inputs.messages[:-1],
+                    chat_history=self.inputs.get_chat_history(),
                     instruct=bot_config.model_config_.instruct,
                     knowledge=knowledge,
-                    question=self.inputs.messages[-1].content,
+                    question=self.inputs.get_last_message_content(),
                 )
             )
 
             process_runner = await self.build_process_runner(
                 RunnerParams(
                     model=summary_model,
-                    chat_history=self.inputs.messages[:-1],
+                    chat_history=self.inputs.get_chat_history(),
                     instruct=bot_config.model_config_.instruct,
                     knowledge=knowledge,
-                    question=self.inputs.messages[-1].content,
+                    question=self.inputs.get_last_message_content(),
                 )
             )
 
@@ -61,10 +61,10 @@ class OpenAPIRunnerBuilder(BaseApiBuilder):
                 CotRunnerParams(
                     model=plan_model,
                     plugins=cast(list[BasePlugin], plugins),
-                    chat_history=self.inputs.messages[:-1],
+                    chat_history=self.inputs.get_chat_history(),
                     instruct=bot_config.model_config_.instruct,
                     knowledge=knowledge,
-                    question=self.inputs.messages[-1].content,
+                    question=self.inputs.get_last_message_content(),
                     process_runner=process_runner,
                 )
             )
@@ -90,7 +90,7 @@ class OpenAPIRunnerBuilder(BaseApiBuilder):
                 return [], ""
 
             knowledge_plugin = KnowledgePluginFactory(
-                query=self.inputs.messages[-1].content,
+                query=self.inputs.get_last_message_content(),
                 top_k=bot_config.knowledge_config.top_k,
                 repo_ids=repo_ids,
                 doc_ids=doc_ids,

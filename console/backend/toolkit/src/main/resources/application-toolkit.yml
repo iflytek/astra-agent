@@ -27,12 +27,13 @@ api:
     sparkDB: http://10.1.87.65:7990
     sparkDocUrl: https://chatdoc.xfyun.cn
     mcpUrlServer: http://127.0.0.1:port
-    localModel: http://127.0.0.1:0000
+    localModel: http://10.103.240.12:33777
     datasetUrl: http://127.0.0.1:8080/dataset/getDataset
     datasetFileUrl: http://127.0.0.1:8080/dataset/getDatasetFiles
     xinghuoDatasetFileUrl: http://127.0.0.1:8080/dataset/addXinghuoDatasetFile
     deleteXinghuoDatasetFileUrl: http://127.0.0.1:8080/dataset/deleteXinghuoDatasetFile
     deleteXinghuoDatasetUrl: http://127.0.0.1:8080/dataset/deleteXinghuoDataset
+    rpaUrl: https://newapi.iflyrpa.com
 
 # Business-specific configuration
 biz:

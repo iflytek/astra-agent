@@ -3,14 +3,15 @@
 from datetime import datetime
 from typing import Optional
 
+from memory.database.domain.models.base import SQLModelSerializable
+from memory.database.utils.snowfake import get_id
 from sqlalchemy import BigInteger, Column
 from sqlmodel import Field
 
-from memory.database.domain.models.base import SQLModelSerializable
-from memory.database.utils.snowfake import get_id
 
-
-class SchemaMeta(SQLModelSerializable, table=True):  # pylint: disable=too-few-public-methods
+class SchemaMeta(
+    SQLModelSerializable, table=True  # type: ignore[call-arg]
+):  # pylint: disable=too-few-public-methods
     """Database schema metadata model representing schema information and ownership.
 
     Attributes:
@@ -22,6 +23,7 @@ class SchemaMeta(SQLModelSerializable, table=True):  # pylint: disable=too-few-p
         create_by: Creator identifier
         update_by: Last updater identifier
     """
+
     __tablename__ = "schema_meta"
     __table_args__ = {"schema": "sparkdb_manager"}
     id: int = Field(

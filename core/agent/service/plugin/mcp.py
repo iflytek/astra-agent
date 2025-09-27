@@ -42,7 +42,7 @@ class McpPluginRunner(BaseModel):
                 async with aiohttp.ClientSession() as session:
                     timeout = aiohttp.ClientTimeout(total=40)
                     async with session.post(
-                        agent_config.run_mcp_plugin_url,
+                        agent_config.RUN_MCP_PLUGIN_URL,
                         json=data,
                         headers={"Content-Type": "application/json"},
                         timeout=timeout,
@@ -132,7 +132,7 @@ class McpPluginFactory(BaseModel):
                 async with aiohttp.ClientSession() as session:
                     timeout = aiohttp.ClientTimeout(total=40)
                     async with session.post(
-                        agent_config.list_mcp_plugin_url,
+                        agent_config.LIST_MCP_PLUGIN_URL,
                         json=data,
                         timeout=timeout,
                     ) as response:

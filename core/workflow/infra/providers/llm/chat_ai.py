@@ -3,7 +3,6 @@ from asyncio import Event
 from typing import Any, AsyncIterator
 
 from pydantic import BaseModel, Field
-
 from workflow.engine.nodes.entities.llm_response import LLMResponse
 from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span

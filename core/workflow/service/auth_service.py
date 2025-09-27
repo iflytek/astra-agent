@@ -1,5 +1,4 @@
 from sqlmodel import Session  # type: ignore
-
 from workflow.consts.tenant_publish_matrix import Platform, TenantPublishMatrix
 from workflow.domain.entities.flow import AuthInput
 from workflow.domain.models.flow import Flow
@@ -33,8 +32,8 @@ def handle(
     if not db_tenant_app.is_tenant:
         span.add_info_event(f"Tenant app ID: {tenant_app_id}")
         raise CustomException(
-            CodeEnum.AppTenantNotFound,
-            err_msg=f"{CodeEnum.AppTenantNotFound.msg}: {tenant_app_id} is not a tenant",
+            CodeEnum.APP_TENANT_NOT_FOUND_ERROR,
+            err_msg=f"{tenant_app_id} is not a tenant",
         )
 
     # Get user application information
@@ -44,7 +43,7 @@ def handle(
     db_flow = session.query(Flow).filter_by(id=auth_input.flow_id).first()
     if not db_flow:
         span.add_info_event(f"Flow ID: {auth_input.flow_id}")
-        raise CustomException(CodeEnum.FlowIDNotFound)
+        raise CustomException(CodeEnum.FLOW_NOT_FOUND_ERROR)
 
     group_id = db_flow.group_id
     release_status = (
@@ -68,7 +67,7 @@ def handle(
         and (release_status & TenantPublishMatrix(Platform.AI_UI).get_take_off)
     ):
         raise CustomException(
-            CodeEnum.FlowNotPublish,
+            CodeEnum.FLOW_NOT_PUBLISH_ERROR,
         )
 
     # Register group_id and app_id binding in license table

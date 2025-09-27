@@ -71,11 +71,11 @@ class APPAuth:
 
     def __init__(self) -> None:
         self.config = AuthConfig(
-            host=agent_config.app_auth_host,
-            route=agent_config.app_auth_router,
-            prot=agent_config.app_auth_prot,
-            api_key=agent_config.app_auth_api_key,
-            secret=agent_config.app_auth_secret,
+            host=agent_config.APP_AUTH_HOST,
+            route=agent_config.APP_AUTH_ROUTER,
+            prot=agent_config.APP_AUTH_PROT,
+            api_key=agent_config.APP_AUTH_API_KEY,
+            secret=agent_config.APP_AUTH_SECRET,
         )
         # Set current time
         self.date = http_date(datetime.datetime.utcnow())

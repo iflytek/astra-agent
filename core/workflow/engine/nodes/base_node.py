@@ -1,37 +1,43 @@
 import asyncio
 import json
 import os
-import traceback
 from abc import abstractmethod
 from asyncio import Event
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Tuple
 
 from pydantic import BaseModel, Field
-
-from workflow.consts.flow import ErrorHandler, XFLLMStatus
-from workflow.consts.model_provider import ModelProviderEnum
-from workflow.consts.template import TemplateSplitType, TemplateType
+from workflow.consts.engine.chat_status import ChatStatus, SparkLLMStatus
+from workflow.consts.engine.model_provider import ModelProviderEnum
+from workflow.consts.engine.template import TemplateSplitType, TemplateType
 from workflow.domain.entities.chat import HistoryItem
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
-from workflow.engine.entities.history import History, ProcessArrayMethod
+from workflow.engine.callbacks.openai_types_sse import GenerateUsage
+from workflow.engine.entities.history import (
+    EnableChatHistoryV2,
+    History,
+    ProcessArrayMethod,
+)
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo
 from workflow.engine.entities.node_entities import NodeType
 from workflow.engine.entities.node_running_status import NodeRunningStatus
 from workflow.engine.entities.output_mode import EndNodeOutputModeEnum
+from workflow.engine.entities.retry_config import RetryConfig
 from workflow.engine.entities.variable_pool import ParamKey, VariablePool
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
     WorkflowNodeExecutionStatus,
 )
-from workflow.engine.nodes.node_schemas import node_schema
 from workflow.engine.nodes.util.frame_processor import (
     AIPaaSFrameProcessor,
     FrameProcessor,
     FrameProcessorFactory,
     UnionFrame,
 )
-from workflow.engine.nodes.util.prompt import process_prompt
-from workflow.engine.nodes.util.string_parse import TemplateUnitObj, parse_prompt
+from workflow.engine.nodes.util.prompt import (
+    PromptUtils,
+    TemplateUnitObj,
+    process_prompt,
+)
 from workflow.exception.e import CustomException
 from workflow.exception.errors.code_convert import CodeConvert
 from workflow.exception.errors.err_code import CodeEnum
@@ -39,38 +45,13 @@ from workflow.extensions.otlp.log_trace.node_log import NodeLog
 from workflow.extensions.otlp.trace.span import Span
 from workflow.infra.providers.llm.chat_ai import ChatAI
 from workflow.infra.providers.llm.chat_ai_factory import ChatAIFactory
-from workflow.infra.providers.llm.iflytek_spark.const import (
-    LLM_END_FRAME as SPARK_LLM_END_FRAME,
-)
 from workflow.infra.providers.llm.iflytek_spark.const import RespFormatEnum
 from workflow.infra.providers.llm.iflytek_spark.schemas import (
     SparkAiMessage,
     StreamOutputMsg,
 )
-from workflow.infra.providers.llm.openai.const import (
-    LLM_END_FRAME as OPENAI_LLM_END_FRAME,
-)
 from workflow.infra.providers.llm.types import SystemUserMsg
 from workflow.utils.file_util import url_to_base64
-from workflow.utils.json_schema.json_schema_cn import CNValidator
-
-
-class RetryConfig(BaseModel):
-    """
-    Configuration for node retry mechanism.
-
-    :param timeout: Maximum timeout in seconds for node execution
-    :param should_retry: Whether to enable retry mechanism
-    :param max_retries: Maximum number of retry attempts
-    :param error_strategy: Error handling strategy when retry fails
-    :param custom_output: Custom output to return when retry fails
-    """
-
-    timeout: float = 60
-    should_retry: bool = False
-    max_retries: int = 0
-    error_strategy: int = ErrorHandler.Interrupted.value
-    custom_output: dict = {}
 
 
 class BaseNode(BaseModel):
@@ -105,66 +86,6 @@ class BaseNode(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
-
-    @abstractmethod
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration dictionary for this node.
-
-        This method should be implemented by all subclasses to return
-        the specific configuration parameters for the node type.
-
-        :return: Dictionary containing node configuration parameters
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def schema_validate(node_body: dict, node_type: str) -> str:
-        """
-        Validate node input parameters against the schema.
-
-        This method validates the input parameters for a node against its
-        defined schema and returns any validation errors.
-
-        :param node_body: Dictionary containing node input parameters
-        :param node_type: Type of the node to validate
-        :return: Empty string if validation passes, error message if validation fails
-        """
-        schemas = node_schema.get(node_type, None)
-        if not schemas:
-            return f"{node_type} schema does not exist"
-        er_msgs = [
-            f"Field: {er['schema_path']}, Error: {er['message']}"
-            for er in CNValidator(schemas).validate(node_body)
-        ]
-        errs = ";".join(er_msgs)
-        if errs:
-            return errs
-        return ""
-
-    @abstractmethod
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Execute the node synchronously.
-
-        This method should be implemented by all subclasses to define
-        the synchronous execution logic for the specific node type.
-
-        :param variable_pool: Pool containing variables and their values
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments including:
-            - callback: Hook method for callbacks
-            - event_log_node_trace: Hook for logging
-        :return: NodeRunResult containing execution results
-        """
-        raise NotImplementedError
 
     @abstractmethod
     async def async_execute(
@@ -243,10 +164,14 @@ class BaseNode(BaseModel):
 
         :return: Dictionary with finish_reason set to "stop"
         """
-        return {"finish_reason": "stop"}
+        return {"finish_reason": ChatStatus.FINISH_REASON.value}
 
     def success(
-        self, inputs: dict, outputs: dict, raw_output: Any, time_cost: float
+        self,
+        inputs: dict,
+        outputs: dict,
+        raw_output: Optional[str] = "",
+        token_cost: Optional[GenerateUsage] = None,
     ) -> NodeRunResult:
         """
         Create a successful node execution result.
@@ -257,19 +182,21 @@ class BaseNode(BaseModel):
         :param inputs: Input parameters for the node
         :param outputs: Output parameters from the node
         :param raw_output: Raw execution result
-        :param time_cost: Execution time in seconds
+        :param token_cost: Token usage information for LLM nodes
         :return: NodeRunResult with SUCCEEDED status
         """
-        return NodeRunResult(
+        result = NodeRunResult(
             status=WorkflowNodeExecutionStatus.SUCCEEDED,
             inputs=inputs,
             outputs=outputs,
-            raw_output=raw_output,
+            raw_output=raw_output if raw_output else "",
             node_id=self.node_id,
             alias_name=self.alias_name,
             node_type=self.node_type,
-            time_cost=str(time_cost),
         )
+        if token_cost:
+            result.token_cost = token_cost
+        return result
 
     def fail(self, error: Exception, code_enum: CodeEnum, span: Span) -> NodeRunResult:
         """
@@ -287,8 +214,7 @@ class BaseNode(BaseModel):
         if isinstance(error, CustomException):
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{error}",
-                error_code=error.code,
+                error=error,
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -296,8 +222,10 @@ class BaseNode(BaseModel):
         else:
             return NodeRunResult(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=f"{error}",
-                error_code=code_enum.code,
+                error=CustomException(
+                    code_enum,
+                    cause_error=error,
+                ),
                 node_id=self.node_id,
                 alias_name=self.alias_name,
                 node_type=self.node_type,
@@ -349,41 +277,7 @@ class BaseOutputNode(BaseNode):
     :param streamOutput: Whether this node supports streaming output
     """
 
-    streamOutput: bool = False
-
-    @abstractmethod
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get the configuration dictionary for this output node.
-
-        This method should be implemented by all subclasses to return
-        the specific configuration parameters for the output node type.
-
-        :return: Dictionary containing node configuration parameters
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Execute the output node synchronously.
-
-        This method should be implemented by all subclasses to define
-        the synchronous execution logic for the specific output node type.
-
-        :param variable_pool: Pool containing variables and their values
-        :param span: Tracing span for monitoring and debugging
-        :param event_log_node_trace: Optional node trace logging
-        :param kwargs: Additional keyword arguments
-        :return: NodeRunResult containing execution results
-        """
-        raise NotImplementedError
+    streamOutput: bool = Field(default=False)
 
     @abstractmethod
     async def async_execute(
@@ -478,16 +372,17 @@ class BaseOutputNode(BaseNode):
         :return: The final frame of the stream, or None if not applicable
         """
 
-        # 缓存大模型节点输出的内容
+        # Cache content output of LLM nodes
         llm_output_cache: Dict[str, List[OutputNodeFrameData]] = {}
 
-        # 缓存大模型节点推理过程的内容
+        # Cache reasoning/thinking output of LLM nodes
         llm_reasoning_content: Dict[str, List[OutputNodeFrameData]] = {}
 
-        # 标记大模型节点是否执行结束
+        # Track whether each LLM node has finished output
         llm_output_status: Dict[str, bool] = {}
 
-        # 标记大模型节点是否已经发生异常，如果有取值需要应该去变量池中取
+        # Track whether an exception occurred for each LLM node;
+        # if True, values should be fetched directly from the variable pool
         llm_occur_exception: Dict[str, bool] = {}
 
         class TemplateUnit(BaseModel):
@@ -498,7 +393,7 @@ class BaseOutputNode(BaseNode):
             class Config:
                 arbitrary_types_allowed = True
 
-        # 构造模板数据
+        # Build template units for reasoning and normal content
         template_units: list[TemplateUnit] = [
             TemplateUnit(
                 template=reasoning_template,
@@ -510,23 +405,24 @@ class BaseOutputNode(BaseNode):
             ),
         ]
         for template_unit in template_units:
-            template_unit.unit_list = await self._template_spilt(
-                variable_pool=variable_pool, template=template_unit.template, span=span
+            template_unit.unit_list = PromptUtils.get_template_unit(
+                self.node_id, template_unit.template, variable_pool, span
             )
 
-        # 构造模型输出缓存数据结构
+        # Initialize output caches for all referenced dependency nodes
         for template_unit in template_units:
             for unit in template_unit.unit_list:
-                llm_output_cache[unit.dep_node_id] = []
-                llm_reasoning_content[unit.dep_node_id] = []
+                if unit.ref_node_info:
+                    llm_output_cache[unit.ref_node_info.ref_node_id] = []
+                    llm_reasoning_content[unit.ref_node_info.ref_node_id] = []
 
-        # 非流式输出的输出帧缓存
+        # Cache buffers for non-streaming output frames
         not_stream_output_cache: dict[str, list] = {
             "reasoning_content": [],
             "content": [],
         }
 
-        # 针对不同的模版数据，进行流式输出
+        # Stream outputs for different template types (reasoning and normal)
         for template_unit in template_units:
             async for output_node_frame_data in self.msg_or_end_node_stream_output(
                 variable_pool=variable_pool,
@@ -543,7 +439,7 @@ class BaseOutputNode(BaseNode):
                     output_node_frame_data.is_end
                     and template_unit.template_type == TemplateType.NORMAL
                 ):
-                    # 如果是normal模式下的is_end=true，才是最后一帧
+                    # Only in NORMAL mode with is_end=True should this be treated as the final frame
                     if not self.streamOutput:
                         self.add_output_into_not_stream_output_cache(
                             output_node_frame_data, not_stream_output_cache
@@ -571,75 +467,6 @@ class BaseOutputNode(BaseNode):
                         reasoning_content=output_node_frame_data.reasoning_content,
                     )
         return None
-
-    async def _template_spilt(
-        self, variable_pool: VariablePool, template: str, span: Span
-    ) -> list[TemplateUnitObj]:
-        """
-        Split and parse the prompt template into template units.
-
-        This method analyzes the prompt template and breaks it down into
-        different types of units: constants, variables, and LLM JSON outputs.
-        Each unit is marked with its type for proper processing during execution.
-
-        :param variable_pool: Pool containing variables and their references
-        :param template: Prompt template string to be parsed
-        :param span: Tracing span for monitoring and debugging
-        :return: List of TemplateUnitObj representing parsed template units
-        """
-
-        prompt_template = template
-        # Parse template and mark each part with its type:
-        # 0: Constants that can be output directly
-        # 1: Variables that need to be retrieved from variable pool
-        # 2: LLM node outputs in JSON format that need to be extracted from variable pool
-        template_unit_list = parse_prompt(prompt_template)
-
-        for index, template_unit in enumerate(template_unit_list):
-            if template_unit.key_type == TemplateSplitType.VARIABLE.value:
-                # Get reference information for the variable
-                ref_node_info = variable_pool.get_variable_ref_node_id(
-                    self.node_id, template_unit.key, span
-                )
-                dep_node_id = ref_node_info.ref_node_id
-                dep_node_var_type = ref_node_info.ref_var_type
-
-                if dep_node_var_type == "literal":
-                    # Convert literal variables to constants
-                    template_unit_list[index].key_type = TemplateSplitType.CONSTS.value
-                    template_unit_list[index].key = ref_node_info.literal_var_value
-                elif dep_node_var_type == "ref":
-                    # Handle reference variables
-                    llm_resp_format = ref_node_info.llm_resp_format
-                    if dep_node_id:
-                        template_unit_list[index].dep_node_id = dep_node_id
-                        template_unit_list[index].ref_var_name = (
-                            ref_node_info.ref_var_name
-                        )
-                        if llm_resp_format == RespFormatEnum.JSON.value:
-                            # Mark as LLM JSON output if response format is JSON
-                            template_unit_list[index].key_type = (
-                                TemplateSplitType.LLM_JSON.value
-                            )
-                    else:
-                        # No dependency node found, treat as constant placeholder
-                        template_unit_list[index].key_type = (
-                            TemplateSplitType.CONSTS.value
-                        )
-                        template_unit_list[index].key = "{{" + template_unit.key + "}}"
-                        template_unit_list[index].ref_var_name = (
-                            ref_node_info.ref_var_name
-                        )
-                else:
-                    # Empty ref_var_type indicates variable doesn't exist
-                    template_unit_list[index].key_type = TemplateSplitType.CONSTS.value
-                    template_unit_list[index].key = "{{" + template_unit.key + "}}"
-
-            # Mark the last unit as the end unit
-            if index == len(template_unit_list) - 1:
-                template_unit_list[index].is_end = True
-
-        return template_unit_list
 
     def get_variable_from_vp(
         self,
@@ -677,7 +504,7 @@ class BaseOutputNode(BaseNode):
     def _is_valid_stream_dependency(
         self,
         dep_node_id: str,
-        template_unit: Any,
+        template_unit: TemplateUnitObj,
         variable_pool: VariablePool,
     ) -> bool:
         """
@@ -697,9 +524,12 @@ class BaseOutputNode(BaseNode):
             # LLM and Agent nodes always support streaming
             return True
 
+        if not template_unit.ref_node_info:
+            raise ValueError(f"Node {dep_node_id} has no ref node info")
+
         if node_type == NodeType.KNOWLEDGE_PRO.value:
             # Knowledge Pro nodes support streaming except for result variables
-            return not template_unit.ref_var_name.startswith("result")
+            return not template_unit.ref_node_info.ref_var_name.startswith("result")
 
         if node_type == NodeType.FLOW.value:
             # Flow nodes support streaming only in prompt mode
@@ -816,19 +646,24 @@ class BaseOutputNode(BaseNode):
             if template_unit.key_type == TemplateSplitType.CONSTS.value:
                 yield OutputNodeFrameData(
                     content=(
-                        template_unit.key
+                        template_unit.value
                         if template_type == TemplateType.NORMAL
                         else ""
                     ),
                     reasoning_content=(
-                        template_unit.key
+                        template_unit.value
                         if template_type == TemplateType.REASONING
                         else ""
                     ),
                     data_type="text",
                     is_end=template_unit.is_end,
                 )
-            dep_node_id = template_unit.dep_node_id
+
+            dep_node_id = (
+                template_unit.ref_node_info.ref_node_id
+                if template_unit.ref_node_info
+                else ""
+            )
 
             # Handle node data
             if template_unit.key_type == TemplateSplitType.VARIABLE.value:
@@ -973,7 +808,7 @@ class BaseOutputNode(BaseNode):
             llm_reasoning_content[dep_node_id].append(OutputNodeFrameData(is_end=True))
             llm_output_cache[dep_node_id].append(
                 OutputNodeFrameData(
-                    content=content, is_end=(status == XFLLMStatus.END.value)
+                    content=content, is_end=(status == SparkLLMStatus.END.value)
                 )
             )
             if is_reasoning:
@@ -999,7 +834,7 @@ class BaseOutputNode(BaseNode):
                     ),
                     content=(content if template_type == TemplateType.NORMAL else ""),
                     data_type="text",
-                    is_end=(status == XFLLMStatus.END.value),
+                    is_end=(status == SparkLLMStatus.END.value),
                 )
 
     async def _process_queue_output(
@@ -1051,7 +886,7 @@ class BaseOutputNode(BaseNode):
 
                 llm_output_status[dep_node_id] = (
                     True
-                    if status == XFLLMStatus.END.value
+                    if status == SparkLLMStatus.END.value
                     else llm_output_status[dep_node_id]
                 )
 
@@ -1084,7 +919,7 @@ class BaseOutputNode(BaseNode):
                     is_reasoning,
                 ):
                     yield data
-                if status == XFLLMStatus.END.value or (
+                if status == SparkLLMStatus.END.value or (
                     template_type == TemplateType.REASONING
                     and reasoning_content == ""
                     and is_reasoning
@@ -1195,27 +1030,29 @@ class BaseLLMNode(BaseNode):
     :param chat_ai: Chat AI instance
     """
 
-    model: str
-    url: str = ""
-    domain: str
-    temperature: float = 1.0
-    appId: str
-    apiKey: str = ""
-    apiSecret: str = ""
-    maxTokens: int = 2048
-    uid: str = ""
-    template: str = ""
-    systemTemplate: str = ""
-    topK: int = 3
-    patch_id: list = []
-    respFormat: int = 0
-    enableChatHistory: bool = False
-    enableChatHistoryV2: dict = {}
-    re_match_pattern: str = r"```(json)?(.*)```"
-    source: str = ModelProviderEnum.XINGHUO.value
-    searchDisable: bool = True
-    extraParams: dict = {}
-    chat_ai: Any = None
+    model: str = Field(...)
+    domain: str = Field(...)
+    appId: str = Field(...)
+    apiKey: str = Field(...)
+    apiSecret: str = Field(...)
+
+    url: str = Field(default="")
+    temperature: float = Field(gt=0, le=1, default=1.0)
+    maxTokens: int = Field(gt=0, default=2048)
+    uid: str = Field(default="")
+    template: str = Field(default="")
+    systemTemplate: str = Field(default="")
+    topK: int = Field(default=3)
+    patch_id: list = Field(default_factory=list)
+    respFormat: Literal[0, 1, 2] = 0
+    enableChatHistory: bool = Field(default=False)
+    enableChatHistoryV2: EnableChatHistoryV2 = Field(
+        default_factory=EnableChatHistoryV2
+    )
+    re_match_pattern: str = Field(default=r"```(json)?(.*)```")
+    source: str = Field(default=ModelProviderEnum.XINGHUO.value)
+    searchDisable: bool = Field(default=True)
+    extraParams: dict = Field(default_factory=dict)
 
     def _get_chat_ai(self) -> ChatAI:
         """
@@ -1226,27 +1063,26 @@ class BaseLLMNode(BaseNode):
 
         :return: ChatAI instance configured for this node
         """
-        if not self.chat_ai:
-            self.chat_ai = ChatAIFactory.get_chat_ai(
-                model_source=(
-                    ModelProviderEnum.XINGHUO.value
-                    if not hasattr(self, "source")
-                    else self.source
-                ),
-                model_url=self.url,
-                model_name=self.domain,
-                spark_version="",
-                temperature=self.temperature if hasattr(self, "temperature") else None,
-                app_id=self.appId,
-                api_key=self.apiKey,
-                api_secret=self.apiSecret,
-                max_tokens=self.maxTokens if hasattr(self, "maxTokens") else None,
-                top_k=self.topK if hasattr(self, "topK") else None,
-                patch_id=self.patch_id,
-                uid=self.uid,
-                stream_node_first_token=self.stream_node_first_token,
-            )
-        return self.chat_ai
+
+        return ChatAIFactory.get_chat_ai(
+            model_source=(
+                ModelProviderEnum.XINGHUO.value
+                if not hasattr(self, "source")
+                else self.source
+            ),
+            model_url=self.url,
+            model_name=self.domain,
+            spark_version="",
+            temperature=self.temperature if hasattr(self, "temperature") else None,
+            app_id=self.appId,
+            api_key=self.apiKey,
+            api_secret=self.apiSecret,
+            max_tokens=self.maxTokens if hasattr(self, "maxTokens") else None,
+            top_k=self.topK if hasattr(self, "topK") else None,
+            patch_id=self.patch_id,
+            uid=self.uid,
+            stream_node_first_token=self.stream_node_first_token,
+        )
 
     def _process_history(
         self,
@@ -1451,17 +1287,24 @@ class BaseLLMNode(BaseNode):
                             llm_content=msg,
                         )
                     texts.append(content)
-                    if status in [SPARK_LLM_END_FRAME, OPENAI_LLM_END_FRAME]:
+                    if status in [
+                        SparkLLMStatus.END.value,
+                        ChatStatus.FINISH_REASON.value,
+                    ]:
                         token_usage = token_usage
                         break
                     if (
                         self.source == ModelProviderEnum.OPENAI.value
                         and status
-                        and status not in [SPARK_LLM_END_FRAME, OPENAI_LLM_END_FRAME]
+                        and status
+                        not in [
+                            SparkLLMStatus.END.value,
+                            ChatStatus.FINISH_REASON.value,
+                        ]
                     ):
                         # Exception case: finish_reason has value but not "stop", report the issue
                         # For example, openai-gpt-4o gives "length" when max_token is very small
-                        raise CustomException(err_code=CodeEnum.OpenAIRequestError)
+                        raise CustomException(err_code=CodeEnum.OPEN_AI_REQUEST_ERROR)
                 else:
                     raise CustomException(
                         err_code=CodeConvert.sparkCode(code),
@@ -1478,12 +1321,11 @@ class BaseLLMNode(BaseNode):
             else:
                 span.add_error_event("result is null")
                 raise CustomException(
-                    err_code=CodeEnum.SparkRequestError,
+                    err_code=CodeEnum.SPARK_REQUEST_ERROR,
                     err_msg="LLM returned empty result",
                     cause_error="LLM returned empty result",
                 )
         except Exception as e:
-            traceback.print_exc()
             raise e
 
     async def put_llm_content(

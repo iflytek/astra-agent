@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.iflytek.astra.console.commons.mapper.space.SpaceMapper">
+<mapper namespace="com.iflytek.astron.console.commons.mapper.space.SpaceMapper">
 
-<select id="recentVisitList" resultType="com.iflytek.astra.console.commons.dto.space.SpaceVO">
+<select id="recentVisitList" resultType="com.iflytek.astron.console.commons.dto.space.SpaceVO">
         select s.*, u.last_visit_time from agent_space s left join agent_space_user u on (s.id = u.space_id)
         where u.uid = #{uid} and s.deleted = 0 and u.last_visit_time is not null
         <if test="enterpriseId != null">
@@ -14,7 +14,7 @@
         order by u.last_visit_time desc
     </select>
 
-    <select id="joinList" resultType="com.iflytek.astra.console.commons.dto.space.SpaceVO">
+    <select id="joinList" resultType="com.iflytek.astron.console.commons.dto.space.SpaceVO">
         select s.*, u.role as user_role from agent_space s left join agent_space_user u on (s.id = u.space_id)
         where u.uid = #{uid} and s.deleted = 0
         <if test="enterpriseId != null">
@@ -29,7 +29,7 @@
         order by u.create_time desc
     </select>
 
-    <select id="selfList" resultType="com.iflytek.astra.console.commons.dto.space.SpaceVO">
+    <select id="selfList" resultType="com.iflytek.astron.console.commons.dto.space.SpaceVO">
         select s.*, u.role as user_role from agent_space s left join agent_space_user u on (s.id = u.space_id)
         where u.uid = #{uid} and s.deleted = 0 and u.role = #{role}
         <if test="enterpriseId != null">
@@ -44,7 +44,7 @@
         order by u.create_time desc
     </select>
 
-    <select id="corporateList" resultType="com.iflytek.astra.console.commons.dto.space.SpaceVO">
+    <select id="corporateList" resultType="com.iflytek.astron.console.commons.dto.space.SpaceVO">
         select s.*, u.role as user_role,
         case when u.id is not null then 1
         when a.id is not null then 3 else 2 end as apply_status
@@ -58,12 +58,12 @@
         order by s.create_time desc
     </select>
 
-    <select id="getByUidAndId" resultType="com.iflytek.astra.console.commons.dto.space.SpaceVO">
+    <select id="getByUidAndId" resultType="com.iflytek.astron.console.commons.dto.space.SpaceVO">
         select s.*, u.role as user_role from agent_space s left join agent_space_user u on (s.id = u.space_id)
         where u.uid = #{uid} and s.deleted = 0 and s.id = #{spaceId} limit 1
     </select>
 
-    <select id="corporateCount" resultType="com.iflytek.astra.console.commons.dto.space.EnterpriseSpaceCountVO">
+    <select id="corporateCount" resultType="com.iflytek.astron.console.commons.dto.space.EnterpriseSpaceCountVO">
         select count(1) total, COUNT(u.id) joined from agent_space s LEFT JOIN agent_space_user u
         ON (s.id = u.space_id AND u.uid=#{uid})
         WHERE s.deleted = 0 AND s.enterprise_id = #{enterpriseId}

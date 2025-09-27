@@ -3,13 +3,14 @@ calc.py
 """
 
 import ctypes
+from typing import Optional
 
 from common.metrology_auth.base import BaseClass
 
 
 class Metrology(BaseClass):
 
-    def __init__(self, ctype_filename):
+    def __init__(self, ctype_filename: str):
         self.lib = self.get_lib(ctype_filename)
 
         class CalcReturnType(ctypes.Structure):
@@ -42,26 +43,39 @@ class Metrology(BaseClass):
 
         self.calc_inited = False
 
-    def calc_init(self, url, pro, gro, service, version, mode, sname):
-        url = url.encode()
-        pro = pro.encode()
-        gro = gro.encode()
-        service = service.encode()
-        version = version.encode()
-        sname = sname.encode()
-        result = self.lib.Calc_Init(url, pro, gro, service, version, mode, sname)
+    def calc_init(
+        self,
+        url: str,
+        pro: str,
+        gro: str,
+        service: str,
+        version: str,
+        mode: int,
+        sname: str,
+    ) -> Optional[str]:
+        b_url = url.encode()
+        b_pro = pro.encode()
+        b_gro = gro.encode()
+        b_service = service.encode()
+        b_version = version.encode()
+        b_sname = sname.encode()
+        result = self.lib.Calc_Init(
+            b_url, b_pro, b_gro, b_service, b_version, mode, b_sname
+        )
         if not result:
             self.calc_inited = True
             return None
         else:
             return result.decode()
 
-    def calc(self, appid, channel, funcs, c):
-        appid = appid.encode()
-        channel = channel.encode()
-        funcs = funcs.encode()
-        calc_result = self.lib.Calc(appid, channel, funcs, c)
+    def calc(
+        self, appid: str, channel: str, funcs: str, c: int
+    ) -> tuple[int, Optional[str]]:
+        b_appid = appid.encode()
+        b_channel = channel.encode()
+        b_funcs = funcs.encode()
+        calc_result = self.lib.Calc(b_appid, b_channel, b_funcs, c)
         return calc_result.r0, calc_result.r1.decode() if calc_result.r1 else None
 
-    def calc_fini(self):
+    def calc_fini(self) -> None:
         self.lib.Calc_Fini()

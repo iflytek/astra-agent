@@ -2,15 +2,16 @@ import copy
 import json
 import re
 import time
-import traceback
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, cast
 
-from pydantic import BaseModel
-
+from pydantic import BaseModel, Field
+from typing_extensions import Annotated
 from workflow.cache.event_registry import EventRegistry
+from workflow.consts.engine.chat_status import ChatStatus
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.variable_pool import VariablePool
+from workflow.engine.entities.workflow_dsl import OutputItem
 from workflow.engine.nodes.base_node import BaseLLMNode
 from workflow.engine.nodes.entities.node_run_result import (
     NodeRunResult,
@@ -71,8 +72,12 @@ class DirectAnswer(BaseModel):
     :param maxRetryCounts: Maximum number of retry attempts
     """
 
-    handleResponse: bool = False
-    maxRetryCounts: int = 0
+    handleResponse: bool = Field(...)
+    maxRetryCounts: int = Field(..., ge=1, le=5)
+
+
+LiteralDefault = Literal["default"]
+SingleUpper = Annotated[str, Field(pattern=r"^[A-Z]$")]
 
 
 class Option(BaseModel):
@@ -86,11 +91,11 @@ class Option(BaseModel):
     :param content: Content of the option
     """
 
-    id: str
-    name: str
-    type: int
-    content_type: str
-    content: str
+    id: str = Field(...)
+    name: LiteralDefault | SingleUpper = Field(...)
+    type: Literal[1, 2] = Field(...)
+    content_type: str = Field(...)
+    content: str = Field(...)
 
 
 class ResumeData(BaseModel):
@@ -172,69 +177,19 @@ class QuestionAnswerNode(BaseLLMNode):
     supporting user interaction through interrupts and resume mechanisms.
     """
 
-    question: str
-    answerType: Literal["option", "direct"]
-    timeout: int
-    needReply: bool
+    question: str = Field(...)
+    answerType: Literal["option", "direct"] = Field(...)
+    timeout: int = Field(..., ge=1, le=5)
+    needReply: bool = Field(...)
     directAnswer: DirectAnswer
-    optionAnswer: list[Option] = []
-    start_time: float = 0.0
-    event_id: str = ""
-    extractor_params: list = []
-    default_outputs: dict = {}
-    instruction: str = ""
-    token_usage: dict = {}
-    processed_options: List[Option] = []
-
-    def get_node_config(self) -> Dict[str, Any]:
-        """
-        Get node configuration as dictionary
-
-        :return: Dictionary containing all node configuration parameters
-        """
-        return {
-            "question": self.question,
-            "answerType": self.answerType,
-            "timeout": self.timeout,
-            "needReply": self.needReply,
-            "directAnswer": self.directAnswer.dict(),
-            "optionAnswer": (
-                [opt.dict() for opt in self.optionAnswer] if self.optionAnswer else []
-            ),
-            "model": self.model,
-            "url": self.url,
-            "domain": self.domain,
-            "temperature": self.temperature,
-            "appId": self.appId,
-            "apiKey": self.apiKey,
-            "apiSecret": self.apiSecret,
-            "maxTokens": self.maxTokens,
-            "uid": self.uid,
-            "topK": self.topK,
-            "patch_id": self.patch_id,
-            "start_time": self.start_time,
-            "event_id": self.event_id,
-            "default_output": self.default_outputs,
-        }
-
-    def sync_execute(
-        self,
-        variable_pool: VariablePool,
-        span: Span,
-        event_log_node_trace: NodeLog | None = None,
-        **kwargs: Any,
-    ) -> NodeRunResult:
-        """
-        Synchronous execution method (not implemented)
-
-        :param variable_pool: Variable pool for data access
-        :param span: Tracing span for monitoring
-        :param event_log_node_trace: Event logging trace
-        :param kwargs: Additional keyword arguments
-        :return: Node execution result
-        :raises NotImplementedError: This method is not implemented
-        """
-        raise NotImplementedError
+    optionAnswer: list[Option] = Field(default_factory=list)
+    start_time: float = Field(default=0.0)
+    event_id: str = Field(default="")
+    extractor_params: list[OutputItem] = Field(default_factory=list)
+    default_outputs: dict = Field(default_factory=dict)
+    instruction: str = Field(default="")
+    token_usage: dict = Field(default_factory=dict)
+    processed_options: List[Option] = Field(default_factory=list)
 
     def assemble_schema_info(self) -> dict:
         """
@@ -249,16 +204,14 @@ class QuestionAnswerNode(BaseLLMNode):
         for extra_params in self.extractor_params:
             schema_content["properties"].update(
                 {
-                    extra_params["name"]: {
-                        "type": extra_params.get("schema", {}).get("type"),
-                        "description": extra_params.get("schema", {}).get(
-                            "description"
-                        ),
+                    extra_params.name: {
+                        "type": extra_params.output_schema.get("type"),
+                        "description": extra_params.output_schema.get("description"),
                     }
                 }
             )
-            if extra_params["required"]:
-                schema_content["required"].append(extra_params["name"])
+            if extra_params.required:
+                schema_content["required"].append(extra_params.name)
         return schema_content
 
     def schema_fixed_data(self, res_dict: dict, variable_pool: VariablePool) -> dict:
@@ -282,7 +235,7 @@ class QuestionAnswerNode(BaseLLMNode):
         if required:
             schemas.update({"required": required})
         validator = JsonSchemaValidator(schemas)
-        # 校验并修正
+        # Validate and fix data
         is_valid, fixed_data = validator.validate_and_fix(res_dict)
         return fixed_data
 
@@ -341,7 +294,7 @@ class QuestionAnswerNode(BaseLLMNode):
         if default_option_cnt > 1:
             err_msg = "Invalid default option branch configuration"
             raise CustomException(
-                err_code=CodeEnum.EngProtocolValidateErr,
+                err_code=CodeEnum.ENG_PROTOCOL_VALIDATE_ERROR,
                 err_msg=err_msg,
                 cause_error="Invalid default option branch configuration",
             )
@@ -363,8 +316,8 @@ class QuestionAnswerNode(BaseLLMNode):
             event = EventRegistry().get_event(event_id=self.event_id)
             if event is None:
                 raise CustomException(
-                    err_code=CodeEnum.EventRegistryNotFoundError,
-                    err_msg=CodeEnum.EventRegistryNotFoundError.msg,
+                    err_code=CodeEnum.EVENT_REGISTRY_NOT_FOUND_ERROR,
+                    err_msg=CodeEnum.EVENT_REGISTRY_NOT_FOUND_ERROR.msg,
                     cause_error="Event does not exist",
                 )
             res = await EventRegistry().fetch_resume_data(
@@ -388,7 +341,7 @@ class QuestionAnswerNode(BaseLLMNode):
                 err_msg = "Resume data exception"
                 span_context.add_error_event(err_msg)
                 raise CustomException(
-                    err_code=CodeEnum.QuestionAnswerResumeDataError,
+                    err_code=CodeEnum.QUESTION_ANSWER_RESUME_DATA_ERROR,
                     err_msg=err_msg,
                     cause_error=err_msg,
                 )
@@ -398,7 +351,7 @@ class QuestionAnswerNode(BaseLLMNode):
 
         except Exception as e:
             raise CustomException(
-                err_code=CodeEnum.QuestionAnswerResumeDataError,
+                err_code=CodeEnum.QUESTION_ANSWER_RESUME_DATA_ERROR,
                 err_msg=str(e),
                 cause_error=str(e),
             ) from e
@@ -422,7 +375,7 @@ class QuestionAnswerNode(BaseLLMNode):
             code=0,
             node_id=self.node_id,
             alias_name=self.alias_name,
-            finish_reason="interrupt",
+            finish_reason=ChatStatus.INTERRUPT.value,
         )
 
     async def handle_static_option_response(
@@ -447,38 +400,17 @@ class QuestionAnswerNode(BaseLLMNode):
         span_context.add_info_events({"option_reply_content": user_reply})
 
         option_output: Option | None = None
-        default_option: Option | None = None
-        branch_id: str = ""
         # Single traversal to find matching item and default item
         for option in self.processed_options:
             # Standardized option name comparison
-            if option.name == user_reply:
+            if option.name == user_reply or option.type == OptionType.DEFAULT.value:
                 option_output = option
                 break
-            if option.type == OptionType.DEFAULT.value:
-                default_option = option
 
         if not option_output:
-            if not default_option:
-                raise CustomException(
-                    err_code=CodeEnum.QuestionAnswerNodeExecutionError,
-                    err_msg="No matching option and no default option",
-                )
-            option_output = default_option
-
-            # Prioritize matching item, then use default item
-            branch_id = option_output.id
-
-        # If no valid branch, record error
-        if not branch_id:
-            err_msg = (
-                f"No matching option and no default option, user input: {user_reply}"
-            )
-            span_context.add_error_event(err_msg)
             raise CustomException(
-                err_code=CodeEnum.EngProtocolValidateErr,
-                err_msg=err_msg,
-                cause_error=err_msg,
+                err_code=CodeEnum.QUESTION_ANSWER_NODE_EXECUTION_ERROR,
+                err_msg="No matching option and no default option",
             )
 
         if option_output:
@@ -507,7 +439,7 @@ class QuestionAnswerNode(BaseLLMNode):
             status=WorkflowNodeExecutionStatus.SUCCEEDED,
             inputs=inputs,
             outputs=order_outputs,
-            branch_id=branch_id,
+            branch_id=option_output.id,
         )
 
     async def handle_dynamic_option_response(self) -> None:
@@ -600,7 +532,7 @@ class QuestionAnswerNode(BaseLLMNode):
 
             # 4. Call LLM service
             token_usage, response, _, _ = await self._chat_with_llm(
-                flow_id=callbacks.flow_id,
+                flow_id=callbacks.flow_id if callbacks else "",
                 span=span_context,
                 variable_pool=variable_pool,
                 prompt_template=user_prompt,
@@ -621,7 +553,7 @@ class QuestionAnswerNode(BaseLLMNode):
                 if not isinstance(model_res, dict):
                     err_msg = f"Parse result: {model_res} is abnormal"
                     raise CustomException(
-                        err_code=CodeEnum.QuestionAnswerHandlerResponseError,
+                        err_code=CodeEnum.QUESTION_ANSWER_HANDLER_RESPONSE_ERROR,
                         err_msg=err_msg,
                         cause_error=err_msg,
                     )
@@ -649,7 +581,7 @@ class QuestionAnswerNode(BaseLLMNode):
                 )
                 span_context.add_error_event(err_msg_log)
                 raise CustomException(
-                    err_code=CodeEnum.QuestionAnswerHandlerResponseError,
+                    err_code=CodeEnum.QUESTION_ANSWER_HANDLER_RESPONSE_ERROR,
                     err_msg=err_msg_log,
                     cause_error=err_msg_log,
                 )
@@ -661,7 +593,7 @@ class QuestionAnswerNode(BaseLLMNode):
             err_msg = f"Error executing prompt processing: {str(e)}"
             span_context.add_error_event(err_msg)
             raise CustomException(
-                err_code=CodeEnum.QuestionAnswerHandlerResponseError,
+                err_code=CodeEnum.QUESTION_ANSWER_HANDLER_RESPONSE_ERROR,
                 err_msg=err_msg,
                 cause_error=err_msg,
             )
@@ -762,7 +694,7 @@ class QuestionAnswerNode(BaseLLMNode):
             err_msg = "Parameter extraction failed, reached maximum retry count limit"
             span_context.add_error_event(err_msg)
             raise CustomException(
-                err_code=CodeEnum.QuestionAnswerHandlerResponseError,
+                err_code=CodeEnum.QUESTION_ANSWER_HANDLER_RESPONSE_ERROR,
                 err_msg=err_msg,
                 cause_error=err_msg,
             )
@@ -833,7 +765,7 @@ class QuestionAnswerNode(BaseLLMNode):
 
         err_msg = f"Abnormal event type: {event_type}"
         raise CustomException(
-            err_code=CodeEnum.QuestionAnswerResumeDataError,
+            err_code=CodeEnum.QUESTION_ANSWER_RESUME_DATA_ERROR,
             err_msg=err_msg,
             cause_error=err_msg,
         )
@@ -848,7 +780,7 @@ class QuestionAnswerNode(BaseLLMNode):
         err_msg = "Received abort instruction"
         span_context.add_info_event(err_msg)
         raise CustomException(
-            err_code=CodeEnum.QuestionAnswerResumeDataError,
+            err_code=CodeEnum.QUESTION_ANSWER_RESUME_DATA_ERROR,
             err_msg=err_msg,
             cause_error=err_msg,
         )
@@ -870,7 +802,7 @@ class QuestionAnswerNode(BaseLLMNode):
                 "Received ignore instruction, but workflow does not support ignore"
             )
             raise CustomException(
-                err_code=CodeEnum.QuestionAnswerResumeDataError,
+                err_code=CodeEnum.QUESTION_ANSWER_RESUME_DATA_ERROR,
                 err_msg=err_msg,
                 cause_error=err_msg,
             )
@@ -922,8 +854,7 @@ class QuestionAnswerNode(BaseLLMNode):
         outputs: dict,
         raw_outputs: str = "",
         branch_id: str = "",
-        error: str = "",
-        error_code: int = CodeEnum.QuestionAnswerNodeExecutionError.code,
+        error: Optional[CustomException] = None,
     ) -> NodeRunResult:
         """
         Build node execution result
@@ -943,12 +874,10 @@ class QuestionAnswerNode(BaseLLMNode):
             node_type=self.node_type,
             status=status,
             inputs=inputs,
-            error=error if error else "",
-            error_code=error_code if error else 0,
+            error=error,
             outputs=outputs,
             raw_output=raw_outputs if raw_outputs else "",
             edge_source_handle=branch_id if branch_id else None,
-            time_cost=str(round(time.time() - self.start_time, 2)),
         )
         return res
 
@@ -1082,23 +1011,22 @@ class QuestionAnswerNode(BaseLLMNode):
             EventRegistry().on_interrupt_node_end(event_id=self.event_id)
             return node_res
 
-        except Exception as e:
-            # span.add_error_event(f"执行异常: {str(e)}")
-            traceback.print_exc()
-            span.record_exception(e)
+        except CustomException as e:
             EventRegistry().on_interrupt_node_end(event_id=self.event_id)
-
-            # Determine error code based on exception type
-            if isinstance(e, CustomException):
-                error_code = e.code
-                err_msg = e.message
-            else:
-                error_code = CodeEnum.QuestionAnswerNodeExecutionError.code
-                err_msg = str(e)
             return self._build_node_result(
                 status=WorkflowNodeExecutionStatus.FAILED,
-                error=err_msg,
-                error_code=error_code,
-                inputs=inputs,
+                error=e,
+                inputs={},
+                outputs={},
+            )
+        except Exception as e:
+            EventRegistry().on_interrupt_node_end(event_id=self.event_id)
+            return self._build_node_result(
+                status=WorkflowNodeExecutionStatus.FAILED,
+                error=CustomException(
+                    err_code=CodeEnum.QUESTION_ANSWER_NODE_EXECUTION_ERROR,
+                    cause_error=e,
+                ),
+                inputs={},
                 outputs={},
             )

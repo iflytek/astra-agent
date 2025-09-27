@@ -9,8 +9,8 @@ import threading
 import time
 import unittest
 
-from utils.otlp.metric.meter import Meter
-from utils.otlp.metric.metric import init_metric
+from plugin.link.utils.otlp.metric.meter import Meter
+from plugin.link.utils.otlp.metric.metric import init_metric
 
 # SDK metric reporting interval, recommended < 30000ms, default 1000ms
 EXPORT_INTERVAL_MILLIS = 3000

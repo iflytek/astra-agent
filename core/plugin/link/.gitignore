@@ -5,3 +5,4 @@ sparklink_log
 __pycache__
 .pytest_cache
 .claude
+.script

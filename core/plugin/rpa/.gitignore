@@ -10,3 +10,4 @@ Makefile
 .pytest_cache
 .claude
 htmlcov
+.script

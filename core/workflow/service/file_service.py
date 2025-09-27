@@ -8,7 +8,6 @@ file type checking and size limit enforcement.
 import os
 
 from fastapi import UploadFile
-
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.trace.span import Span
@@ -40,7 +39,7 @@ def check(file: UploadFile, contents: bytes, span_context: Span) -> None:
     if extension not in support_file_type:
         span_context.add_info_event(f"Unsupported file type: {extension}")
         raise CustomException(
-            err_code=CodeEnum.FileInvalidError,
+            err_code=CodeEnum.FILE_INVALID_ERROR,
             err_msg=f"Unsupported file type: {extension}",
         )
 
@@ -50,6 +49,6 @@ def check(file: UploadFile, contents: bytes, span_context: Span) -> None:
             f"File size {file_size} exceeds limit {file_size_limit} bytes"
         )
         raise CustomException(
-            err_code=CodeEnum.FileInvalidError,
+            err_code=CodeEnum.FILE_INVALID_ERROR,
             err_msg="File size exceeds limit",
         )

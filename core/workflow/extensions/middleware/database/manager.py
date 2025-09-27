@@ -10,7 +10,6 @@ from typing import Any, Generator, Optional
 from loguru import logger
 from sqlalchemy import Engine, create_engine
 from sqlmodel import Session  # type: ignore
-
 from workflow.extensions.middleware.base import Service
 from workflow.extensions.middleware.utils import ServiceType
 

@@ -5,17 +5,18 @@ HTTP Authentication utilities for API access.
 This module provides functions and classes for generating authentication
 tokens, signatures, and headers for HTTP and WebSocket API requests.
 """
-import hashlib
-import json
-import time
-import os
-from datetime import datetime
-from wsgiref.handlers import format_date_time
-from time import mktime
 import base64
+import hashlib
 import hmac
+import json
+import os
+import time
+from datetime import datetime
+from time import mktime
 from urllib.parse import urlencode
-from consts import const
+from wsgiref.handlers import format_date_time
+
+from plugin.link.consts import const
 
 
 def generate_13_digit_timestamp():
@@ -31,7 +32,7 @@ def generate_13_digit_timestamp():
     milliseconds = int(
         (current_time - seconds) * 1000
     )  # Milliseconds part, take integer part from 0 to 999
-    # Combine into 13-digit timestamp (first 10 digits are seconds, last 3 are milliseconds)
+    # Combine into 13-digit timestamp (10 for seconds, 3 for milliseconds)
     timestamp = f"{seconds}{milliseconds:03d}"
     return timestamp
 
@@ -140,7 +141,7 @@ def parse_url(requset_url):
         AssembleHeaderException: If the URL format is invalid
     """
     stidx = requset_url.index("://")
-    host = requset_url[stidx + 3:]
+    host = requset_url[stidx + 3 :]
     schema = requset_url[: stidx + 3]
     try:
         edidx = host.index("/")

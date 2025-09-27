@@ -1,8 +1,6 @@
-"""测试配置异常模块。"""
+"""Test configuration exception module."""
 
-import pytest
-
-from exceptions.config_exceptions import (
+from plugin.rpa.exceptions.config_exceptions import (
     ConfigNotFoundException,
     CreatTaskException,
     EnvNotFoundException,
@@ -12,10 +10,10 @@ from exceptions.config_exceptions import (
 
 
 class TestConfigNotFoundException:
-    """ConfigNotFoundException 的测试用例。"""
+    """Test cases for ConfigNotFoundException."""
 
     def test_config_not_found_exception_creation(self) -> None:
-        """测试创建 ConfigNotFoundException。"""
+        """Test creating ConfigNotFoundException."""
         path = "/path/to/config.env"
         exception = ConfigNotFoundException(path)
 
@@ -27,7 +25,7 @@ class TestConfigNotFoundException:
         )
 
     def test_config_not_found_exception_inheritance(self) -> None:
-        """测试 ConfigNotFoundException 继承。"""
+        """Test ConfigNotFoundException inheritance."""
         path = "/path/to/config.env"
         exception = ConfigNotFoundException(path)
 
@@ -35,7 +33,7 @@ class TestConfigNotFoundException:
         assert isinstance(exception, ConfigNotFoundException)
 
     def test_config_not_found_exception_with_different_paths(self) -> None:
-        """测试不同路径的 ConfigNotFoundException。"""
+        """Test ConfigNotFoundException with different paths."""
         paths = [
             "/home/user/.env",
             "C:\\config\\app.env",
@@ -49,7 +47,7 @@ class TestConfigNotFoundException:
             assert path in str(exception)
 
     def test_config_not_found_exception_message_format(self) -> None:
-        """测试 ConfigNotFoundException 消息格式。"""
+        """Test ConfigNotFoundException message format."""
         path = "/test/path"
         exception = ConfigNotFoundException(path)
 
@@ -58,10 +56,10 @@ class TestConfigNotFoundException:
 
 
 class TestEnvNotFoundException:
-    """EnvNotFoundException 的测试用例。"""
+    """Test cases for EnvNotFoundException."""
 
     def test_env_not_found_exception_creation(self) -> None:
-        """测试创建 EnvNotFoundException。"""
+        """Test creating EnvNotFoundException."""
         env_key = "DATABASE_URL"
         exception = EnvNotFoundException(env_key)
 
@@ -70,7 +68,7 @@ class TestEnvNotFoundException:
         assert str(exception) == f"[Exception] Environment not found at key: {env_key}"
 
     def test_env_not_found_exception_with_different_keys(self) -> None:
-        """测试不同环境变量键的 EnvNotFoundException。"""
+        """Test EnvNotFoundException with different environment variable keys."""
         keys = [
             "LOG_LEVEL",
             "API_SECRET_KEY",
@@ -85,7 +83,7 @@ class TestEnvNotFoundException:
             assert key in str(exception)
 
     def test_env_not_found_exception_message_format(self) -> None:
-        """测试 EnvNotFoundException 消息格式。"""
+        """Test EnvNotFoundException message format."""
         env_key = "TEST_KEY"
         exception = EnvNotFoundException(env_key)
 
@@ -94,10 +92,10 @@ class TestEnvNotFoundException:
 
 
 class TestInvalidConfigException:
-    """InvalidConfigException 的测试用例。"""
+    """Test cases for InvalidConfigException."""
 
     def test_invalid_config_exception_creation(self) -> None:
-        """测试创建 InvalidConfigException。"""
+        """Test creating InvalidConfigException."""
         details = "Port number must be between 1 and 65535"
         exception = InvalidConfigException(details)
 
@@ -106,7 +104,7 @@ class TestInvalidConfigException:
         assert str(exception) == f"[Exception] Invalid configuration: {details}"
 
     def test_invalid_config_exception_with_different_details(self) -> None:
-        """测试不同详情的 InvalidConfigException。"""
+        """Test InvalidConfigException with different details."""
         details_list = [
             "URL is not valid",
             "Database connection failed",
@@ -121,7 +119,7 @@ class TestInvalidConfigException:
             assert details in str(exception)
 
     def test_invalid_config_exception_message_format(self) -> None:
-        """测试 InvalidConfigException 消息格式。"""
+        """Test InvalidConfigException message format."""
         details = "Test details"
         exception = InvalidConfigException(details)
 
@@ -130,10 +128,10 @@ class TestInvalidConfigException:
 
 
 class TestCreatTaskException:
-    """CreatTaskException 的测试用例。"""
+    """Test cases for CreatTaskException."""
 
     def test_create_task_exception_creation(self) -> None:
-        """测试创建 CreatTaskException。"""
+        """Test creating CreatTaskException."""
         details = "API endpoint returned 500 error"
         exception = CreatTaskException(details)
 
@@ -142,7 +140,7 @@ class TestCreatTaskException:
         assert str(exception) == f"[Exception] Task creation failed: {details}"
 
     def test_create_task_exception_with_different_details(self) -> None:
-        """测试不同详情的 CreatTaskException。"""
+        """Test CreatTaskException with different details."""
         details_list = [
             "Network timeout occurred",
             "Invalid project ID provided",
@@ -157,7 +155,7 @@ class TestCreatTaskException:
             assert details in str(exception)
 
     def test_create_task_exception_message_format(self) -> None:
-        """测试 CreatTaskException 消息格式。"""
+        """Test CreatTaskException message format."""
         details = "Test error details"
         exception = CreatTaskException(details)
 
@@ -166,10 +164,10 @@ class TestCreatTaskException:
 
 
 class TestQueryTaskException:
-    """QueryTaskException 的测试用例。"""
+    """Test cases for QueryTaskException."""
 
     def test_query_task_exception_creation(self) -> None:
-        """测试创建 QueryTaskException。"""
+        """Test creating QueryTaskException."""
         details = "Task ID not found in database"
         exception = QueryTaskException(details)
 
@@ -178,7 +176,7 @@ class TestQueryTaskException:
         assert str(exception) == f"[Exception] Querying task status failed: {details}"
 
     def test_query_task_exception_with_different_details(self) -> None:
-        """测试不同详情的 QueryTaskException。"""
+        """Test QueryTaskException with different details."""
         details_list = [
             "Database connection lost",
             "Task has been deleted",
@@ -193,7 +191,7 @@ class TestQueryTaskException:
             assert details in str(exception)
 
     def test_query_task_exception_message_format(self) -> None:
-        """测试 QueryTaskException 消息格式。"""
+        """Test QueryTaskException message format."""
         details = "Test query error"
         exception = QueryTaskException(details)
 
@@ -202,10 +200,10 @@ class TestQueryTaskException:
 
 
 class TestExceptionInteroperability:
-    """测试异常之间的互操作性。"""
+    """Test exception interoperability."""
 
     def test_all_exceptions_are_exception_subclasses(self) -> None:
-        """测试所有自定义异常都继承自 Exception。"""
+        """Test that all custom exceptions inherit from Exception."""
         exceptions = [
             ConfigNotFoundException("test"),
             EnvNotFoundException("test"),
@@ -218,7 +216,7 @@ class TestExceptionInteroperability:
             assert isinstance(exception, Exception)
 
     def test_exception_catching_with_base_exception(self) -> None:
-        """测试使用基类 Exception 捕获自定义异常。"""
+        """Test catching custom exceptions with base Exception class."""
         exceptions = [
             ConfigNotFoundException("test"),
             EnvNotFoundException("test"),
@@ -230,11 +228,17 @@ class TestExceptionInteroperability:
         for exception in exceptions:
             try:
                 raise exception
-            except Exception as e:
+            except (
+                ConfigNotFoundException,
+                EnvNotFoundException,
+                InvalidConfigException,
+                CreatTaskException,
+                QueryTaskException,
+            ) as e:
                 assert isinstance(e, type(exception))
 
     def test_exception_message_consistency(self) -> None:
-        """测试异常消息的一致性。"""
+        """Test exception message consistency."""
         exceptions = [
             ConfigNotFoundException("test_path"),
             EnvNotFoundException("test_key"),
@@ -244,18 +248,18 @@ class TestExceptionInteroperability:
         ]
 
         for exception in exceptions:
-            # 所有异常都应该有 message 属性
+            # All exceptions should have a message attribute
             assert hasattr(exception, "message")
             assert isinstance(exception.message, str)
             assert len(exception.message.strip()) > 0
 
-            # 所有异常的 __str__ 方法都应该返回格式化的字符串
+            # All exceptions' __str__ method should return formatted strings
             str_repr = str(exception)
             assert str_repr.startswith("[Exception]")
             assert exception.message in str_repr
 
     def test_exception_args_parameter(self) -> None:
-        """测试异常的 args 参数传递。"""
+        """Test exception args parameter passing."""
         test_message = "test message"
         exceptions = [
             ConfigNotFoundException("test_path"),
@@ -266,6 +270,6 @@ class TestExceptionInteroperability:
         ]
 
         for exception in exceptions:
-            # 异常应该正确传递消息给父类
+            # Exceptions should correctly pass messages to parent class
             assert len(exception.args) >= 1
             assert exception.message in exception.args[0]  # type: ignore[attr-defined]

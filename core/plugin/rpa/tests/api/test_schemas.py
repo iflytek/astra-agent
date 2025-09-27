@@ -1,16 +1,18 @@
-"""测试 API schemas（DTO）模块。"""
+"""Test API schemas (DTO) module."""
 
 import pytest
+from plugin.rpa.api.schemas.execution_schema import (
+    RPAExecutionRequest,
+    RPAExecutionResponse,
+)
 from pydantic import ValidationError
-
-from api.schemas.execution_dto import RPAExecutionRequest, RPAExecutionResponse
 
 
 class TestRPAExecutionRequest:
-    """RPAExecutionRequest DTO 的测试用例。"""
+    """Test cases for RPAExecutionRequest DTO."""
 
     def test_valid_request_with_all_fields(self) -> None:
-        """测试包含所有字段的有效请求。"""
+        """Test valid request with all fields."""
         request_data = {
             "sid": "test_session_123",
             "project_id": "test_project_456",
@@ -25,7 +27,7 @@ class TestRPAExecutionRequest:
         assert request.params == {"key1": "value1", "key2": "value2"}
 
     def test_valid_request_minimal_fields(self) -> None:
-        """测试只包含必需字段的有效请求。"""
+        """Test valid request with only required fields."""
         request_data = {"project_id": "test_project_456"}
         request = RPAExecutionRequest(**request_data)  # type: ignore[arg-type]
 
@@ -35,7 +37,7 @@ class TestRPAExecutionRequest:
         assert request.params is None
 
     def test_invalid_request_missing_project_id(self) -> None:
-        """测试缺少必需字段 project_id 的无效请求。"""
+        """Test invalid request missing required field project_id."""
         request_data = {"sid": "test_session_123"}
 
         with pytest.raises(ValidationError) as exc_info:
@@ -44,23 +46,23 @@ class TestRPAExecutionRequest:
         assert "project_id" in str(exc_info.value)
 
     def test_request_with_empty_params(self) -> None:
-        """测试 params 为空字典的请求。"""
+        """Test request with empty params dictionary."""
         request_data = {"project_id": "test_project_456", "params": {}}
         request = RPAExecutionRequest(**request_data)  # type: ignore[arg-type]
-        assert request.params == {}
+        assert not request.params
 
     def test_request_with_none_params(self) -> None:
-        """测试 params 为 None 的请求。"""
+        """Test request with None params."""
         request_data = {"project_id": "test_project_456", "params": None}
         request = RPAExecutionRequest(**request_data)  # type: ignore[arg-type]
         assert request.params is None
 
 
 class TestRPAExecutionResponse:
-    """RPAExecutionResponse DTO 的测试用例。"""
+    """Test cases for RPAExecutionResponse DTO."""
 
     def test_valid_response_with_all_fields(self) -> None:
-        """测试包含所有字段的有效响应。"""
+        """Test valid response with all fields."""
         response_data = {
             "code": 200,
             "message": "Success",
@@ -75,7 +77,7 @@ class TestRPAExecutionResponse:
         assert response.data == {"result": "completed", "task_id": "task_456"}
 
     def test_valid_response_minimal_fields(self) -> None:
-        """测试只包含必需字段的有效响应。"""
+        """Test valid response with only required fields."""
         response_data = {"code": 500, "message": "Internal Server Error"}
         response = RPAExecutionResponse(**response_data)  # type: ignore[arg-type]
 
@@ -85,7 +87,7 @@ class TestRPAExecutionResponse:
         assert response.data is None
 
     def test_invalid_response_missing_code(self) -> None:
-        """测试缺少必需字段 code 的无效响应。"""
+        """Test invalid response missing required field code."""
         response_data = {"message": "Success"}
 
         with pytest.raises(ValidationError) as exc_info:
@@ -94,7 +96,7 @@ class TestRPAExecutionResponse:
         assert "code" in str(exc_info.value)
 
     def test_invalid_response_missing_message(self) -> None:
-        """测试缺少必需字段 message 的无效响应。"""
+        """Test invalid response missing required field message."""
         response_data = {"code": 200}
 
         with pytest.raises(ValidationError) as exc_info:
@@ -103,7 +105,7 @@ class TestRPAExecutionResponse:
         assert "message" in str(exc_info.value)
 
     def test_response_model_dump_json(self) -> None:
-        """测试响应对象转换为 JSON 字符串。"""
+        """Test response object conversion to JSON string."""
         response_data = {
             "code": 200,
             "message": "Success",

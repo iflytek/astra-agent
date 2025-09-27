@@ -12,7 +12,6 @@ import uuid
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field
-
 from workflow.engine.entities.node_entities import NodeType
 from workflow.extensions.middleware.getters import get_oss_service
 from workflow.extensions.otlp.log_trace.base import Usage

@@ -3,7 +3,6 @@ import os
 
 import requests  # type: ignore
 from sqlmodel import Session  # type: ignore
-
 from workflow.cache.app import get_app_by_app_id, set_app_by_app_id
 from workflow.domain.models.ai_app import App
 from workflow.domain.models.app_source import AppSource
@@ -48,7 +47,7 @@ def get_app_source_id(app_id: str, span: Span) -> str:
     url = os.getenv("APP_MANAGE_PLAT_APP_LIST")
     if not url:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed,
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR,
             err_msg="APP_MANAGE_PLAT_APP_LIST not configured",
         )
 
@@ -59,13 +58,15 @@ def get_app_source_id(app_id: str, span: Span) -> str:
 
     # Check HTTP response status
     if resp.status_code != 200:
-        raise CustomException(CodeEnum.AppGetWithRemoteFailed, cause_error=resp.text)
+        raise CustomException(
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR, cause_error=resp.text
+        )
 
     # Check API response code
     code = resp.json().get("code")
     if code != 0:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed,
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR,
             cause_error=json.dumps(resp.json(), ensure_ascii=False),
         )
 
@@ -92,7 +93,7 @@ def get_app_source_detail(app_id: str, span: Span) -> tuple[str, str, str, str]:
     url = os.getenv("APP_MANAGE_PLAT_APP_DETAILS")
     if not url:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed,
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR,
             err_msg="APP_MANAGE_PLAT_APP_DETAILS not configured",
         )
 
@@ -103,13 +104,15 @@ def get_app_source_detail(app_id: str, span: Span) -> tuple[str, str, str, str]:
 
     # Check HTTP response status
     if resp.status_code != 200:
-        raise CustomException(CodeEnum.AppGetWithRemoteFailed, cause_error=resp.text)
+        raise CustomException(
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR, cause_error=resp.text
+        )
 
     # Check API response code
     code = resp.json().get("code")
     if code != 0:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed,
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR,
             cause_error=json.dumps(resp.json(), ensure_ascii=False),
         )
 
@@ -117,7 +120,7 @@ def get_app_source_detail(app_id: str, span: Span) -> tuple[str, str, str, str]:
     data = resp.json().get("data", [{}])
     if not data:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed, cause_error="data is null"
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR, cause_error="data is null"
         )
 
     # Log the response data for debugging
@@ -137,7 +140,8 @@ def get_app_source_detail(app_id: str, span: Span) -> tuple[str, str, str, str]:
     # Validate that API credentials are present
     if not api_key or not api_secret:
         raise CustomException(
-            CodeEnum.AppGetWithRemoteFailed, cause_error="api_key or api_secret is null"
+            CodeEnum.APP_GET_WITH_REMOTE_FAILED_ERROR,
+            cause_error="api_key or api_secret is null",
         )
 
     return name, desc, api_key, api_secret
@@ -171,16 +175,16 @@ def get_info(app_id: str, session: Session, span: Span) -> App:
             source_id = get_app_source_id(app_id, span)
             if not source_id:
                 raise CustomException(
-                    CodeEnum.AppTenantNotFound,
-                    err_msg=f"{CodeEnum.AppTenantNotFound.msg}. source_id not found",
+                    CodeEnum.APP_TENANT_NOT_FOUND_ERROR,
+                    err_msg="source_id not found",
                 )
 
             # Find the corresponding app source in database
             app_source = session.query(AppSource).filter_by(source_id=source_id).first()
             if not app_source:
                 raise CustomException(
-                    CodeEnum.AppTenantNotFound,
-                    err_msg=f"{CodeEnum.AppTenantNotFound.msg}. app_source not found",
+                    CodeEnum.APP_TENANT_NOT_FOUND_ERROR,
+                    err_msg="app_source not found",
                 )
 
             # Get detailed application information from external API

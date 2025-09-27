@@ -6,6 +6,8 @@ between different audit strategies and manages the flow of content through the
 audit pipeline.
 """
 
+import os
+
 from workflow.extensions.otlp.trace.span import Span
 
 from .base import FrameAuditResult, InputFrameAudit, OutputFrameAudit
@@ -56,9 +58,10 @@ class AuditOrchestrator:
                 output_frame.content == ""
                 and output_frame.status != Status.STOP
                 and not output_frame.none_need_audit
+                or (int(os.getenv("AUDIT_ENABLE", "0")) == 0)
             ):
                 context_span.add_info_event(
-                    "↑↑↑↑↑↑↑↑↑↑↑ This frame is empty, skipping audit ↑↑↑↑↑↑↑↑↑↑↑"
+                    "↑↑↑↑↑↑↑↑↑↑↑ This frame is empty, skipping audit or audit is disabled ↑↑↑↑↑↑↑↑↑↑↑"
                 )
                 await self.audit_strategy.context.output_queue_put(
                     FrameAuditResult(
@@ -82,4 +85,7 @@ class AuditOrchestrator:
         :param input_frame: Input frame containing content to be audited
         :param span: Span object for tracking request context information and logging
         """
+        if int(os.getenv("AUDIT_ENABLE", "0")) == 0:
+            return None
+
         return await self.audit_strategy.input_review(input_frame, span)

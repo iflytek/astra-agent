@@ -1,6 +1,7 @@
 import json
 import os
 from enum import Enum
+from typing import Sequence
 
 from loguru import logger
 from opentelemetry import trace
@@ -27,19 +28,19 @@ class SpanLevel(Enum):
 
 class FileSpanExporter(SpanExporter):
 
-    def export(self, spans):
+    def export(self, spans: Sequence[trace.Span]) -> SpanExportResult:  # type: ignore[override]
         try:
             for span in spans:
-                content = f"Span: {json.dumps(json.loads(span.to_json()), ensure_ascii=False)}"
+                content = f"Span: {json.dumps(json.loads(span.to_json()), ensure_ascii=False)}"  # type: ignore[attr-defined]
 
                 if (
-                    span.name == SpanLevel.ERROR.value
-                    or span.status.status_code == StatusCode.ERROR
+                    span.name == SpanLevel.ERROR.value  # type: ignore[attr-defined]
+                    or span.status.status_code == StatusCode.ERROR  # type: ignore[attr-defined]
                 ):
                     logger.error(content)
-                elif span.name == SpanLevel.INFO.value:
+                elif span.name == SpanLevel.INFO.value:  # type: ignore[attr-defined]
                     logger.info(content)
-                elif span.name == SpanLevel.WARN.value:
+                elif span.name == SpanLevel.WARN.value:  # type: ignore[attr-defined]
                     logger.warning(content)
                 else:
                     logger.debug(content)
@@ -47,7 +48,7 @@ class FileSpanExporter(SpanExporter):
             logger.error(f"Error exporting spans: {e}")
         return SpanExportResult.SUCCESS
 
-    def shutdown(self):
+    def shutdown(self) -> SpanExportResult:  # type: ignore[override]
         return SpanExportResult.SUCCESS
 
 
@@ -60,7 +61,7 @@ def init_trace(
     max_export_batch_size: int = 512,
     export_timeout_millis: int = 30000,
     span_limit: int = 1000,
-):
+) -> None:
     """
     初始化trace
     :param endpoint:        otlp endpoint
@@ -105,23 +106,21 @@ def init_trace(
 
         provider.add_span_processor(processor)
 
-    # 添加文件 exporter（本地持久化）
     file_exporter = FileSpanExporter()
     file_processor = BatchSpanProcessor(file_exporter)
     provider.add_span_processor(file_processor)
 
-    # 设置全局默认的跟踪器提供者
     trace.set_tracer_provider(provider)
     logger.debug("trace init success")
 
 
 class Trace:
     @staticmethod
-    def inject_context() -> dict:
+    def inject_context() -> dict:  # type: ignore[report-untyped-def]
         trace_context: dict = {}
         inject(trace_context)
         return trace_context
 
     @staticmethod
-    def extract_context(trace_context):
+    def extract_context(trace_context: dict) -> dict:
         return extract(trace_context)
