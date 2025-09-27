@@ -7,6 +7,7 @@ handling license retrieval operations through app and flow group relationships.
 
 from sqlalchemy import text
 from sqlmodel import Session  # type: ignore
+
 from workflow.domain.models.license import License
 
 

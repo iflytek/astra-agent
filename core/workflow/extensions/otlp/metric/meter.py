@@ -4,6 +4,7 @@ import time
 from typing import Any, Dict, Optional
 
 from opentelemetry.trace import Status, StatusCode
+
 from workflow.extensions.otlp.metric import metric
 from workflow.extensions.otlp.trace.span import Span
 from workflow.extensions.otlp.util.ip import ip

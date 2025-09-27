@@ -11,6 +11,7 @@ import time
 from typing import Any, Dict
 
 from pydantic import BaseModel
+
 from workflow.consts.engine.chat_status import ChatStatus
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
@@ -93,15 +94,12 @@ class EventRegistry(BaseShutdownEvent):
         :param cls: Class itself
         :param event: Event object to save
         """
-        try:
-            get_cache_service().hash_set_ex(
-                name=cls._event_key(),
-                key=event.event_id,
-                value=cls._encode(event),
-                expire_time=event.timeout,
-            )
-        except Exception:
-            pass
+        get_cache_service().hash_set_ex(
+            name=cls._event_key(),
+            key=event.event_id,
+            value=cls._encode(event),
+            expire_time=event.timeout,
+        )
 
     @classmethod
     def init_event(cls, event: Event) -> None:
@@ -139,10 +137,7 @@ class EventRegistry(BaseShutdownEvent):
         :param cls: Class itself for accessing class variables and methods
         :param event_id: ID of the event to delete
         """
-        try:
-            get_cache_service().hash_del(cls._event_key(), event_id)
-        except Exception:
-            pass
+        get_cache_service().hash_del(cls._event_key(), event_id)
 
     @classmethod
     def get_all_event_ids(cls) -> dict:
@@ -151,10 +146,7 @@ class EventRegistry(BaseShutdownEvent):
 
         :return: Dictionary containing all event IDs
         """
-        try:
-            return get_cache_service().hash_get_all(cls._event_key())
-        except Exception:
-            return {}
+        return get_cache_service().hash_get_all(cls._event_key())
 
     @classmethod
     def update_event(cls, event_id: str, key: str, value: Any) -> None:
@@ -179,7 +171,8 @@ class EventRegistry(BaseShutdownEvent):
         """
         Handle event interruption.
 
-        Get event by given event ID, if event exists, set its status to "interrupted" and save the event.
+        Get event by given event ID, if event exists,
+        set its status to "interrupted" and save the event.
 
         :param event_id: Unique identifier of the event
         """

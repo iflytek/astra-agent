@@ -19,6 +19,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.routing import APIRoute
 from loguru import logger
 from starlette.middleware.cors import CORSMiddleware
+
 from workflow.api.v1.flow.publish_auth import publish_auth_router
 from workflow.api.v1.router import sparkflow_router, workflow_router
 from workflow.cache.event_registry import EventRegistry
@@ -139,27 +140,23 @@ def set_env() -> None:
     :raises ValueError: If no configuration file is found
     :raises Exception: Re-raises any other exceptions that occur during loading
     """
-    try:
-        # Determine the runtime environment (defaults to Local)
-        running_env = os.getenv("RUNTIME_ENV", "")
+    # Determine the runtime environment (defaults to Local)
+    running_env = os.getenv("RUNTIME_ENV", "")
 
-        # Select the appropriate configuration file based on environment
-        if running_env == RuntimeEnv.Local.value:
-            env_file = Path(__file__).parent.parent / "workflow/config.local.env"
-        else:
-            env_file = Path(__file__).parent.parent / "workflow/config.env"
+    # Select the appropriate configuration file based on environment
+    if running_env == RuntimeEnv.Local.value:
+        env_file = Path(__file__).parent.parent / "workflow/config.local.env"
+    else:
+        env_file = Path(__file__).parent.parent / "workflow/config.env"
 
-        logger.debug(f"config.env: {env_file}")
+    logger.debug(f"config.env: {env_file}")
 
-        # Load environment variables from the configuration file
-        if os.path.exists(env_file):
-            load_dotenv(env_file, override=False)
-            logger.debug("Using config.env file.")
-        else:
-            raise ValueError("No config.env file found.")
-    except Exception:
-        # Re-raise any exceptions that occur during environment setup
-        raise
+    # Load environment variables from the configuration file
+    if os.path.exists(env_file):
+        load_dotenv(env_file, override=False)
+        logger.debug("Using config.env file.")
+    else:
+        raise ValueError("No config.env file found.")
 
 
 def _get_worker_count() -> int:
@@ -174,12 +171,10 @@ def _get_worker_count() -> int:
 
 
 if __name__ == "__main__":
-    """
-    Main entry point for the Spark Flow application.
+    # Main entry point for the Spark Flow application.
+    # This block initializes the application environment and starts the Uvicorn
+    # ASGI server with appropriate configuration for different platforms.
 
-    This block initializes the application environment and starts the Uvicorn
-    ASGI server with appropriate configuration for different platforms.
-    """
     # Log the current platform for debugging purposes
     logger.debug(f"current platform {sys.platform}")
 

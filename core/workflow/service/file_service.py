@@ -8,6 +8,7 @@ file type checking and size limit enforcement.
 import os
 
 from fastapi import UploadFile
+
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.otlp.trace.span import Span
@@ -18,7 +19,8 @@ def check(file: UploadFile, contents: bytes, span_context: Span) -> None:
     Validate uploaded file against supported file types and size limits.
 
     :param file: The uploaded file object containing metadata
-    :param contents: The file contents as bytes (currently unused but kept for future use)
+    :param contents: The file contents as bytes (currently unused but kept
+                     for future use)
     :param span_context: Tracing span for logging validation events
     :raises CustomException: If file type is not supported or file size exceeds limit
     """

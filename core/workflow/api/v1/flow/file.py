@@ -10,7 +10,8 @@ from typing import Annotated, List
 
 from fastapi import APIRouter, File, Header, UploadFile
 from fastapi.responses import JSONResponse
-from workflow.domain.entities.response import response_error, response_success
+
+from workflow.domain.entities.response import Resp
 from workflow.exception.e import CustomException
 from workflow.exception.errors.err_code import CodeEnum
 from workflow.extensions.middleware.getters import get_oss_service
@@ -49,15 +50,15 @@ async def upload_file(
                 f"{str(uuid.uuid4())}.{extension}", contents
             )
             m.in_success_count()
-            return response_success(data={"url": file_url}, sid=span_context.sid)
+            return Resp.success(data={"url": file_url}, sid=span_context.sid)
         except CustomException as e:
             span_context.record_exception(e)
             m.in_error_count(e.code, span=span_context)
-            return response_error(e.code, e.message, span_context.sid)
+            return Resp.error(e.code, e.message, span_context.sid)
         except Exception as e:
             span_context.record_exception(e)
             m.in_error_count(CodeEnum.FILE_STORAGE_ERROR.code, span=span_context)
-            return response_error(
+            return Resp.error(
                 CodeEnum.FILE_STORAGE_ERROR.code,
                 CodeEnum.FILE_STORAGE_ERROR.msg,
                 span_context.sid,
@@ -95,15 +96,15 @@ async def upload_files(
                 )
                 file_urls.append(file_url)
             m.in_success_count()
-            return response_success(data={"urls": file_urls}, sid=span_context.sid)
+            return Resp.success(data={"urls": file_urls}, sid=span_context.sid)
         except CustomException as e:
             span_context.record_exception(e)
             m.in_error_count(e.code, span=span_context)
-            return response_error(e.code, e.message, span_context.sid)
+            return Resp.error(e.code, e.message, span_context.sid)
         except Exception as e:
             span_context.record_exception(e)
             m.in_error_count(CodeEnum.FILE_STORAGE_ERROR.code, span=span_context)
-            return response_error(
+            return Resp.error(
                 CodeEnum.FILE_STORAGE_ERROR.code,
                 CodeEnum.FILE_STORAGE_ERROR.msg,
                 span_context.sid,

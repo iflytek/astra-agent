@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 from confluent_kafka import Producer  # type: ignore
 from loguru import logger
+
 from workflow.extensions.middleware.base import Service
 from workflow.extensions.middleware.utils import ServiceType
 

@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+
 from workflow.domain.entities.chat import HistoryItem
 from workflow.infra.providers.llm.iflytek_spark.schemas import SparkAiMessage
 

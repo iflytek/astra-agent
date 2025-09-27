@@ -3,6 +3,7 @@ import re
 from typing import Any, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
+
 from workflow.consts.engine.template import TemplateSplitType
 from workflow.consts.engine.value_type import ValueType
 from workflow.engine.entities.variable_pool import RefNodeInfo, VariablePool

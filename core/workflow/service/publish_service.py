@@ -2,6 +2,7 @@ from typing import Any
 
 from sqlalchemy import text
 from sqlmodel import Session  # type: ignore
+
 from workflow.consts.tenant_publish_matrix import (
     RELEASE_MAPPING,
     SOURCE_MAPPING,
@@ -82,7 +83,8 @@ def _check_permissions(db_app: App, db_flow: Flow, plat: int, span: Span) -> Non
         span.add_info_event(f"App platform release auth: {db_app.plat_release_auth}")
         raise CustomException(
             CodeEnum.APP_TENANT_PLATFORM_UNAUTHORIZED_ERROR,
-            err_msg=f"Current app_id does not have permission to publish to {SOURCE_MAPPING[plat]}",
+            err_msg=f"Current app_id does not have permission "
+            f"to publish to {SOURCE_MAPPING[plat]}",
         )
     # Check if tenant has permission for workflow's source platform
     if db_app.plat_release_auth & db_flow.source == 0:
@@ -90,7 +92,8 @@ def _check_permissions(db_app: App, db_flow: Flow, plat: int, span: Span) -> Non
         raise CustomException(
             CodeEnum.APP_TENANT_PLATFORM_UNAUTHORIZED_ERROR,
             err_msg=f"Current flow is on platform {SOURCE_MAPPING[db_flow.source]}, "
-            f"but current app_id does not have permission for {SOURCE_MAPPING[db_flow.source]}",
+            f"but current app_id does not have permission for "
+            f"{SOURCE_MAPPING[db_flow.source]}",
         )
 
 
@@ -132,7 +135,8 @@ def _get_release_status(release_status: int, plat: int, span: Span) -> int:
     if rs == -1:
         raise CustomException(
             CodeEnum.APP_PLAT_NOT_RELEASE_OP_ERROR,
-            err_msg=f"Error: {SOURCE_MAPPING[plat]} does not support {RELEASE_MAPPING[release_status]} operation",
+            err_msg=f"Error: {SOURCE_MAPPING[plat]} "
+            f"does not support {RELEASE_MAPPING[release_status]} operation",
         )
     return rs
 

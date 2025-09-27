@@ -43,7 +43,8 @@ class JsonSchemaValidator:
 
     def preprocess_data(self, data: dict) -> dict:
         """
-        Preprocess input data according to JSON Schema, adding default values for required fields.
+        Preprocess input data according to JSON Schema, adding default values for
+        required fields.
 
         :param data: Data dictionary to preprocess
         :return: Preprocessed data dictionary

@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
+
 from workflow.engine.callbacks.openai_types_sse import GenerateUsage
 from workflow.exception.e import CustomException
 

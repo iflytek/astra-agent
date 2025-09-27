@@ -5,6 +5,7 @@ through license records in the database.
 """
 
 from sqlmodel import Session  # type: ignore
+
 from workflow.domain.models.ai_app import App
 from workflow.domain.models.license import License
 

@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 
 from pydantic import BaseModel
+
 from workflow.engine.callbacks.callback_handler import ChatCallBacks
 from workflow.engine.entities.chains import Chains
 from workflow.engine.entities.msg_or_end_dep_info import MsgOrEndDepInfo

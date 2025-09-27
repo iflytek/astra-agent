@@ -33,7 +33,8 @@ class Streaming:
         Send a streaming or JSON response based on the specified type.
 
         :param response: Content stream to send
-        :param response_type: Type of response to generate (StreamingResponse or JSONResponse)
+        :param response_type: Type of response to generate
+                              (StreamingResponse or JSONResponse)
         :param media_type: Media type for the response (defaults to text/event-stream)
         :param headers: Optional headers for the response
         :return: StreamingResponse or JSONResponse based on the type
@@ -109,7 +110,10 @@ class Streaming:
         :param response: Response dictionary to format
         :return: SSE formatted string
         """
-        return f"data: {json.dumps(response, ensure_ascii=False, separators=(',', ':'))}\n\n"
+        return (
+            f"data: {json.dumps(response, ensure_ascii=False, separators=(',', ':'))}"
+            f"\n\n"
+        )
 
     @staticmethod
     def generate_interrupt_data(response: dict) -> str:
@@ -119,56 +123,63 @@ class Streaming:
         :param response: Response dictionary to format
         :return: SSE formatted interrupt event string
         """
-        return f"event:Interrupt\n,data: {json.dumps(response, ensure_ascii=False, separators=(',', ':'))}\n\n"
+        return (
+            f"event:Interrupt\n,"
+            f"data: {json.dumps(response, ensure_ascii=False, separators=(',', ':'))}"
+            f"\n\n"
+        )
 
 
-# TODO: Encapsulate into a class
-
-
-def response_success(data: Any = None, sid: "str | None" = None) -> JSONResponse:
+class Resp:
     """
-    Create a successful JSON response.
-
-    :param data: Optional data to include in the response
-    :param sid: Optional session ID to include in the response
-    :return: JSONResponse with success status
+    Response class.
     """
-    ret = {"code": 0, "message": "success"}
-    if data:
-        ret["data"] = data
-    if sid:
-        ret["sid"] = sid
-    return JSONResponse(content=ret)
 
+    @staticmethod
+    def success(data: Any = None, sid: "str | None" = None) -> JSONResponse:
+        """
+        Create a successful JSON response.
 
-def response_error(code: int, message: str, sid: str = "") -> JSONResponse:
-    """
-    Create an error JSON response.
+        :param data: Optional data to include in the response
+        :param sid: Optional session ID to include in the response
+        :return: JSONResponse with success status
+        """
+        ret = {"code": 0, "message": "success"}
+        if data:
+            ret["data"] = data
+        if sid:
+            ret["sid"] = sid
+        return JSONResponse(content=ret)
 
-    :param code: Error code
-    :param message: Error message
-    :param sid: Optional session ID to include in the response
-    :return: JSONResponse with error status
-    """
-    ret = {"code": code, "message": message}
-    if sid:
-        ret["sid"] = sid
-    return JSONResponse(content=ret)
+    @staticmethod
+    def error(code: int, message: str, sid: str = "") -> JSONResponse:
+        """
+        Create an error JSON response.
 
+        :param code: Error code
+        :param message: Error message
+        :param sid: Optional session ID to include in the response
+        :return: JSONResponse with error status
+        """
+        ret = {"code": code, "message": message}
+        if sid:
+            ret["sid"] = sid
+        return JSONResponse(content=ret)
 
-def response_error_sse(code: int, message: str, sid: str) -> JSONResponse:
-    """
-    Create an error JSON response with SSE format.
+    @staticmethod
+    def error_sse(code: int, message: str, sid: str) -> JSONResponse:
+        """
+        Create an error JSON response with SSE format.
 
-    :param code: Error code
-    :param message: Error message
-    :param sid: Session ID for the response
-    :return: JSONResponse with error status and SSE format
-    """
-    ret = {
-        "code": code,
-        "message": message,
-        "id": sid,
-        "created": time.time() * 1000,
-    }
-    return JSONResponse(content=ret)
+        :param code: Error code
+        :param message: Error message
+        :param sid: Session ID for the response
+        :return: JSONResponse with error status and SSE format
+        """
+        ret = {
+            "code": code,
+            "message": message,
+            "id": sid,
+            "created": time.time() * 1000,
+        }
+        return JSONResponse(content=ret)

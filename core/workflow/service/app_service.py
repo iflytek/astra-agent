@@ -3,6 +3,7 @@ import os
 
 import requests  # type: ignore
 from sqlmodel import Session  # type: ignore
+
 from workflow.cache.app import get_app_by_app_id, set_app_by_app_id
 from workflow.domain.models.ai_app import App
 from workflow.domain.models.app_source import AppSource
@@ -17,7 +18,8 @@ def _gen_app_auth_header(url: str) -> dict[str, str]:
     Generate authentication headers for the application management platform.
 
     :param url: The request URL for which to generate authentication headers
-    :return: Dictionary containing authentication headers, empty dict if credentials are missing
+    :return: Dictionary containing authentication headers,
+             empty dict if credentials are missing
     """
     # Retrieve API credentials from environment variables
     api_key = os.getenv("APP_MANAGE_PLAT_KEY", "")
@@ -36,7 +38,8 @@ def _gen_app_auth_header(url: str) -> dict[str, str]:
 
 def get_app_source_id(app_id: str, span: Span) -> str:
     """
-    Retrieve the source ID for a given application from the application management platform.
+    Retrieve the source ID for a given application from the application management
+    platform.
 
     :param app_id: The application ID to query
     :param span: Tracing span for logging and monitoring
@@ -82,7 +85,8 @@ def get_app_source_id(app_id: str, span: Span) -> str:
 
 def get_app_source_detail(app_id: str, span: Span) -> tuple[str, str, str, str]:
     """
-    Retrieve detailed application information including name, description, and API credentials.
+    Retrieve detailed application information including name, description,
+    and API credentials.
 
     :param app_id: The application ID to query
     :param span: Tracing span for logging and monitoring

@@ -79,8 +79,8 @@ class CodeEnum(Enum):
     )
     SPARK_TRAFFIC_LIMIT_ERROR = (
         20357,
-        "Model service user traffic limit: service is processing user's current question, "
-        "wait for completion before sending new request",
+        "Model service user traffic limit: service is processing user's current "
+        "question, wait for completion before sending new request",
     )
     SPARK_CAPACITY_ERROR = (20358, "Model service capacity insufficient, contact staff")
     SPARK_ENGINE_CONNECTION_ERROR = (
@@ -92,11 +92,13 @@ class CodeEnum(Enum):
     SPARK_ENGINE_INTERNAL_ERROR = (20362, "Model engine internal error")
     SPARK_CONTENT_AUDIT_ERROR = (
         20363,
-        "Model input content audit failed, suspected violation, please adjust input content",
+        "Model input content audit failed, suspected violation, "
+        "please adjust input content",
     )
     SPARK_OUTPUT_AUDIT_ERROR = (
         20364,
-        "Model output content involves sensitive information, audit failed, results cannot be displayed to user",
+        "Model output content involves sensitive information, "
+        "audit failed, results cannot be displayed to user",
     )
     SPARK_APP_ID_BLACKLIST_ERROR = (20365, "Appid is in model service blacklist")
     SPARK_APP_ID_AUTH_ERROR = (
@@ -118,12 +120,14 @@ class CodeEnum(Enum):
     SPARK_ENGINE_NETWORK_ERROR = (20371, "Model service engine network error")
     SPARK_TOKEN_LIMIT_ERROR = (
         20372,
-        "Model request token count exceeds limit, conversation history + question text too long, "
+        "Model request token count exceeds limit, "
+        "conversation history + question text too long, "
         "need to simplify input",
     )
     SPARK_AUTH_ERROR = (
         20373,
-        "Model authorization error: appId has no feature authorization or business volume exceeds limit",
+        "Model authorization error: appId has no feature authorization "
+        "or business volume exceeds limit",
     )
     SPARK_DAILY_LIMIT_ERROR = (
         20374,
@@ -167,7 +171,8 @@ class CodeEnum(Enum):
     # Authentication and rate limiting errors
     MASDK_LICC_LIMIT_ERROR = (
         20900,
-        "Authentication failed: authorization limit, service not authorized or authorization expired",
+        "Authentication failed: authorization limit, "
+        "service not authorized or authorization expired",
     )
     MASDK_OVER_LIMIT_ERROR = (
         20901,
@@ -176,11 +181,13 @@ class CodeEnum(Enum):
     )
     MASDK_OVER_QPS_LIMIT_ERROR = (
         20902,
-        "Authentication failed: service limit exceeded, QPS second-level rate limit exceeded",
+        "Authentication failed: service limit exceeded, "
+        "QPS second-level rate limit exceeded",
     )
     MASDK_OVER_CONC_LIMIT_ERROR = (
         20903,
-        "Concurrency authentication failed: service limit exceeded, concurrency limit exceeded",
+        "Concurrency authentication failed: "
+        "service limit exceeded, concurrency limit exceeded",
     )
     MASDK_CONNECT_ERROR = (
         20904,
@@ -198,7 +205,8 @@ class CodeEnum(Enum):
     AUDIT_SERVER_ERROR = (21101, "Audit service error")
     AUDIT_INPUT_ERROR = (
         21102,
-        "Workflow input content audit failed, suspected violation, please adjust input content",
+        "Workflow input content audit failed, "
+        "suspected violation, please adjust input content",
     )
     AUDIT_OUTPUT_ERROR = (
         21103,

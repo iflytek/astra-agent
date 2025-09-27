@@ -10,6 +10,7 @@ import os
 from typing import Annotated, Optional, Union
 
 from fastapi import APIRouter, Depends, Header
+
 from workflow.consts.engine.chat_status import ChatStatus
 from workflow.consts.runtime_env import RuntimeEnv
 
@@ -19,6 +20,7 @@ except ImportError:
     from sqlalchemy.orm import Session  # type: ignore[assignment]
 
 from starlette.responses import JSONResponse, StreamingResponse
+
 from workflow.cache.event_registry import Event, EventRegistry
 from workflow.consts.app_audit import AppAuditPolicy
 from workflow.consts.tenant_publish_matrix import Platform, TenantPublishMatrix

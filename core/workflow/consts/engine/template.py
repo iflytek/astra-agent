@@ -26,7 +26,8 @@ class TemplateSplitType(Enum):
     When splitting templates, this enum marks the types of different parts:
     - 0: Constants that can be output directly
     - 1: Variables that need to wait for values
-    - 2: LLM node output content in JSON format, needs to extract values from variable pool
+    - 2: LLM node output content in JSON format, needs to extract values
+         from variable pool
     """
 
     CONSTS = 0
